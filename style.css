@@ -1,0 +1,106 @@
+.jobs-header {
+  margin-bottom: 24px;
+}
+
+.job-search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.job-search-bar input {
+  padding: 10px;
+  flex: 1;
+}
+
+.jobs-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.job-listings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 650px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.job-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.job-card h3 {
+  margin-top: 0;
+}
+
+.jobs-chatbot {
+  margin: 0;
+  position: sticky;
+  top: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+  height: 650px;
+}
+
+.jobs-chatbot .chat-box {
+  height: 500px;
+}
+
+@media (max-width: 800px) {
+  .jobs-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .job-search-bar {
+    flex-direction: column;
+  }
+
+  .jobs-chatbot {
+    position: static;
+  }
+}
+
+nav {
+  background: #1f2937;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+nav h1 {
+  margin-right: auto;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+button:hover {
+  opacity: 0.9;
+}

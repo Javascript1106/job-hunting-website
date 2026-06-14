@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Hunting Website</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+  <h1>PathForge</h1>
+
+  <a href="index.html">Home</a>
+  <a href="jobs.html">Jobs</a>
+  <a href="login.html">Login</a>
+  <a href="register.html">Register</a>
+  <a href="employer.html">Employer Dashboard</a>
+</nav>
+
+  <main>
+    <h2>Find jobs that fit you</h2>
+    <p>Search by job title, location, age requirements, schedule, and distance.</p>
+
+    <input type="text" placeholder="Search for jobs...">
+    <button>Search</button>
+  </main>
+
+<section class="chatbot">
+  <div class="chat-header">
+    <h3>Job Assistant</h3>
+    <p>Ask me about jobs, resumes, interviews, or applications.</p>
+  </div>
+
+  <div class="chat-box" id="chatBox">
+    <div class="bot-message">
+      Hi! I can help you find jobs that fit your age, schedule, location, and experience.
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Ask the job assistant...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</section>
+
+  <script src="script.js"></script>
+</body>
+</html>
