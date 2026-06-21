@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 app = FastAPI()
 
@@ -18,6 +19,13 @@ class ChatMessage(BaseModel):
 @app.get("/")
 def home():
     return {"message": "Job hunting website backend is running"}
+
+@app.get("/jobs")
+def get_jobs():
+    with open("jobs.json", "r") as file:
+        jobs = json.load(file)
+
+    return jobs
 
 @app.post("/chat")
 def chat(data: ChatMessage):

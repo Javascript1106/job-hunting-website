@@ -1,0 +1,43 @@
+[
+  {
+    "title": "Crew Member",
+    "company": "Taco Bell",
+    "location": "Saratoga Springs, UT",
+    "pay": "$12-$15/hr",
+    "description": "Help customers, prepare food, and keep the restaurant clean.",
+    "schedule": "Part-Time",
+    "experience": "No experience required",
+    "category": "Food Service"
+  },
+  {
+    "title": "Team Member",
+    "company": "Chick-fil-A",
+    "location": "Lehi, UT",
+    "pay": "$13-$16/hr",
+    "description": "Serve guests, prepare orders, and support team operations.",
+    "schedule": "Part-Time",
+    "experience": "No experience required",
+    "category": "Food Service"
+  },
+  {
+    "title": "Cashier",
+    "company": "Target",
+    "location": "American Fork, UT",
+    "pay": "$14-$17/hr",
+    "description": "Assist guests, process purchases, and keep checkout areas organized.",
+    "schedule": "Part-Time",
+    "experience": "Entry level",
+    "category": "Retail"
+  },
+
+  {
+  "title": "Warehouse Associate",
+  "company": "Amazon",
+  "location": "Lehi, UT",
+  "pay": "$18-$21/hr",
+  "description": "Move inventory throughout the warehouse.",
+  "schedule": "Full-Time",
+  "experience": "Entry Level",
+  "category": "Warehouse"
+  }
+]
