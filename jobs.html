@@ -8,7 +8,7 @@
 <body>
 
 <nav>
-  <h1>JobFinder</h1>
+  <h1>PathForge</h1>
 
   <a href="index.html">Home</a>
   <a href="jobs.html">Jobs</a>
@@ -34,27 +34,37 @@
   </section>
 
   <section class="jobs-layout">
-  <div class="job-listings" id="jobListings">
-    <!-- Jobs load here from jobs.json -->
-  </div>
+    <div class="job-listings" id="jobListings">
+      <!-- Jobs load here from the database -->
+    </div>
+  </section>
+</main>
 
-  <section class="chatbot jobs-chatbot">
-    <div class="chat-header">
+<button id="chatToggleButton" onclick="toggleChat()">
+  💬 Ask PathForge AI
+</button>
+
+<section class="chatbot hidden-chat" id="chatbotWindow">
+  <div class="chat-header">
+    <div>
       <h3>AI Job Assistant</h3>
       <p>Ask about jobs, resumes, interviews, or schedules.</p>
     </div>
 
-    <div id="chatBox" class="chat-box">
-      <div class="bot-message">Hi! How can I help with your job search?</div>
-    </div>
+    <button class="close-chat" onclick="toggleChat()">✕</button>
+  </div>
 
-    <div class="chat-input-area">
-      <input id="chatInput" type="text" placeholder="Type your message...">
-      <button onclick="sendMessage()">Send</button>
+  <div class="chat-box" id="chatBox">
+    <div class="bot-message">
+      Hi! I can help with jobs, resumes, interviews, and career planning.
     </div>
-  </section>
+  </div>
+
+  <div class="chat-input-area">
+    <input id="chatInput" type="text" placeholder="Ask the job assistant...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
 </section>
-</main>
 
 <script src="script.js"></script>
 </body>

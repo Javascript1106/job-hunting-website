@@ -1,5 +1,12 @@
 let allJobs = [];
 
+function quickMessage(message) {
+  const input = document.getElementById("chatInput");
+
+  input.value = message;
+  sendMessage();
+}
+
 async function sendMessage() {
   const input = document.getElementById("chatInput");
   const chatBox = document.getElementById("chatBox");
