@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-import json
+import sqlite3
 
 app = FastAPI()
 
@@ -13,8 +13,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+DB_NAME = "jobs.db"
+
 class ChatMessage(BaseModel):
     message: str
+
+class Job(BaseModel):
+    title: str
+    company: str
+    location: str
+    pay: str
+    description: str
+    schedule: str
+    experience: str
+    category: str
 
 @app.get("/")
 def home():
@@ -22,10 +34,64 @@ def home():
 
 @app.get("/jobs")
 def get_jobs():
-    with open("jobs.json", "r") as file:
-        jobs = json.load(file)
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
+    cursor.execute("SELECT * FROM jobs")
+    rows = cursor.fetchall()
+
+    jobs = []
+    for row in rows:
+        jobs.append(dict(row))
+
+    conn.close()
     return jobs
+
+@app.post("/jobs")
+def add_job(job: Job):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO jobs (
+            title,
+            company,
+            location,
+            pay,
+            description,
+            schedule,
+            experience,
+            category
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        job.title,
+        job.company,
+        job.location,
+        job.pay,
+        job.description,
+        job.schedule,
+        job.experience,
+        job.category
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return {"message": "Job added successfully"}
+
+@app.delete("/jobs/{job_id}")
+def delete_job(job_id: int):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
+
+    conn.commit()
+    conn.close()
+
+    return {"message": f"Job {job_id} deleted successfully"}
 
 @app.post("/chat")
 def chat(data: ChatMessage):
