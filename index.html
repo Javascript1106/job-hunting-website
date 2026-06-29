@@ -1,46 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Job Hunting Website</title>
+  <title>PathForge</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <nav>
-  <h1>JobFinder</h1>
 
-  <a href="index.html">Home</a>
-  <a href="jobs.html">Jobs</a>
-  <a href="login.html">Login</a>
-  <a href="register.html">Register</a>
-  <a href="employer.html">Employer Dashboard</a>
-</nav>
+<body>
+
+  <nav>
+    <h1>PathForge</h1>
+
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="login.html">Login</a>
+    <a href="register.html">Register</a>
+    <a href="employer.html">Employer Dashboard</a>
+  </nav>
 
   <main>
     <h2>Find jobs that fit you</h2>
-    <p>Search by job title, location, age requirements, schedule, and distance.</p>
 
-    <input type="text" placeholder="Search for jobs...">
+    <p>
+      Search by job title, location, age requirements,
+      schedule, and distance.
+    </p>
+
+    <input
+      type="text"
+      placeholder="Search for jobs..."
+    >
+
     <button>Search</button>
   </main>
 
-<section class="chatbot">
-  <div class="chat-header">
-    <h3>Job Assistant</h3>
-    <p>Ask me about jobs, resumes, interviews, or applications.</p>
-  </div>
+  <!-- Floating Chat Button -->
 
-  <div class="chat-box" id="chatBox">
-    <div class="bot-message">
-      Hi! I can help you find jobs that fit your age, schedule, location, and experience.
+  <button id="chatToggleButton" onclick="toggleChat()">
+    💬 Ask PathForge AI
+  </button>
+
+  <!-- Chat Window -->
+
+  <section class="chatbot hidden-chat" id="chatbotWindow">
+
+    <div class="chat-header">
+
+      <div>
+        <h3>AI Job Assistant</h3>
+
+        <p>
+          Ask about jobs, resumes, interviews,
+          or schedules.
+        </p>
+      </div>
+
+      <button class="close-chat" onclick="toggleChat()">
+        ✕
+      </button>
+
     </div>
-  </div>
 
-  <div class="chat-input-area">
-    <input type="text" id="chatInput" placeholder="Ask the job assistant...">
-    <button onclick="sendMessage()">Send</button>
-  </div>
-</section>
+    <div class="chat-box" id="chatBox">
+
+      <div class="bot-message">
+        Hi! I can help with jobs, resumes, interviews,
+        and career planning. How can I help today?
+      </div>
+
+    </div>
+
+    <div class="chat-input-area">
+
+      <input
+        type="text"
+        id="chatInput"
+        placeholder="Ask the job assistant..."
+      >
+
+      <button onclick="sendMessage()">
+        Send
+      </button>
+
+    </div>
+
+  </section>
 
   <script src="script.js"></script>
+
 </body>
 </html>

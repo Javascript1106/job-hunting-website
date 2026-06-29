@@ -54,6 +54,12 @@ function addMessage(text, className) {
   return message;
 }
 
+function toggleChat() {
+  const chatWindow = document.getElementById("chatbotWindow");
+
+  chatWindow.classList.toggle("hidden-chat");
+}
+
 function scrollChatToBottom() {
   const chatBox = document.getElementById("chatBox");
 
