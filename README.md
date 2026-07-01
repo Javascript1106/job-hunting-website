@@ -2,7 +2,7 @@
 
 PathForge is a hybrid job-hunting platform designed to help users not only find jobs, but successfully obtain them through AI-assisted career tools.
 
-The long-term goal is to combine traditional job searching with modern AI-powered assistance while keeping the platform accessible and user-friendly.
+The long-term goal is to combine traditional job searching with modern AI-powered assistance while keeping the platform accessible, educational, and user-friendly for job seekers of all experience levels.
 
 ---
 
@@ -74,7 +74,6 @@ The long-term goal is to combine traditional job searching with modern AI-powere
 
 # Project Structure
 
-```text
 job-hunting-website/
 
 ├── index.html
@@ -82,41 +81,34 @@ job-hunting-website/
 ├── login.html
 ├── register.html
 ├── employer.html
-│
+
 ├── style.css
 ├── script.js
-│
+
 ├── main.py
 ├── database.py
 ├── jobs.db
-│
+
 ├── README.md
 ├── future-features.md
-```
 
 ---
 
 # Running PathForge Locally
 
-## 1. Start the Backend
+## Start the Backend
 
 Open a terminal inside the project folder and run:
 
-```bash
 python -m uvicorn main:app --reload
-```
 
-If successful, FastAPI should start on:
+FastAPI should start on:
 
-```text
 http://127.0.0.1:8000
-```
 
----
+## Start the Frontend
 
-## 2. Start the Frontend
-
-Open the frontend using:
+Use:
 
 * VS Code Live Server (recommended)
 
@@ -126,47 +118,29 @@ or
 
 Recommended starting page:
 
-```text
 index.html
-```
 
 ---
 
 # Current API Endpoints
 
-## GET
-
-```text
-/
-```
+GET /
 
 Returns backend status.
 
-```text
-/jobs
-```
+GET /jobs
 
 Returns all jobs.
 
-## POST
-
-```text
-/Jobs
-```
+POST /jobs
 
 Creates a new job.
 
-```text
-/chat
-```
+POST /chat
 
 Sends a message to the AI assistant.
 
-## DELETE
-
-```text
-/jobs/{id}
-```
+DELETE /jobs/{id}
 
 Deletes a job.
 
@@ -179,6 +153,35 @@ Deletes a job.
 * Finish the current phase before beginning the next.
 * Working systems are more important than additional features.
 * Preserve previously completed functionality.
+* Keep the free experience highly valuable.
+* Accessibility features should always remain free.
+
+---
+
+# Target Audience
+
+PathForge is designed for:
+
+* Teenagers seeking first jobs
+* College students
+* Internship seekers
+* Career changers
+* Experienced professionals
+* Users with accessibility needs
+
+---
+
+# Long-Term Vision
+
+PathForge aims to become a complete career success platform by combining:
+
+* Job search
+* Resume assistance
+* Interview preparation
+* Career guidance
+* Application tracking
+* Personalized recommendations
+* AI-assisted career development
 
 ---
 
@@ -189,5 +192,5 @@ Deletes a job.
 * Week 6 - Employer Features
 * Week 7 - Advanced Search
 * Week 8 - AI Assistant Expansion
-* Week 9 - Polish & Testing
-* Week 10+ - Launch Preparation
+* Week 9 - Polish, Home Page Redesign, Branding & Testing
+* Week 10+ - Launch Preparation, Monetization & Deployment

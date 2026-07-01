@@ -23,6 +23,16 @@ This document contains approved future ideas for PathForge. Features listed here
 * New job matches
 * Recent activity
 
+## Success Dashboard
+
+Track:
+
+* Applications sent
+* Interviews completed
+* Offers received
+* Response rate
+* Jobs saved
+
 ## Calendar Features
 
 * Interview reminders
@@ -159,11 +169,9 @@ Examples:
 * Explore Career Resources
 * Talk to PathForge AI
 
----
-
 ## Feature Showcase
 
-Highlight PathForge's major features:
+Highlight major features:
 
 * Smart Job Search
 * AI Career Assistant
@@ -171,9 +179,7 @@ Highlight PathForge's major features:
 * Resume Support
 * Application Tracking
 
----
-
-## Personalized Dashboard Widgets (Logged-in Users)
+## Personalized Dashboard Widgets
 
 Display:
 
@@ -183,13 +189,9 @@ Display:
 * New job matches
 * Recent activity
 
----
-
 ## Featured Jobs Section
 
 Display recently added or recommended jobs directly on the Home page.
-
----
 
 ## Career Resources Preview
 
@@ -199,8 +201,6 @@ Quick links to:
 * Resume Center
 * Career Guides
 
----
-
 ## Tip of the Day
 
 Examples:
@@ -209,9 +209,7 @@ Examples:
 * Resume Tip of the Day
 * Career Advice of the Day
 
----
-
-## Success Metrics (Future)
+## Success Metrics
 
 Examples:
 
@@ -219,13 +217,10 @@ Examples:
 * Interviews completed
 * Users helped
 
----
+## Testimonials
 
-## Testimonials (Future)
-
-User success stories and feedback.
-
----
+* User success stories
+* Career success journeys
 
 ## Visual Improvements
 
@@ -240,7 +235,7 @@ User success stories and feedback.
 
 # Accessibility Features
 
-Accessibility features should remain free.
+Accessibility features should always remain free.
 
 * High contrast mode
 * Adjustable text size
@@ -260,8 +255,8 @@ Accessibility features should remain free.
 
 Examples:
 
-"What is PTO?"
-"What does Full-Time Exempt mean?"
+* What is PTO?
+* What does Full-Time Exempt mean?
 
 ---
 
@@ -314,6 +309,141 @@ Examples:
 
 * "Don't remind me again" option for premium prompts
 * Users may always continue using the free version
+
+## PathForge Plus Comparison Page
+
+Create a dedicated comparison page allowing users to compare the Free and Plus plans side-by-side.
+
+### Comparison Categories
+
+* Job Search
+* AI Usage
+* Resume Features
+* Interview Features
+* Career Guidance
+* Analytics
+* Automation Features
+
+### Detailed Comparison Examples
+
+AI Career Assistant
+
+Free:
+
+* 50 AI messages per day
+
+Plus:
+
+* Unlimited AI messages
+
+Resume Review
+
+Free:
+
+* General feedback and suggestions
+
+Plus:
+
+* Job-specific optimization
+* ATS scoring
+* Keyword analysis
+
+Resume Tailoring
+
+Free:
+
+* 3 tailored resumes per month
+
+Plus:
+
+* Unlimited tailored resumes
+
+Mock Interviews
+
+Free:
+
+* 5 mock interviews per month
+* Overall score only
+
+Plus:
+
+* Unlimited mock interviews
+* Detailed evaluations
+* Authenticity scoring
+* Personalized coaching
+* Improvement plans
+
+Career Guidance
+
+Free:
+
+* General career advice
+
+Plus:
+
+* Personalized career roadmaps
+
+Analytics
+
+Free:
+
+* Basic application statistics
+
+Plus:
+
+* Detailed success metrics
+* Interview conversion rates
+* Performance trends
+
+Automation
+
+Free:
+
+* Not included
+
+Plus:
+
+* Follow-up reminders
+* Deadline reminders
+* Smart notifications
+
+Transportation Recommendations
+
+Free:
+
+* Basic transportation score
+
+Plus:
+
+* Advanced commute analysis
+
+Support
+
+Free:
+
+* Standard support
+
+Plus:
+
+* Priority support
+
+New Features
+
+Free:
+
+* Standard release schedule
+
+Plus:
+
+* Early access to beta features
+
+### User Experience Goals
+
+* Clearly explain feature differences
+* Emphasize that the free plan remains highly valuable
+* Highlight the additional benefits of Plus
+* Include "Start Free Trial" button
+* Include "Continue with Free Plan" option
 
 ---
 
