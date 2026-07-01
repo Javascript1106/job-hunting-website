@@ -23,7 +23,7 @@ async function sendMessage() {
   const typingMessage = addMessage("PathForge AI is typing...", "bot-message typing");
 
   try {
-    const response = await fetch("http://127.0.0.1:8080/chat", {
+    const response = await fetch("http://127.0.0.1:8000/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -81,7 +81,7 @@ async function loadJobs() {
   if (!jobListings) return;
 
   try {
-    const response = await fetch("http://127.0.0.1:8080/jobs");
+    const response = await fetch("http://127.0.0.1:8000/jobs");
     allJobs = await response.json();
 
     populateCategoryFilter(allJobs);
