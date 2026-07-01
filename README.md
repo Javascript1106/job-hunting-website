@@ -1,8 +1,20 @@
+# README.md
+
 # PathForge
 
 PathForge is a hybrid job-hunting platform designed to help users not only find jobs, but successfully obtain them through AI-assisted career tools.
 
 The long-term goal is to combine traditional job searching with modern AI-powered assistance while keeping the platform accessible, educational, and user-friendly for job seekers of all experience levels.
+
+---
+
+# Target Completion Date
+
+Current target completion date:
+
+**August 16, 2026**
+
+This accelerated timeline allows the project to be completed before Fall 2026 college coursework begins.
 
 ---
 
@@ -39,7 +51,14 @@ The long-term goal is to combine traditional job searching with modern AI-powere
 * API endpoints for jobs
 * API endpoints for chatbot
 
-## Chatbot Enhancements ✅
+## Main Career Assistant Enhancements ✅
+
+Available on:
+
+* Home page
+* Jobs page
+
+Features:
 
 * Modern chat bubbles
 * Conversation history
@@ -49,7 +68,45 @@ The long-term goal is to combine traditional job searching with modern AI-powere
 * Message animations
 * Quick suggestion buttons
 * Floating chatbot launcher
-* Responsive chatbot styling
+* Collapsible chatbot window
+* Responsive styling
+
+---
+
+# AI Assistant System
+
+PathForge uses multiple specialized AI experiences.
+
+## Main Career Assistant
+
+Purpose:
+
+* General job-search assistance
+* Career guidance
+* Resume guidance
+* Job comparisons
+* First-job support
+* Career exploration
+
+Available on:
+
+* Home page
+* Jobs page
+
+## Interview Learning Center Assistant (Planned Week 8)
+
+Separate from the main assistant.
+
+Purpose:
+
+* Mock interviews
+* Interview coaching
+* Interview evaluations
+* Interview practice
+* Authenticity scoring
+* Personalized feedback
+
+Both assistants share backend infrastructure while providing specialized experiences.
 
 ---
 
@@ -69,6 +126,19 @@ The long-term goal is to combine traditional job searching with modern AI-powere
 ## Database
 
 * SQLite
+
+---
+
+# Security
+
+Planned:
+
+* Password hashing
+* Authentication
+* Session management
+* Protected routes
+* Secure logout
+* Duplicate account prevention
 
 ---
 
@@ -114,7 +184,7 @@ Use:
 
 or
 
-* Open the HTML files directly in a web browser.
+* Open HTML files directly in a browser.
 
 Recommended starting page:
 
@@ -136,13 +206,13 @@ POST /jobs
 
 Creates a new job.
 
-POST /chat
-
-Sends a message to the AI assistant.
-
 DELETE /jobs/{id}
 
 Deletes a job.
+
+POST /chat
+
+Sends a message to the AI assistant.
 
 ---
 
@@ -155,6 +225,43 @@ Deletes a job.
 * Preserve previously completed functionality.
 * Keep the free experience highly valuable.
 * Accessibility features should always remain free.
+
+---
+
+# Accessibility Principles
+
+Accessibility features will always remain free.
+
+Planned features include:
+
+* High contrast mode
+* Adjustable text size
+* Dyslexia-friendly fonts
+* Reduced motion mode
+* Screen reader support
+* Keyboard navigation
+* Colorblind-friendly themes
+* Simplified interface mode
+
+---
+
+# Beginner Experience
+
+PathForge is designed to remain approachable for:
+
+* Teenagers
+* College students
+* Internship seekers
+* First-time job seekers
+* Career changers
+* Experienced professionals
+
+Planned Beginner Mode features:
+
+* Job terminology explanations
+* Additional tooltips
+* First-job guidance
+* Simplified interface options
 
 ---
 
@@ -187,10 +294,63 @@ PathForge aims to become a complete career success platform by combining:
 
 # Roadmap
 
-* Week 4 - Authentication System
-* Week 5 - User Dashboard
-* Week 6 - Employer Features
-* Week 7 - Advanced Search
-* Week 8 - AI Assistant Expansion
-* Week 9 - Polish, Home Page Redesign, Branding & Testing
-* Week 10+ - Launch Preparation, Monetization & Deployment
+## Week 4 - Authentication System
+
+* User registration
+* User login
+* Secure logout
+* Password hashing
+* Session management
+* Protected routes
+
+## Week 5 - User Dashboard
+
+* User profiles
+* Saved jobs
+* Application tracking
+* Dashboard widgets
+* Personalization
+* Calendar reminders
+
+## Week 6 - Employer Features
+
+* Employer accounts
+* Employer dashboard
+* Create job postings
+* Edit job postings
+* Delete job postings
+
+## Week 7 - Advanced Search & Accessibility
+
+* Browser geolocation
+* Radius search
+* Transportation recommendations
+* Accessibility improvements
+* Beginner mode
+
+## Week 8 - AI Assistant Expansion
+
+* Resume review
+* Resume uploads
+* Interview Learning Center
+* Mock interviews
+* Career guidance
+* Personalized recommendations
+* Job matching
+
+## Week 9 - Polish, Branding & Testing
+
+* Home page redesign
+* Branding
+* Mobile optimization
+* Accessibility testing
+* Bug fixes
+* Performance optimization
+
+## Week 10+ - Launch Preparation
+
+* Deployment
+* Documentation
+* Portfolio preparation
+* Monetization
+* Subscription management

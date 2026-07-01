@@ -1,10 +1,18 @@
+# future-features.md
+
 # PathForge Future Features
 
 This document contains approved future ideas for PathForge. Features listed here should be implemented only during their appropriate roadmap phases.
 
 ---
 
-# Week 5 - User Dashboard Enhancements
+# Week 5 - User Dashboard
+
+## User Profiles
+
+* Edit personal information
+* Profile customization
+* Profile preferences
 
 ## Personalization
 
@@ -14,6 +22,13 @@ This document contains approved future ideas for PathForge. Features listed here
 * Preferred schedules
 * Remote/on-site preferences
 * Career goals
+* Preferred locations
+
+## Saved Jobs
+
+* Save jobs
+* Remove saved jobs
+* Dedicated saved jobs page
 
 ## Dashboard Widgets
 
@@ -33,6 +48,16 @@ Track:
 * Response rate
 * Jobs saved
 
+## Application Tracking
+
+Statuses:
+
+* Interested
+* Applied
+* Interviewing
+* Offer Received
+* Rejected
+
 ## Calendar Features
 
 * Interview reminders
@@ -41,7 +66,22 @@ Track:
 
 ---
 
-# Week 6 - Employer Communication (Future Expansion)
+# Week 6 - Employer Features
+
+## Employer Dashboard
+
+* Dashboard homepage
+* Employer navigation
+* Employer account type
+
+## Job Management
+
+* Create job postings
+* Edit job postings
+* Delete job postings
+* View posted jobs
+
+## Employer Communication (Future Expansion)
 
 * Secure employer-to-applicant messaging
 * Employer notifications
@@ -118,10 +158,33 @@ For every interview question include:
 * Real interview readiness assessment
 * Personalized improvement recommendations
 
+### Learning Center AI Rules
+
+* Quick suggestion buttons available throughout the Learning Center.
+* If additional information is required, ask the minimum number of follow-up questions necessary.
+* If no additional information is required, immediately begin the requested task.
+
+### Suggested Quick Actions
+
+* Start a mock interview
+* Practice common questions
+* Review my interview answer
+* Teach me the STAR method
+* Show strong vs weak answers
+* Help me prepare for my first interview
+* Generate position-specific interview questions
+
 ### Authenticity Features
 
 * Pre-interview authenticity notice
 * Encourage users to answer using their own experiences
+
+## Resume Features
+
+* Resume upload
+* Resume parsing
+* Resume review
+* Resume optimization suggestions
 
 ## Job Match Score
 
@@ -179,9 +242,15 @@ Highlight major features:
 * Resume Support
 * Application Tracking
 
-## Personalized Dashboard Widgets
+## Home Page AI Showcase
 
-Display:
+Demonstrate:
+
+* Main Career Assistant
+* Interview Learning Center
+* Resume assistance tools
+
+## Personalized Dashboard Widgets
 
 * Saved jobs count
 * Applications in progress
@@ -191,7 +260,8 @@ Display:
 
 ## Featured Jobs Section
 
-Display recently added or recommended jobs directly on the Home page.
+* Recently added jobs
+* Recommended jobs
 
 ## Career Resources Preview
 
@@ -203,15 +273,11 @@ Quick links to:
 
 ## Tip of the Day
 
-Examples:
-
 * Interview Tip of the Day
 * Resume Tip of the Day
 * Career Advice of the Day
 
 ## Success Metrics
-
-Examples:
 
 * Applications tracked
 * Interviews completed
@@ -245,6 +311,19 @@ Accessibility features should always remain free.
 * Keyboard navigation improvements
 * Colorblind-friendly themes
 * Simplified interface mode
+
+---
+
+# Beginner Experience Principles
+
+PathForge should remain approachable for:
+
+* Teenagers
+* First-time job seekers
+* College students
+* Career changers
+
+The platform should avoid unnecessary jargon and explain unfamiliar terminology whenever possible.
 
 ## Beginner Mode
 
@@ -296,7 +375,7 @@ Examples:
 ### Navigation
 
 * Dedicated "PathForge Plus" navigation item
-* Make navigation visually distinct
+* Visually distinct navigation styling
 
 ### Subscription Features
 
@@ -307,12 +386,12 @@ Examples:
 
 ### User Experience
 
-* "Don't remind me again" option for premium prompts
+* "Don't remind me again" option
 * Users may always continue using the free version
 
 ## PathForge Plus Comparison Page
 
-Create a dedicated comparison page allowing users to compare the Free and Plus plans side-by-side.
+Create a dedicated comparison page allowing users to compare Free and Plus plans side-by-side.
 
 ### Comparison Categories
 
@@ -323,119 +402,6 @@ Create a dedicated comparison page allowing users to compare the Free and Plus p
 * Career Guidance
 * Analytics
 * Automation Features
-
-### Detailed Comparison Examples
-
-AI Career Assistant
-
-Free:
-
-* 50 AI messages per day
-
-Plus:
-
-* Unlimited AI messages
-
-Resume Review
-
-Free:
-
-* General feedback and suggestions
-
-Plus:
-
-* Job-specific optimization
-* ATS scoring
-* Keyword analysis
-
-Resume Tailoring
-
-Free:
-
-* 3 tailored resumes per month
-
-Plus:
-
-* Unlimited tailored resumes
-
-Mock Interviews
-
-Free:
-
-* 5 mock interviews per month
-* Overall score only
-
-Plus:
-
-* Unlimited mock interviews
-* Detailed evaluations
-* Authenticity scoring
-* Personalized coaching
-* Improvement plans
-
-Career Guidance
-
-Free:
-
-* General career advice
-
-Plus:
-
-* Personalized career roadmaps
-
-Analytics
-
-Free:
-
-* Basic application statistics
-
-Plus:
-
-* Detailed success metrics
-* Interview conversion rates
-* Performance trends
-
-Automation
-
-Free:
-
-* Not included
-
-Plus:
-
-* Follow-up reminders
-* Deadline reminders
-* Smart notifications
-
-Transportation Recommendations
-
-Free:
-
-* Basic transportation score
-
-Plus:
-
-* Advanced commute analysis
-
-Support
-
-Free:
-
-* Standard support
-
-Plus:
-
-* Priority support
-
-New Features
-
-Free:
-
-* Standard release schedule
-
-Plus:
-
-* Early access to beta features
 
 ### User Experience Goals
 
