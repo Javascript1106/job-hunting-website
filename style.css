@@ -38,6 +38,8 @@ button:hover {
   justify-content: space-between;
   align-items: center;
   padding: 22px 45px;
+  min-height: 72px;
+  box-sizing: border-box;
 }
 
 .main-nav h1 {
@@ -51,6 +53,7 @@ button:hover {
   align-items: center;
   gap: 24px;
   margin-right: 35px;
+  min-height: 32px;
 }
 
 .nav-links a,
@@ -333,4 +336,11 @@ button:hover {
 
 main {
   padding: 36px 50px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 32px;
 }
