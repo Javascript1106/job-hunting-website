@@ -1,25 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Jobs</title>
+  <title>Register - PathForge</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav>
-  <h1>JobFinder</h1>
+<nav class="main-nav">
+  <h1>PathForge</h1>
 
-  <a href="index.html">Home</a>
-  <a href="jobs.html">Jobs</a>
-  <a href="login.html">Login</a>
-  <a href="register.html">Register</a>
-  <a href="employer.html">Employer Dashboard</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a id="loginLink" href="login.html">Login</a>
+    <a id="registerLink" href="register.html">Register</a>
+    <a href="employer.html">Employer Dashboard</a>
+    <button id="logoutButton" class="nav-logout">Logout</button>
+  </div>
 </nav>
 
-<main>
-  <h2>Job Listings</h2>
-  <p>Jobs will appear here.</p>
+<main class="auth-container">
+  <h2>Create Your PathForge Account</h2>
+  <p>Sign up to start using PathForge.</p>
+
+  <form id="registerForm" class="auth-form">
+    <input type="text" id="registerUsername" placeholder="Username" required>
+    <input type="email" id="registerEmail" placeholder="Email" required>
+    <input type="password" id="registerPassword" placeholder="Password" required>
+
+    <button type="submit">Create Account</button>
+  </form>
+
+  <p id="registerMessage" class="auth-message"></p>
 </main>
 
+<script src="script.js"></script>
 </body>
 </html>

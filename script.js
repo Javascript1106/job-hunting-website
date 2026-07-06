@@ -40,11 +40,9 @@ async function sendMessage() {
     }, 500);
 
   } catch (error) {
-    typingMessage.className = "bot-message";
-    typingMessage.textContent = "Sorry, I couldn't connect to the Python backend.";
-    console.error(error);
-  }
-
+    console.error("Registration error:", error);
+    message.textContent = "Connection error: " + error.message;
+}
   scrollChatToBottom();
 }
 
@@ -203,3 +201,166 @@ window.onload = function() {
     });
   }
 };
+
+const registerForm = document.getElementById("registerForm");
+
+if (registerForm) {
+    registerForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const username = document.getElementById("registerUsername").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const message = document.getElementById("registerMessage");
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                message.textContent = data.detail || "Registration failed.";
+                return;
+            }
+
+            message.textContent = "Account created successfully. You can now log in.";
+            registerForm.reset();
+
+        } catch (error) {
+            message.textContent = "Something went wrong. Please try again.";
+        }
+    });
+}
+
+const loginForm = document.getElementById("loginForm");
+
+if (loginForm) {
+    loginForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const identifier = document.getElementById("loginIdentifier").value;
+        const password = document.getElementById("loginPassword").value;
+        const message = document.getElementById("loginMessage");
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    identifier: identifier,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                message.textContent = data.detail || "Login failed.";
+                return;
+            }
+
+            message.textContent = "Login successful.";
+            await checkLoginStatus();
+
+        } catch (error) {
+            message.textContent = "Something went wrong. Please try again.";
+        }
+    });
+}
+
+async function checkLoginStatus() {
+    const loginLink = document.getElementById("loginLink");
+    const registerLink = document.getElementById("registerLink");
+    const userStatus = document.getElementById("userStatus");
+    const logoutButton = document.getElementById("logoutButton");
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/me", {
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        const user = await response.json();
+
+        if (loginLink) {
+            loginLink.style.display = "none";
+        }
+
+        if (registerLink) {
+            registerLink.style.display = "none";
+        }
+
+        if (userStatus) {
+            userStatus.textContent = "Logged in as " + user.username;
+        }
+
+        if (logoutButton) {
+            logoutButton.style.display = "inline-block";
+        }
+
+    } catch (error) {
+        console.error("Login check failed:", error);
+    }
+}
+
+
+const logoutButton = document.getElementById("logoutButton");
+
+if (logoutButton) {
+    logoutButton.addEventListener("click", async function () {
+
+        await fetch("http://127.0.0.1:8000/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        window.location.href = "index.html";
+    });
+}
+
+checkLoginStatus();
+
+async function protectPage() {
+    const protectedPages = [
+        "employer.html"
+    ];
+
+    const currentPage = window.location.pathname.split("/").pop();
+
+    if (!protectedPages.includes(currentPage)) {
+        return;
+    }
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/me", {
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            window.location.href = "login.html";
+            return;
+        }
+
+    } catch (error) {
+        window.location.href = "login.html";
+    }
+}
+
+protectPage();

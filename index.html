@@ -7,17 +7,20 @@
 
 <body>
 
-  <nav>
-    <h1>PathForge</h1>
+  <nav class="main-nav">
+  <h1>PathForge</h1>
 
+  <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="jobs.html">Jobs</a>
-    <a href="login.html">Login</a>
-    <a href="register.html">Register</a>
+    <a id="loginLink" href="login.html">Login</a>
+    <a id="registerLink" href="register.html">Register</a>
     <a href="employer.html">Employer Dashboard</a>
-  </nav>
-
-  <main>
+    <button id="logoutButton" class="nav-logout">Logout</button>
+  </div>
+</nav>
+  
+<main>
     <h2>Find jobs that fit you</h2>
 
     <p>
@@ -36,7 +39,7 @@
   <!-- Floating Chat Button -->
 
   <button id="chatToggleButton" onclick="toggleChat()">
-    💬 Ask PathForge AI
+    Ask PathForge AI
   </button>
 
   <!-- Chat Window -->
@@ -55,17 +58,17 @@
       </div>
 
       <button class="close-chat" onclick="toggleChat()">
-        ✕
+        x
       </button>
 
     </div>
 
     <div class="chat-box" id="chatBox">
       <div class="chat-suggestions">
-        <button onclick="quickMessage('resume')">📝 Resume Help</button>
-        <button onclick="quickMessage('interview')">🎤 Interview Tips</button>
-        <button onclick="quickMessage('job')">🔍 Find Jobs</button>
-        <button onclick="quickMessage('part-time jobs')">📅 Part-Time Jobs</button>
+        <button onclick="quickMessage('resume')">Resume Help</button>
+        <button onclick="quickMessage('interview')">Interview Tips</button>
+        <button onclick="quickMessage('job')">Find Jobs</button>
+        <button onclick="quickMessage('part-time jobs')">Part-Time Jobs</button>
     </div>
       
       <div class="bot-message">

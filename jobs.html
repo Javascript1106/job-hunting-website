@@ -7,14 +7,17 @@
 
 <body>
 
-<nav>
+<nav class="main-nav">
   <h1>PathForge</h1>
 
-  <a href="index.html">Home</a>
-  <a href="jobs.html">Jobs</a>
-  <a href="login.html">Login</a>
-  <a href="register.html">Register</a>
-  <a href="employer.html">Employer Dashboard</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a id="loginLink" href="login.html">Login</a>
+    <a id="registerLink" href="register.html">Register</a>
+    <a href="employer.html">Employer Dashboard</a>
+    <button id="logoutButton" class="nav-logout">Logout</button>
+  </div>
 </nav>
 
 <main>
@@ -41,7 +44,7 @@
 </main>
 
 <button id="chatToggleButton" onclick="toggleChat()">
-  💬 Ask PathForge AI
+  Ask PathForge AI
 </button>
 
 <section class="chatbot hidden-chat" id="chatbotWindow">
