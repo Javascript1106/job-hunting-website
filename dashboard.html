@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>User Dashboard - PathForge</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <nav class="main-nav">
+    <h1>PathForge</h1>
+
+    <div class="nav-links">
+      <a href="index.html">
+        Home
+      </a>
+
+      <a href="jobs.html">
+        Jobs
+      </a>
+
+      <a
+        id="dashboardLink"
+        href="dashboard.html"
+      >
+        Dashboard
+      </a>
+
+      <a
+        id="profileLink"
+        href="profile.html"
+      >
+        Profile
+      </a>
+
+      <a
+        id="savedJobsLink"
+        href="saved-jobs.html"
+      >
+        Saved Jobs
+      </a>
+
+      <a
+        id="applicationsLink"
+        href="applications.html"
+      >
+        Applications
+      </a>
+
+      <a
+        id="employerAccessLink"
+        href="employer-access.html"
+      >
+        Employer Access
+      </a>
+
+      <a
+        id="loginLink"
+        href="login.html"
+      >
+        Login
+      </a>
+
+      <a
+        id="registerLink"
+        href="register.html"
+      >
+        Register
+      </a>
+
+      <a
+        id="employerDashboardLink"
+        href="employer.html"
+      >
+        Employer Dashboard
+      </a>
+
+      <button
+        id="logoutButton"
+        class="nav-logout"
+        type="button"
+      >
+        Logout
+      </button>
+    </div>
+  </nav>
+
+  <main class="dashboard-container">
+
+    <section class="dashboard-welcome">
+      <p class="dashboard-eyebrow">
+        Your PathForge workspace
+      </p>
+
+      <h2 id="dashboardWelcome">
+        Welcome back!
+      </h2>
+
+      <p>
+        Track your progress and quickly return to the
+        tools you use most.
+      </p>
+    </section>
+
+    <section
+      class="dashboard-stats"
+      aria-label="Job search summary"
+    >
+
+      <a
+        class="dashboard-card dashboard-card-link"
+        href="saved-jobs.html"
+      >
+        <p class="dashboard-card-label">
+          Saved Jobs
+        </p>
+
+        <p
+          class="dashboard-card-value"
+          id="savedJobsCount"
+        >
+          0
+        </p>
+
+        <p class="dashboard-card-note">
+          Jobs you want to revisit
+        </p>
+      </a>
+
+      <a
+        class="dashboard-card dashboard-card-link"
+        href="applications.html"
+      >
+        <p class="dashboard-card-label">
+          Applications in Progress
+        </p>
+
+        <p
+          class="dashboard-card-value"
+          id="applicationsCount"
+        >
+          0
+        </p>
+
+        <p class="dashboard-card-note">
+          Applications you are actively tracking
+        </p>
+      </a>
+
+      <a
+        class="dashboard-card dashboard-card-link"
+        href="applications.html"
+      >
+        <p class="dashboard-card-label">
+          Upcoming Interviews
+        </p>
+
+        <p
+          class="dashboard-card-value"
+          id="interviewsCount"
+        >
+          0
+        </p>
+
+        <p class="dashboard-card-note">
+          Scheduled interview activity
+        </p>
+      </a>
+
+      <a
+        class="dashboard-card dashboard-card-link"
+        href="applications.html"
+      >
+        <p class="dashboard-card-label">
+          Follow-Ups Due
+        </p>
+
+        <p
+          class="dashboard-card-value"
+          id="followUpsCount"
+        >
+          0
+        </p>
+
+        <p class="dashboard-card-note">
+          Applications ready for a follow-up
+        </p>
+      </a>
+
+    </section>
+
+    <section class="dashboard-actions-section">
+
+      <div class="dashboard-section-heading">
+        <h3>
+          Quick Actions
+        </h3>
+
+        <p>
+          Jump directly to your next job-search task.
+        </p>
+      </div>
+
+      <div class="dashboard-actions">
+
+        <a
+          class="dashboard-action primary-action"
+          href="jobs.html"
+        >
+          <span>
+            Find Jobs
+          </span>
+
+          <small>
+            Browse and filter current job listings
+          </small>
+        </a>
+
+        <a
+          class="dashboard-action"
+          href="saved-jobs.html"
+        >
+          <span>
+            View Saved Jobs
+          </span>
+
+          <small>
+            Review jobs you saved for later
+          </small>
+        </a>
+
+        <a
+          class="dashboard-action"
+          href="applications.html"
+        >
+          <span>
+            Application Tracker
+          </span>
+
+          <small>
+            Review application statuses, interviews,
+            and follow-ups
+          </small>
+        </a>
+
+        <a
+          class="dashboard-action"
+          href="profile.html"
+        >
+          <span>
+            Update Profile
+          </span>
+
+          <small>
+            Add your skills, goals, and job preferences
+          </small>
+        </a>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

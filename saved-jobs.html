@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Saved Jobs - PathForge</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav class="main-nav">
+  <h1>PathForge</h1>
+
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+
+    <a id="dashboardLink" href="dashboard.html">
+        Dashboard
+    </a>
+
+    <a id="profileLink" href="profile.html">
+        Profile
+    </a>
+
+    <a id="savedJobsLink" href="saved-jobs.html">
+        Saved Jobs
+    </a>
+
+    <a id="applicationsLink" href="applications.html">
+        Applications
+    </a>
+
+    <a
+      id="employerAccessLink"
+      href="employer-access.html"
+    >
+      Employer Access
+    </a>
+
+    <a id="loginLink" href="login.html">
+      Login
+    </a>
+
+    <a id="registerLink" href="register.html">
+      Register
+    </a>
+
+    <a
+      id="employerDashboardLink"
+      href="employer.html"
+    >
+      Employer Dashboard
+    </a>
+
+    <button
+      id="logoutButton"
+      class="nav-logout"
+      type="button"
+    >
+      Logout
+    </button>
+  </div>
+</nav>
+
+<main class="saved-jobs-container">
+  <section class="saved-jobs-header">
+    <p class="dashboard-eyebrow">
+      Your job shortlist
+    </p>
+
+    <h2>Saved Jobs</h2>
+
+    <p>
+      Review the jobs you saved and remove positions
+      you are no longer interested in.
+    </p>
+  </section>
+
+  <section
+    id="savedJobsContainer"
+    class="job-listings saved-jobs-list"
+    aria-live="polite"
+  >
+    <p>Loading saved jobs...</p>
+  </section>
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>

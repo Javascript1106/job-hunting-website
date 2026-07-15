@@ -8,16 +8,48 @@
 <body>
 
 <nav class="main-nav">
-  <h1>PathForge</h1>
+    <h1>PathForge</h1>
 
-  <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="jobs.html">Jobs</a>
-    <a id="loginLink" href="login.html">Login</a>
-    <a id="registerLink" href="register.html">Register</a>
-    <a href="employer.html">Employer Dashboard</a>
-    <button id="logoutButton" class="nav-logout">Logout</button>
-  </div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="jobs.html">Jobs</a>
+
+        <a id="dashboardLink" href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a id="profileLink" href="profile.html">
+            Profile
+        </a>
+
+        <a id="savedJobsLink" href="saved-jobs.html">
+            Saved Jobs
+        </a>
+
+        <a id="applicationsLink" href="applications.html">
+            Applications
+        </a>
+
+        <a id="employerAccessLink" href="employer-access.html">
+            Employer Access
+        </a>
+
+        <a id="loginLink" href="login.html">
+            Login
+        </a>
+
+        <a id="registerLink" href="register.html">
+            Register
+        </a>
+
+        <a id="employerDashboardLink" href="employer.html">
+            Employer Dashboard
+        </a>
+
+        <button id="logoutButton" class="nav-logout">
+            Logout
+        </button>
+    </div>
 </nav>
 
 <main>
@@ -66,6 +98,45 @@
   <div class="chat-input-area">
     <input id="chatInput" type="text" placeholder="Ask the job assistant...">
     <button onclick="sendMessage()">Send</button>
+  </div>
+</section>
+
+<section
+  id="applicationDialog"
+  class="application-dialog-overlay hidden"
+  aria-hidden="true"
+>
+  <div
+    class="application-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="applicationDialogTitle"
+  >
+    <button
+      id="closeApplicationDialog"
+      class="application-dialog-close"
+      type="button"
+      aria-label="Close application dialog"
+    >
+      ✕
+    </button>
+
+    <h2 id="applicationDialogTitle">
+      Apply for this job
+    </h2>
+
+    <p id="applicationDialogText"></p>
+
+    <div
+      id="applicationDialogActions"
+      class="application-dialog-actions"
+    ></div>
+
+    <p
+      id="applicationDialogMessage"
+      class="application-dialog-message"
+      aria-live="polite"
+    ></p>
   </div>
 </section>
 

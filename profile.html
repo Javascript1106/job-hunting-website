@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>User Profile - PathForge</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav class="main-nav">
+  <h1>PathForge</h1>
+
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+
+    <a id="dashboardLink" href="dashboard.html">
+        Dashboard
+    </a>
+
+    <a id="profileLink" href="profile.html">
+        Profile
+    </a>
+
+    <a id="savedJobsLink" href="saved-jobs.html">
+        Saved Jobs
+    </a>
+
+    <a id="applicationsLink" href="applications.html">
+        Applications
+    </a>
+
+    <a id="employerAccessLink" href="employer-access.html">
+        Employer Access
+    </a>
+
+    <a id="loginLink" href="login.html">
+        Login
+    </a>
+
+    <a id="registerLink" href="register.html">
+        Register
+    </a>
+
+    <a id="employerDashboardLink" href="employer.html">
+        Employer Dashboard
+    </a>
+
+    <button id="logoutButton" class="nav-logout">
+        Logout
+    </button>
+  </div>
+</nav>
+
+<main class="profile-container">
+
+  <section class="profile-header">
+    <p class="dashboard-eyebrow">
+      Career Profile
+    </p>
+
+    <h2>Your PathForge Profile</h2>
+
+    <p>
+      Add information about your experience, interests, skills,
+      and job preferences. PathForge will use this information
+      later for personalized job recommendations and career tools.
+    </p>
+  </section>
+
+  <form id="profileForm" class="profile-form">
+
+    <section class="profile-section">
+      <h3>Basic Information</h3>
+
+      <div class="profile-field">
+        <label for="profileDisplayName">
+          Display Name
+        </label>
+
+        <input
+          type="text"
+          id="profileDisplayName"
+          placeholder="Name shown on your dashboard"
+          maxlength="100"
+        >
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h3>Career Information</h3>
+
+      <div class="profile-field">
+        <label for="profileCareerInterests">
+          Career Interests
+        </label>
+
+        <textarea
+          id="profileCareerInterests"
+          placeholder="Example: transportation engineering, retail, customer service"
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div class="profile-field">
+        <label for="profilePreferredIndustries">
+          Preferred Industries
+        </label>
+
+        <textarea
+          id="profilePreferredIndustries"
+          placeholder="Example: technology, transportation, education, healthcare"
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div class="profile-field">
+        <label for="profileSkills">
+          Skills
+        </label>
+
+        <textarea
+          id="profileSkills"
+          placeholder="Example: communication, Python, customer service, organization"
+          rows="5"
+        ></textarea>
+      </div>
+
+      <div class="profile-field">
+        <label for="profileExperienceLevel">
+          Experience Level
+        </label>
+
+        <select id="profileExperienceLevel">
+          <option value="">Select experience level</option>
+          <option value="First job">First job</option>
+          <option value="Entry level">Entry level</option>
+          <option value="Some experience">Some experience</option>
+          <option value="Experienced">Experienced</option>
+          <option value="Career changer">Career changer</option>
+          <option value="Returning to work">Returning to work</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h3>Job Preferences</h3>
+
+      <div class="profile-field">
+        <label for="profilePreferredLocation">
+          Preferred Location
+        </label>
+
+        <input
+          type="text"
+          id="profilePreferredLocation"
+          placeholder="Example: Orem, Utah"
+          maxlength="150"
+        >
+      </div>
+
+      <div class="profile-field">
+        <label for="profileSchedulePreference">
+          Schedule Preference
+        </label>
+
+        <select id="profileSchedulePreference">
+          <option value="">Select schedule preference</option>
+          <option value="Full-time">Full-time</option>
+          <option value="Part-time">Part-time</option>
+          <option value="Flexible">Flexible</option>
+          <option value="Weekdays">Weekdays</option>
+          <option value="Weekends">Weekends</option>
+          <option value="Evenings">Evenings</option>
+          <option value="Seasonal">Seasonal</option>
+        </select>
+      </div>
+
+      <div class="profile-field">
+        <label for="profileWorkPreference">
+          Work Preference
+        </label>
+
+        <select id="profileWorkPreference">
+          <option value="">Select work preference</option>
+          <option value="On-site">On-site</option>
+          <option value="Remote">Remote</option>
+          <option value="Hybrid">Hybrid</option>
+          <option value="No preference">No preference</option>
+        </select>
+      </div>
+
+      <div class="profile-field">
+        <label for="profileDesiredPay">
+          Desired Pay
+        </label>
+
+        <input
+          type="text"
+          id="profileDesiredPay"
+          placeholder="Example: $18 per hour"
+          maxlength="100"
+        >
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h3>Career Goals</h3>
+
+      <div class="profile-field">
+        <label for="profileCareerGoals">
+          Career Goals
+        </label>
+
+        <textarea
+          id="profileCareerGoals"
+          placeholder="Describe what you want to accomplish in your career."
+          rows="6"
+        ></textarea>
+      </div>
+    </section>
+
+    <div class="profile-form-actions">
+        <button type="submit" id="saveProfileButton">
+            Save Profile
+        </button>
+    </div>
+
+    <p
+      id="profileMessage"
+      class="profile-message"
+      aria-live="polite"
+    ></p>
+
+  </form>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>
