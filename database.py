@@ -36,7 +36,24 @@ def create_jobs_table():
                     )
                 ),
 
-            application_url TEXT
+            application_url TEXT,
+
+            employer_id INTEGER,
+
+            status TEXT NOT NULL DEFAULT 'active'
+                CHECK (
+                    status IN (
+                        'active',
+                        'closed',
+                        'draft'
+                    )
+                ),
+
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (employer_id)
+                REFERENCES users(id)
         )
     """)
 
@@ -62,6 +79,63 @@ def create_jobs_table():
             ADD COLUMN application_url TEXT
         """)
 
+    # Adds employer ownership to older databases.
+    if not column_exists(
+        cursor,
+        "jobs",
+        "employer_id"
+    ):
+        cursor.execute("""
+            ALTER TABLE jobs
+            ADD COLUMN employer_id INTEGER
+        """)
+
+    # Adds job status to older databases.
+    if not column_exists(
+        cursor,
+        "jobs",
+        "status"
+    ):
+        cursor.execute("""
+            ALTER TABLE jobs
+            ADD COLUMN status TEXT
+            NOT NULL DEFAULT 'active'
+        """)
+
+    # Adds job creation timestamps to older databases.
+    if not column_exists(
+        cursor,
+        "jobs",
+        "created_at"
+    ):
+        cursor.execute("""
+            ALTER TABLE jobs
+            ADD COLUMN created_at TEXT
+        """)
+
+        cursor.execute("""
+            UPDATE jobs
+            SET created_at = CURRENT_TIMESTAMP
+            WHERE created_at IS NULL
+        """)
+
+    # Adds job update timestamps to older databases.
+    if not column_exists(
+        cursor,
+        "jobs",
+        "updated_at"
+    ):
+        cursor.execute("""
+            ALTER TABLE jobs
+            ADD COLUMN updated_at TEXT
+        """)
+
+        cursor.execute("""
+            UPDATE jobs
+            SET updated_at = CURRENT_TIMESTAMP
+            WHERE updated_at IS NULL
+        """)
+
     # Keeps invalid or blank older values from breaking
     # the application workflow.
     cursor.execute("""
@@ -74,6 +148,31 @@ def create_jobs_table():
            )
     """)
 
+    # Keeps invalid or blank job statuses from breaking
+    # employer job management.
+    cursor.execute("""
+        UPDATE jobs
+        SET status = 'active'
+        WHERE status IS NULL
+           OR status NOT IN (
+               'active',
+               'closed',
+               'draft'
+           )
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_jobs_employer_id
+        ON jobs(employer_id)
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_jobs_status
+        ON jobs(status)
+    """)
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +182,7 @@ def create_jobs_table():
             role TEXT NOT NULL DEFAULT 'job_seeker'
         )
     """)
+
     # Adds the role column to databases created before this feature.
     if not column_exists(cursor, "users", "role"):
         cursor.execute("""
@@ -114,6 +214,31 @@ def create_jobs_table():
     """)
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS company_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employer_id INTEGER NOT NULL UNIQUE,
+            company_name TEXT NOT NULL DEFAULT '',
+            company_description TEXT,
+            website TEXT,
+            logo_url TEXT,
+            brand_color TEXT,
+            hiring_preferences TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (employer_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE
+        )
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_company_profiles_employer_id
+        ON company_profiles(employer_id)
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_profiles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL UNIQUE,
@@ -134,23 +259,23 @@ def create_jobs_table():
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS saved_jobs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        job_id INTEGER NOT NULL,
-        saved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CREATE TABLE IF NOT EXISTS saved_jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            job_id INTEGER NOT NULL,
+            saved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-        FOREIGN KEY (user_id)
-            REFERENCES users(id)
-            ON DELETE CASCADE,
+            FOREIGN KEY (user_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE,
 
-        FOREIGN KEY (job_id)
-            REFERENCES jobs(id)
-            ON DELETE CASCADE,
+            FOREIGN KEY (job_id)
+                REFERENCES jobs(id)
+                ON DELETE CASCADE,
 
-        UNIQUE (user_id, job_id)
-    )
-""")
+            UNIQUE (user_id, job_id)
+        )
+    """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS applications (
@@ -184,8 +309,21 @@ def create_jobs_table():
 
             applied_at TEXT,
             interview_date TEXT,
+            interview_time TEXT,
+            interview_format TEXT
+                CHECK (
+                    interview_format IS NULL
+                    OR interview_format IN (
+                        'In Person',
+                        'Phone',
+                        'Video'
+                    )
+                ),
+            interview_location TEXT,
+            interview_details TEXT,
             follow_up_date TEXT,
             notes TEXT,
+            employer_notes TEXT,
 
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -202,8 +340,122 @@ def create_jobs_table():
         )
     """)
 
+    if not column_exists(
+        cursor,
+        "applications",
+        "interview_time"
+    ):
+        cursor.execute("""
+            ALTER TABLE applications
+            ADD COLUMN interview_time TEXT
+        """)
+
+    if not column_exists(
+        cursor,
+        "applications",
+        "interview_format"
+    ):
+        cursor.execute("""
+            ALTER TABLE applications
+            ADD COLUMN interview_format TEXT
+        """)
+
+    if not column_exists(
+        cursor,
+        "applications",
+        "interview_location"
+    ):
+        cursor.execute("""
+            ALTER TABLE applications
+            ADD COLUMN interview_location TEXT
+        """)
+
+    if not column_exists(
+        cursor,
+        "applications",
+        "interview_details"
+    ):
+        cursor.execute("""
+            ALTER TABLE applications
+            ADD COLUMN interview_details TEXT
+        """)
+
+    if not column_exists(
+        cursor,
+        "applications",
+        "employer_notes"
+    ):
+        cursor.execute("""
+            ALTER TABLE applications
+            ADD COLUMN employer_notes TEXT
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS
+            idx_applications_job_id
+            ON applications(job_id)
+        """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS application_questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER NOT NULL,
+            question_text TEXT NOT NULL,
+
+            field_type TEXT NOT NULL DEFAULT 'short_text'
+                CHECK (
+                    field_type IN (
+                        'short_text',
+                        'long_text',
+                        'yes_no'
+                    )
+                ),
+
+            is_required INTEGER NOT NULL DEFAULT 1,
+            display_order INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (job_id)
+                REFERENCES jobs(id)
+                ON DELETE CASCADE
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS application_answers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id INTEGER NOT NULL,
+            question_id INTEGER NOT NULL,
+            answer_text TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (application_id)
+                REFERENCES applications(id)
+                ON DELETE CASCADE,
+
+            FOREIGN KEY (question_id)
+                REFERENCES application_questions(id)
+                ON DELETE CASCADE,
+
+            UNIQUE (application_id, question_id)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_application_questions_job_id
+        ON application_questions(job_id)
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_application_answers_application_id
+        ON application_answers(application_id)
+    """)
+
     conn.commit()
     conn.close()
+
 
 def populate_jobs():
     conn = sqlite3.connect(DB_NAME)
@@ -218,7 +470,7 @@ def populate_jobs():
 
         for job in jobs:
             cursor.execute("""
-                    INSERT INTO jobs (
+                INSERT INTO jobs (
                     title,
                     company,
                     location,

@@ -58,25 +58,801 @@
       Verified Employer Workspace
     </p>
 
-    <h2>Employer Dashboard</h2>
+    <h2 id="employerDashboardWelcome">
+      Employer Dashboard
+    </h2>
 
     <p>
-      Your employer access has been confirmed.
-      Future employer tools will be added here.
+      Create job postings and manage every position owned by
+      your employer account.
     </p>
   </section>
 
-  <section class="employer-placeholder-card">
-    <h3>Employer Tools Coming Later</h3>
+  <div
+    id="employerDashboardMessage"
+    class="employer-dashboard-message"
+    role="status"
+    aria-live="polite"
+  ></div>
 
-    <p>
-      Job posting management, applicant management,
-      interview scheduling, and company verification
-      will be developed in future tasks.
-    </p>
+      <section
+    class="employer-statistics-section"
+    aria-labelledby="employerStatisticsTitle"
+  >
+    <div class="employer-section-heading">
+      <div>
+        <p class="dashboard-eyebrow">
+          Hiring Overview
+        </p>
+
+        <h3 id="employerStatisticsTitle">
+          Dashboard Statistics
+        </h3>
+      </div>
+    </div>
+
+    <div
+      id="employerStatisticsGrid"
+      class="employer-statistics-grid"
+      aria-live="polite"
+    >
+      <article class="employer-statistic-card">
+        <span class="employer-statistic-label">
+          Active Jobs
+        </span>
+
+        <strong
+          id="employerActiveJobsStatistic"
+          class="employer-statistic-value"
+        >
+          —
+        </strong>
+
+        <span
+          id="employerJobsBreakdown"
+          class="employer-statistic-detail"
+        >
+          Loading job activity...
+        </span>
+      </article>
+
+      <article class="employer-statistic-card">
+        <span class="employer-statistic-label">
+          Total Applicants
+        </span>
+
+        <strong
+          id="employerApplicantsStatistic"
+          class="employer-statistic-value"
+        >
+          —
+        </strong>
+
+        <span class="employer-statistic-detail">
+          Internal PathForge applications
+        </span>
+      </article>
+
+      <article class="employer-statistic-card">
+        <span class="employer-statistic-label">
+          Scheduled Interviews
+        </span>
+
+        <strong
+          id="employerInterviewsStatistic"
+          class="employer-statistic-value"
+        >
+          —
+        </strong>
+
+        <span class="employer-statistic-detail">
+          Currently awaiting interviews
+        </span>
+      </article>
+
+      <article class="employer-statistic-card">
+        <span class="employer-statistic-label">
+          Hires
+        </span>
+
+        <strong
+          id="employerHiresStatistic"
+          class="employer-statistic-value"
+        >
+          —
+        </strong>
+
+        <span class="employer-statistic-detail">
+          Accepted applications
+        </span>
+      </article>
+    </div>
+
+    <p
+      id="employerStatisticsMessage"
+      class="employer-form-message"
+      role="status"
+      aria-live="polite"
+    ></p>
+    </section>
+  
+    <section class="employer-company-profile-section">
+    <div class="employer-section-heading">
+      <div>
+        <p class="dashboard-eyebrow">Company Management</p>
+        <h3>Company Profile</h3>
+
+        <p>
+          Manage the company information and hiring preferences
+          connected to your employer account.
+        </p>
+      </div>
+    </div>
+
+    <form
+      id="employerCompanyProfileForm"
+      class="employer-company-profile-form"
+    >
+      <div class="employer-company-profile-layout">
+        <div class="employer-company-profile-fields">
+          <div class="employer-form-grid">
+            <div class="employer-form-field">
+              <label for="companyProfileName">
+                Company name
+              </label>
+
+              <input
+                type="text"
+                id="companyProfileName"
+                maxlength="120"
+                required
+              >
+            </div>
+
+            <div class="employer-form-field">
+              <label for="companyProfileWebsite">
+                Company website
+              </label>
+
+              <input
+                type="url"
+                id="companyProfileWebsite"
+                placeholder="https://example.com"
+              >
+            </div>
+
+            <div class="employer-form-field">
+              <label for="companyProfileLogoUrl">
+                Logo URL
+              </label>
+
+              <input
+                type="url"
+                id="companyProfileLogoUrl"
+                placeholder="https://example.com/logo.png"
+              >
+            </div>
+
+            <div class="employer-form-field">
+              <label for="companyProfileBrandColor">
+                Brand color
+              </label>
+
+              <input
+                type="color"
+                id="companyProfileBrandColor"
+                value="#2563eb"
+              >
+            </div>
+          </div>
+
+          <div class="employer-form-field">
+            <label for="companyProfileDescription">
+              Company description
+            </label>
+
+            <textarea
+              id="companyProfileDescription"
+              rows="5"
+              maxlength="2000"
+              placeholder="Describe your company, culture, and mission."
+            ></textarea>
+          </div>
+
+          <div class="employer-form-field">
+            <label for="companyProfileHiringPreferences">
+              Hiring preferences
+            </label>
+
+            <textarea
+              id="companyProfileHiringPreferences"
+              rows="4"
+              maxlength="1500"
+              placeholder="Describe the qualities, availability, experience, or skills you commonly seek."
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            id="saveCompanyProfileButton"
+            class="employer-primary-button"
+          >
+            Save Company Profile
+          </button>
+
+          <p
+            id="companyProfileMessage"
+            class="employer-form-message"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </div>
+
+        <aside class="company-profile-preview">
+          <p class="company-preview-label">
+            Profile Preview
+          </p>
+
+          <div
+            id="companyProfileLogoPreview"
+            class="company-profile-logo-preview"
+          >
+            <span id="companyProfileInitial">C</span>
+          </div>
+
+          <h4 id="companyProfileNamePreview">
+            Your Company
+          </h4>
+
+          <p id="companyProfileDescriptionPreview">
+            Add a company description to preview it here.
+          </p>
+
+          <a
+            id="companyProfileWebsitePreview"
+            class="company-profile-website-preview hidden"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Visit company website
+          </a>
+        </aside>
+      </div>
+    </form>
   </section>
+  
+  <section class="employer-dashboard-layout">
+
+    <section class="employer-job-form-card">
+      <div class="employer-section-heading">
+        <h3>Post a New Job</h3>
+
+        <p>
+          Enter the position details and choose how candidates
+          should apply.
+        </p>
+      </div>
+
+      <form id="employerJobForm" class="employer-job-form">
+
+        <div class="employer-form-grid">
+
+          <div class="employer-form-field">
+            <label for="employerJobTitle">
+              Job title
+            </label>
+
+            <input
+              type="text"
+              id="employerJobTitle"
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobCompany">
+              Company
+            </label>
+
+            <input
+              type="text"
+              id="employerJobCompany"
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobLocation">
+              Location
+            </label>
+
+            <input
+              type="text"
+              id="employerJobLocation"
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobPay">
+              Pay
+            </label>
+
+            <input
+              type="text"
+              id="employerJobPay"
+              placeholder="$15-$18/hr"
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobSchedule">
+              Schedule
+            </label>
+
+            <input
+              type="text"
+              id="employerJobSchedule"
+              placeholder="Full-Time or Part-Time"
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobExperience">
+              Experience
+            </label>
+
+            <input
+              type="text"
+              id="employerJobExperience"
+              placeholder="Entry level"
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobCategory">
+              Category
+            </label>
+
+            <input
+              type="text"
+              id="employerJobCategory"
+              placeholder="Retail, Technology, Food Service..."
+              required
+            >
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerJobStatus">
+              Initial status
+            </label>
+
+            <select id="employerJobStatus" required>
+              <option value="active">Active</option>
+              <option value="draft">Draft</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          <div class="employer-form-field">
+            <label for="employerApplicationMethod">
+              Application method
+            </label>
+
+            <select id="employerApplicationMethod" required>
+              <option value="pathforge">
+                Apply inside PathForge
+              </option>
+
+              <option value="employer_website">
+                Apply on employer website
+              </option>
+            </select>
+          </div>
+
+          <div
+            id="employerApplicationUrlField"
+            class="employer-form-field hidden"
+          >
+            <label for="employerApplicationUrl">
+              Application website
+            </label>
+
+            <input
+              type="url"
+              id="employerApplicationUrl"
+              placeholder="https://example.com/apply"
+            >
+          </div>
+
+        </div>
+
+        <div class="employer-form-field employer-description-field">
+          <label for="employerJobDescription">
+            Job description
+          </label>
+
+          <textarea
+            id="employerJobDescription"
+            rows="6"
+            required
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          id="employerJobSubmitButton"
+          class="employer-primary-button"
+        >
+          Post Job
+        </button>
+
+        <p
+          id="employerJobFormMessage"
+          class="employer-form-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+      </form>
+    </section>
+
+    <section class="employer-jobs-section">
+      <div class="employer-section-heading employer-jobs-heading">
+        <div>
+          <h3>My Jobs</h3>
+
+          <p>
+            Edit, close, reopen, or delete jobs posted by your
+            employer account.
+          </p>
+        </div>
+
+        <span id="employerJobsCount" class="employer-jobs-count">
+          0 jobs
+        </span>
+      </div>
+
+      <div
+        id="employerJobsList"
+        class="employer-jobs-list"
+        aria-live="polite"
+      >
+        <p>Loading your jobs...</p>
+      </div>
+    </section>
+
+    <section class="employer-applications-section">
+      <div
+        class="
+          employer-section-heading
+          employer-applications-heading
+        "
+      >
+        <div>
+          <h3>Received Applications</h3>
+
+          <p>
+            Review applications submitted directly through
+            PathForge for jobs owned by your employer account.
+          </p>
+        </div>
+
+        <span
+          id="employerApplicationsCount"
+          class="employer-applications-count"
+        >
+          0 applications
+        </span>
+      </div>
+
+      <div
+        id="employerApplicationsList"
+        class="employer-applications-list"
+        aria-live="polite"
+      >
+        <p>Loading received applications...</p>
+      </div>
+    </section>  
+
+</section>
 
 </main>
+
+<div
+  id="employerJobEditDialog"
+  class="employer-edit-overlay hidden"
+  role="presentation"
+>
+  <section
+    class="employer-edit-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="employerEditDialogTitle"
+  >
+    <button
+      type="button"
+      id="closeEmployerEditDialog"
+      class="employer-edit-close"
+      aria-label="Close edit form"
+    >
+      &times;
+    </button>
+
+    <h2 id="employerEditDialogTitle">
+      Edit Job
+    </h2>
+
+    <form id="employerJobEditForm" class="employer-job-form">
+
+      <input type="hidden" id="editEmployerJobId">
+
+      <div class="employer-form-grid">
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobTitle">
+            Job title
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobTitle"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobCompany">
+            Company
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobCompany"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobLocation">
+            Location
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobLocation"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobPay">
+            Pay
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobPay"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobSchedule">
+            Schedule
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobSchedule"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobExperience">
+            Experience
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobExperience"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobCategory">
+            Category
+          </label>
+
+          <input
+            type="text"
+            id="editEmployerJobCategory"
+            required
+          >
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerJobStatus">
+            Status
+          </label>
+
+          <select id="editEmployerJobStatus" required>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        <div class="employer-form-field">
+          <label for="editEmployerApplicationMethod">
+            Application method
+          </label>
+
+          <select id="editEmployerApplicationMethod" required>
+            <option value="pathforge">
+              Apply inside PathForge
+            </option>
+
+            <option value="employer_website">
+              Apply on employer website
+            </option>
+          </select>
+        </div>
+
+        <div
+          id="editEmployerApplicationUrlField"
+          class="employer-form-field hidden"
+        >
+          <label for="editEmployerApplicationUrl">
+            Application website
+          </label>
+
+          <input
+            type="url"
+            id="editEmployerApplicationUrl"
+            placeholder="https://example.com/apply"
+          >
+        </div>
+
+      </div>
+
+      <div class="employer-form-field employer-description-field">
+        <label for="editEmployerJobDescription">
+          Job description
+        </label>
+
+        <textarea
+          id="editEmployerJobDescription"
+          rows="6"
+          required
+        ></textarea>
+      </div>
+
+      <div class="employer-edit-actions">
+        <button
+          type="submit"
+          id="employerJobEditSubmitButton"
+          class="employer-primary-button"
+        >
+          Save Changes
+        </button>
+
+        <button
+          type="button"
+          id="cancelEmployerJobEdit"
+          class="employer-secondary-button"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <p
+        id="employerJobEditMessage"
+        class="employer-form-message"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+    </form>
+  </section>
+</div>
+
+<div
+  id="applicationFormBuilderDialog"
+  class="application-builder-overlay hidden"
+  role="presentation"
+>
+  <section
+    class="application-builder-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="applicationBuilderTitle"
+  >
+    <button
+      type="button"
+      id="closeApplicationFormBuilder"
+      class="application-builder-close"
+      aria-label="Close application form builder"
+    >
+      &times;
+    </button>
+
+    <div class="application-builder-header">
+      <p class="dashboard-eyebrow">
+        Internal PathForge Application
+      </p>
+
+      <h2 id="applicationBuilderTitle">
+        Application Form
+      </h2>
+
+      <p id="applicationBuilderJobName">
+        Create questions for this job.
+      </p>
+    </div>
+
+    <input
+      type="hidden"
+      id="applicationBuilderJobId"
+    >
+
+    <div class="application-builder-instructions">
+      <p>
+        Add up to 10 questions. Applicants will answer these
+        questions when applying inside PathForge.
+      </p>
+
+      <p>
+        Once a candidate applies, the form will be locked so
+        submitted answers remain accurate.
+      </p>
+    </div>
+
+    <div
+      id="applicationQuestionList"
+      class="application-question-list"
+    ></div>
+
+    <button
+      type="button"
+      id="addApplicationQuestionButton"
+      class="application-question-add-button"
+    >
+      Add Question
+    </button>
+
+    <div class="application-builder-actions">
+      <button
+        type="button"
+        id="saveApplicationFormButton"
+        class="employer-primary-button"
+      >
+        Save Application Form
+      </button>
+
+      <button
+        type="button"
+        id="cancelApplicationFormBuilder"
+        class="employer-secondary-button"
+      >
+        Cancel
+      </button>
+    </div>
+
+    <p
+      id="applicationFormBuilderMessage"
+      class="employer-form-message"
+      role="status"
+      aria-live="polite"
+    ></p>
+  </section>
+</div>
 
 <script src="script.js"></script>
 
