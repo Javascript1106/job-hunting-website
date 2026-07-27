@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Learning Center - PathForge</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav class="main-nav">
+  <h1>PathForge</h1>
+
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+
+    <a id="dashboardLink" href="dashboard.html">
+      Dashboard
+    </a>
+
+    <a id="profileLink" href="profile.html">
+      Profile
+    </a>
+
+    <a id="savedJobsLink" href="saved-jobs.html">
+      Saved Jobs
+    </a>
+
+    <a id="applicationsLink" href="applications.html">
+      Applications
+    </a>
+
+    <a
+      id="learningCenterLink"
+      href="learning-center.html"
+      aria-current="page"
+    >
+      Learning Center
+    </a>
+
+    <a
+      id="employerAccessLink"
+      href="employer-access.html"
+    >
+      Employer Access
+    </a>
+
+    <a id="loginLink" href="login.html">
+      Login
+    </a>
+
+    <a id="registerLink" href="register.html">
+      Register
+    </a>
+
+    <a
+      id="employerDashboardLink"
+      href="employer.html"
+    >
+      Employer Dashboard
+    </a>
+
+    <button
+      id="logoutButton"
+      class="nav-logout"
+      type="button"
+    >
+      Logout
+    </button>
+  </div>
+</nav>
+
+<main class="learning-center-container">
+
+  <header class="learning-center-hero">
+    <div>
+      <p class="dashboard-eyebrow">
+        Build skills at your pace
+      </p>
+
+      <h2>PathForge Learning Center</h2>
+
+      <p>
+        Explore practical career, interview, and résumé guidance
+        designed for first-time job seekers, experienced
+        professionals, and everyone in between.
+      </p>
+    </div>
+
+    <aside
+      class="learning-progress-summary"
+      aria-labelledby="learningProgressTitle"
+    >
+      <h3 id="learningProgressTitle">
+        Your Learning Progress
+      </h3>
+
+      <div class="learning-progress-statistics">
+  <div>
+    <strong id="learningStartedCount">0</strong>
+    <span>Started</span>
+  </div>
+
+  <div>
+    <strong id="learningCompletedCount">0</strong>
+    <span>Completed</span>
+  </div>
+
+  <div>
+    <strong id="learningAvailableCount">12</strong>
+    <span>Available</span>
+  </div>
+</div>
+
+<div
+  id="learningProgressBar"
+  class="learning-progress-bar"
+  role="progressbar"
+  aria-label="Learning completion"
+  aria-valuemin="0"
+  aria-valuemax="12"
+  aria-valuenow="0"
+>
+  <span id="learningProgressBarFill"></span>
+</div>
+
+      <p
+        id="learningProgressMessage"
+        class="learning-progress-message"
+        role="status"
+        aria-live="polite"
+      >
+        Loading your progress...
+      </p>
+    </aside>
+  </header>
+
+  <section
+    class="learning-introduction"
+    aria-labelledby="learningIntroductionTitle"
+  >
+    <h3 id="learningIntroductionTitle">
+      Choose a place to begin
+    </h3>
+
+    <p>
+      Start with the topic that feels most useful today.
+      Lessons will provide clear steps and activities while
+      encouraging you to make honest, personal decisions.
+    </p>
+  </section>
+
+  <section
+  class="learning-suggestions"
+  aria-labelledby="learningSuggestionsTitle"
+>
+  <div class="learning-suggestions-heading">
+    <div>
+      <p class="dashboard-eyebrow">
+        Suggested next steps
+      </p>
+
+      <h3 id="learningSuggestionsTitle">
+        Continue building your skills
+      </h3>
+    </div>
+
+    <p
+      id="learningRecommendationReason"
+      class="learning-recommendation-reason"
+      aria-live="polite"
+    >
+      Your suggestion will appear after your progress loads.
+    </p>
+  </div>
+
+  <article class="learning-recommendation-card">
+    <div>
+      <span class="learning-recommendation-label">
+        Recommended lesson
+      </span>
+
+      <h4 id="learningRecommendationTitle">
+        Finding your next lesson...
+      </h4>
+
+      <p id="learningRecommendationDescription">
+        PathForge will use your learning progress to suggest a
+        useful next step.
+      </p>
+    </div>
+
+    <a
+      id="learningRecommendationLink"
+      class="learning-category-action"
+      href="#career-exploration"
+    >
+      View recommendation
+    </a>
+  </article>
+
+  <nav
+    class="learning-quick-links"
+    aria-label="Quick learning suggestions"
+  >
+    <a href="#careerGuidanceLessons">
+      Career guidance
+    </a>
+
+    <a href="#interviewPreparationLessons">
+      Interview preparation
+    </a>
+
+    <a href="#resumeGuidanceLessons">
+      R&eacute;sum&eacute; guidance
+    </a>
+  </nav>
+
+  <p
+    id="learningFollowUpPrompt"
+    class="learning-follow-up-prompt"
+    role="status"
+    aria-live="polite"
+  >
+    Open a lesson when you are ready to continue.
+  </p>
+</section>
+
+  <section
+    class="learning-categories"
+    aria-label="Learning categories"
+  >
+
+    <article class="learning-category-card">
+      <div class="learning-category-heading">
+        <span
+          class="learning-category-icon"
+          aria-hidden="true"
+        >
+          1
+        </span>
+
+        <div>
+          <p class="learning-category-label">
+            Career Guidance
+          </p>
+
+          <h3>Plan your next step</h3>
+        </div>
+      </div>
+
+      <p>
+        Explore your interests, recognize your strengths,
+        organize a job search, and prepare for the workplace.
+      </p>
+
+      <ul class="learning-topic-list">
+        <li>Career exploration</li>
+        <li>Job-search planning</li>
+        <li>Workplace readiness</li>
+        <li>Career changes and first jobs</li>
+      </ul>
+
+    <a
+        class="learning-category-action"
+        href="#careerGuidanceLessons"
+        >
+        Explore career guidance
+    </a>
+    </article>
+
+    <article class="learning-category-card">
+      <div class="learning-category-heading">
+        <span
+          class="learning-category-icon"
+          aria-hidden="true"
+        >
+          2
+        </span>
+
+        <div>
+          <p class="learning-category-label">
+            Interview Preparation
+          </p>
+
+          <h3>Practice with confidence</h3>
+        </div>
+      </div>
+
+      <p>
+        Learn how to prepare truthful examples, answer common
+        questions, and handle different interview formats.
+      </p>
+
+      <ul class="learning-topic-list">
+        <li>Interview preparation</li>
+        <li>Behavioral questions</li>
+        <li>Interview-day checklists</li>
+        <li>Professional follow-up</li>
+      </ul>
+
+      <a
+        class="learning-category-action"
+        href="#interviewPreparationLessons"
+        >
+        Explore interview preparation
+    </a>
+    </article>
+
+    <article class="learning-category-card">
+      <div class="learning-category-heading">
+        <span
+          class="learning-category-icon"
+          aria-hidden="true"
+        >
+          3
+        </span>
+
+        <div>
+          <p class="learning-category-label">
+            Résumé Guidance
+          </p>
+
+          <h3>Present your experience clearly</h3>
+        </div>
+      </div>
+
+      <p>
+        Understand résumé structure, describe genuine
+        accomplishments, and adapt your information for
+        relevant opportunities.
+      </p>
+
+      <ul class="learning-topic-list">
+        <li>Résumé fundamentals</li>
+        <li>Skills and experience</li>
+        <li>Projects and education</li>
+        <li>Tailoring principles</li>
+      </ul>
+
+      <a
+        class="learning-category-action"
+        href="#resumeGuidanceLessons"
+        >
+        Explore r&eacute;sum&eacute; guidance
+    </a>
+    </article>
+
+  </section>
+
+  <section
+  id="careerGuidanceLessons"
+  class="learning-lessons-section"
+  aria-labelledby="careerGuidanceTitle"
+>
+  <header class="learning-lessons-header">
+    <div>
+      <p class="dashboard-eyebrow">
+        Career Guidance
+      </p>
+
+      <h2 id="careerGuidanceTitle">
+        Build a practical career direction
+      </h2>
+
+      <p>
+        You do not need to have your entire career planned.
+        Use these lessons to understand your options and choose
+        a useful next step based on your current situation.
+      </p>
+    </div>
+
+    <span class="learning-lesson-count">
+      4 lessons
+    </span>
+  </header>
+
+  <div class="learning-lessons-list">
+
+    <details
+      id="career-exploration"
+      class="learning-lesson"
+      open
+    >
+      <summary>
+        <span class="learning-lesson-number">1</span>
+
+        <span>
+          <strong>Explore interests and strengths</strong>
+          <small>
+            Identify work that may fit how you think,
+            contribute, and learn.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Begin with evidence from your life</h3>
+
+        <p>
+          Career interests are not limited to favorite school
+          subjects or hobbies. Think about tasks that hold your
+          attention, problems you enjoy solving, and situations
+          where other people rely on you.
+        </p>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>Interests</h4>
+
+            <p>
+              Notice the subjects, activities, industries, or
+              problems that you willingly spend time exploring.
+            </p>
+          </section>
+
+          <section>
+            <h4>Strengths</h4>
+
+            <p>
+              Consider skills you have practiced, personal
+              qualities you use consistently, and tasks that
+              others trust you to handle.
+            </p>
+          </section>
+
+          <section>
+            <h4>Work preferences</h4>
+
+            <p>
+              Think about whether you prefer teamwork or
+              independent work, predictable routines or variety,
+              and hands-on or computer-based tasks.
+            </p>
+          </section>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Try this reflection</h4>
+
+          <ol>
+            <li>
+              Write down three activities that make you feel
+              focused or useful.
+            </li>
+
+            <li>
+              Identify the skill you use during each activity.
+            </li>
+
+            <li>
+              Search for two occupations that regularly use one
+              or more of those skills.
+            </li>
+          </ol>
+        </div>
+
+        <p class="learning-reminder">
+          You do not need to be an expert before exploring a
+          field. Interests can grow as you gain experience.
+        </p>
+      </div>
+    </details>
+
+    <details
+      id="career-goals"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">2</span>
+
+        <span>
+          <strong>Set realistic goals and find suitable jobs</strong>
+          <small>
+            Turn a broad career idea into achievable next steps.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Choose a direction you can act on</h3>
+
+        <p>
+          A useful career goal connects something you want with
+          a step you can take. It should reflect your current
+          experience, responsibilities, available time, and
+          opportunities to learn.
+        </p>
+
+        <div class="learning-example">
+          <h4>From broad idea to practical goal</h4>
+
+          <p>
+            Instead of “I want a good healthcare career,” try:
+            “During the next month, I will compare three
+            entry-level healthcare roles and identify the
+            training each one requires.”
+          </p>
+        </div>
+
+        <h4>Evaluate job opportunities</h4>
+
+        <p>
+          Read the complete posting and compare it with your
+          current needs. Look beyond the job title.
+        </p>
+
+        <ul>
+          <li>
+            Confirm the main duties and required qualifications.
+          </li>
+
+          <li>
+            Consider location, schedule, pay, transportation,
+            and physical requirements.
+          </li>
+
+          <li>
+            Separate required qualifications from skills an
+            employer describes as preferred.
+          </li>
+
+          <li>
+            Research unfamiliar employers and confirm that the
+            opportunity is legitimate.
+          </li>
+
+          <li>
+            Apply when you can truthfully demonstrate most of
+            the essential requirements.
+          </li>
+        </ul>
+
+        <div class="learning-activity">
+          <h4>Create a three-step goal</h4>
+
+          <ol>
+            <li>
+              Choose one role or career area to investigate.
+            </li>
+
+            <li>
+              Identify one skill, credential, or experience
+              commonly requested for that work.
+            </li>
+
+            <li>
+              Choose one realistic action and a date by which
+              you will complete it.
+            </li>
+          </ol>
+        </div>
+      </div>
+    </details>
+
+    <details
+      id="job-search-readiness"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">3</span>
+
+        <span>
+          <strong>Organize your search and prepare for work</strong>
+          <small>
+            Build routines that make job searching and starting
+            work more manageable.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Use a repeatable job-search routine</h3>
+
+        <p>
+          A job search is easier to manage when applications,
+          follow-ups, and preparation are recorded in one place.
+          A smaller number of thoughtful applications is often
+          more useful than many rushed applications.
+        </p>
+
+        <ul>
+          <li>
+            Set aside specific times each week to search and
+            apply.
+          </li>
+
+          <li>
+            Save promising jobs before their closing dates.
+          </li>
+
+          <li>
+            Record every submitted application in your
+            Application Tracker.
+          </li>
+
+          <li>
+            Keep copies of the job descriptions you applied to.
+          </li>
+
+          <li>
+            Add interview dates and appropriate follow-up
+            reminders.
+          </li>
+        </ul>
+
+        <h4>Build workplace readiness</h4>
+
+        <p>
+          Workplace readiness includes the habits that help
+          colleagues and customers depend on you. These habits
+          matter in every industry.
+        </p>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>Reliability</h4>
+            <p>
+              Arrive on time, communicate early about problems,
+              and complete agreed responsibilities.
+            </p>
+          </section>
+
+          <section>
+            <h4>Communication</h4>
+            <p>
+              Listen carefully, ask useful questions, and use a
+              respectful tone in person and online.
+            </p>
+          </section>
+
+          <section>
+            <h4>Learning</h4>
+            <p>
+              Take notes, accept constructive feedback, and ask
+              for clarification before guessing.
+            </p>
+          </section>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Prepare for your first week</h4>
+
+          <p>
+            Write down how you would confirm your schedule,
+            plan transportation, learn the dress expectations,
+            and contact your supervisor if an emergency occurs.
+          </p>
+        </div>
+      </div>
+    </details>
+
+    <details
+      id="career-transitions"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">4</span>
+
+        <span>
+          <strong>Navigate a first job or career change</strong>
+          <small>
+            Recognize transferable experience and choose an
+            appropriate entry point.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Guidance for first-time job seekers</h3>
+
+        <p>
+          Paid employment is not the only source of useful
+          experience. School projects, caregiving, clubs,
+          athletics, volunteering, and community activities can
+          demonstrate real skills when described honestly.
+        </p>
+
+        <ul>
+          <li>
+            Identify responsibilities you completed consistently.
+          </li>
+
+          <li>
+            Describe what you did, who it helped, and what you
+            learned.
+          </li>
+
+          <li>
+            Consider jobs that provide clear training and
+            realistic entry-level expectations.
+          </li>
+
+          <li>
+            Ask trusted adults, instructors, or community
+            contacts whether they can serve as references.
+          </li>
+        </ul>
+
+        <h3>Guidance for career changers</h3>
+
+        <p>
+          A career change does not erase your previous
+          experience. Focus on skills that transfer to the new
+          field while being clear about what you are still
+          learning.
+        </p>
+
+        <ul>
+          <li>
+            Compare your previous responsibilities with the
+            duties in the new occupation.
+          </li>
+
+          <li>
+            Identify transferable skills such as leadership,
+            customer service, analysis, organization, safety,
+            or project coordination.
+          </li>
+
+          <li>
+            Research whether a short course, certification,
+            volunteer role, or project could close an important
+            skill gap.
+          </li>
+
+          <li>
+            Expect that your first role in a new field may be a
+            bridge to your longer-term goal.
+          </li>
+        </ul>
+
+        <div class="learning-activity">
+          <h4>Create a transferable-skills statement</h4>
+
+          <p>
+            Complete this sentence truthfully:
+            “My experience with ______ prepared me to ______,
+            which would help me contribute as a ______.”
+          </p>
+        </div>
+
+        <p class="learning-reminder">
+          Never invent experience to appear qualified. A clear
+          explanation of genuine transferable skills is more
+          credible and more useful.
+        </p>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<section
+  id="interviewPreparationLessons"
+  class="learning-lessons-section"
+  aria-labelledby="interviewPreparationTitle"
+>
+  <header class="learning-lessons-header">
+    <div>
+      <p class="dashboard-eyebrow">
+        Interview Preparation
+      </p>
+
+      <h2 id="interviewPreparationTitle">
+        Prepare to speak with confidence
+      </h2>
+
+      <p>
+        Interviews are conversations about how your genuine
+        experience, interests, and working style relate to an
+        opportunity. Preparation helps you communicate clearly
+        without memorizing or inventing answers.
+      </p>
+    </div>
+
+    <span class="learning-lesson-count">
+      4 lessons
+    </span>
+  </header>
+
+  <div class="learning-lessons-list">
+
+    <details
+      id="interview-foundations"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">1</span>
+
+        <span>
+          <strong>Prepare for common interview questions</strong>
+
+          <small>
+            Research the role and organize the points you want
+            an employer to understand.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Prepare before you practice answers</h3>
+
+        <p>
+          Begin by reviewing the job description, employer,
+          location, schedule, and interview instructions.
+          Identify the skills and responsibilities the employer
+          mentions most often.
+        </p>
+
+        <ul>
+          <li>
+            Review the application and résumé you submitted.
+          </li>
+
+          <li>
+            Research what the employer provides and who it
+            serves.
+          </li>
+
+          <li>
+            Choose genuine examples that demonstrate relevant
+            skills.
+          </li>
+
+          <li>
+            Prepare two or three thoughtful questions for the
+            interviewer.
+          </li>
+
+          <li>
+            Confirm the interview time, time zone, format, and
+            contact information.
+          </li>
+        </ul>
+
+        <h3>Common questions and what they explore</h3>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>Tell me about yourself</h4>
+
+            <p>
+              Give a brief professional introduction connecting
+              your current situation, relevant experience, and
+              interest in the role.
+            </p>
+          </section>
+
+          <section>
+            <h4>Why are you interested?</h4>
+
+            <p>
+              Explain what genuinely interests you about the
+              work and how it relates to your goals or skills.
+            </p>
+          </section>
+
+          <section>
+            <h4>What are your strengths?</h4>
+
+            <p>
+              Choose a real strength, provide evidence, and
+              explain how it would help you perform the job.
+            </p>
+          </section>
+
+          <section>
+            <h4>What is a weakness?</h4>
+
+            <p>
+              Select an honest area for improvement and describe
+              the practical steps you are taking to improve it.
+            </p>
+          </section>
+
+          <section>
+            <h4>Why should we hire you?</h4>
+
+            <p>
+              Summarize the relevant value you can offer without
+              criticizing other applicants or exaggerating.
+            </p>
+          </section>
+
+          <section>
+            <h4>Do you have questions?</h4>
+
+            <p>
+              Ask about expectations, training, team structure,
+              performance, or the next stage of the process.
+            </p>
+          </section>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Create a 60-second introduction</h4>
+
+          <ol>
+            <li>Describe your current professional situation.</li>
+            <li>Name one or two relevant strengths.</li>
+            <li>Explain why this opportunity interests you.</li>
+          </ol>
+
+          <p>
+            Practice the key points instead of memorizing every
+            word. A natural answer usually sounds more credible.
+          </p>
+        </div>
+      </div>
+    </details>
+
+    <details
+      id="behavioral-interviews"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">2</span>
+
+        <span>
+          <strong>Answer behavioral questions with structure</strong>
+
+          <small>
+            Use a truthful example to explain what happened,
+            what you did, and what you learned.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Recognize behavioral questions</h3>
+
+        <p>
+          Behavioral questions often begin with phrases such as
+          “Tell me about a time,” “Describe a situation,” or
+          “Give me an example.” Employers use them to understand
+          how you have responded to real situations.
+        </p>
+
+        <div class="learning-example">
+          <h4>Common behavioral topics</h4>
+
+          <ul>
+            <li>Solving a problem</li>
+            <li>Working with a difficult person</li>
+            <li>Learning from a mistake</li>
+            <li>Managing competing priorities</li>
+            <li>Helping a customer or teammate</li>
+            <li>Taking initiative</li>
+          </ul>
+        </div>
+
+        <h3>Use the STAR structure</h3>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>Situation</h4>
+
+            <p>
+              Briefly explain the setting and enough background
+              for the interviewer to understand the challenge.
+            </p>
+          </section>
+
+          <section>
+            <h4>Task</h4>
+
+            <p>
+              Describe your responsibility or the outcome you
+              needed to achieve.
+            </p>
+          </section>
+
+          <section>
+            <h4>Action</h4>
+
+            <p>
+              Explain the specific steps you took. Focus on your
+              contribution while acknowledging teamwork.
+            </p>
+          </section>
+
+          <section>
+            <h4>Result</h4>
+
+            <p>
+              Describe the outcome, what changed, or what you
+              learned. Use accurate details rather than invented
+              numbers.
+            </p>
+          </section>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Build an evidence bank</h4>
+
+          <p>
+            Write down four genuine experiences from employment,
+            school, volunteering, projects, athletics,
+            caregiving, or community activities. For each one,
+            record the situation, your responsibility, your
+            actions, and the result.
+          </p>
+        </div>
+
+        <p class="learning-reminder">
+          Never create a fictional example because it sounds
+          more impressive. If you have not faced the exact
+          situation, say so and explain how you would approach
+          it using related genuine experience.
+        </p>
+      </div>
+    </details>
+
+    <details
+      id="interview-formats"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">3</span>
+
+        <span>
+          <strong>Practice for different interview formats</strong>
+
+          <small>
+            Prepare for telephone, virtual, and in-person
+            conversations.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Practice actively</h3>
+
+        <p>
+          Reading advice is useful, but speaking answers aloud
+          helps you notice unclear explanations, rushed pacing,
+          and missing details.
+        </p>
+
+        <ul>
+          <li>
+            Practice with a trusted person who can ask follow-up
+            questions.
+          </li>
+
+          <li>
+            Record yourself answering one or two questions, then
+            listen for clarity and unnecessary repetition.
+          </li>
+
+          <li>
+            Practice pausing briefly before answering.
+          </li>
+
+          <li>
+            Prepare short and detailed versions of important
+            examples.
+          </li>
+        </ul>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>Telephone interviews</h4>
+
+            <p>
+              Find a quiet location, charge your phone, confirm
+              reception, keep water nearby, and speak clearly.
+              Since visual cues are unavailable, avoid speaking
+              over the interviewer.
+            </p>
+          </section>
+
+          <section>
+            <h4>Virtual interviews</h4>
+
+            <p>
+              Test the meeting link, camera, microphone,
+              internet connection, lighting, and display name.
+              Close distracting applications and look toward
+              the camera when speaking.
+            </p>
+          </section>
+
+          <section>
+            <h4>In-person interviews</h4>
+
+            <p>
+              Plan your route, transportation, parking, and
+              arrival time. Bring requested materials and treat
+              everyone you meet respectfully.
+            </p>
+          </section>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Run a five-question practice interview</h4>
+
+          <ol>
+            <li>Tell me about yourself.</li>
+            <li>Why does this role interest you?</li>
+            <li>Describe a problem you solved.</li>
+            <li>What would you like to improve?</li>
+            <li>What questions do you have for us?</li>
+          </ol>
+
+          <p>
+            Afterward, identify one answer to clarify and one
+            strength to preserve.
+          </p>
+        </div>
+      </div>
+    </details>
+
+    <details
+      id="interview-day-follow-up"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">4</span>
+
+        <span>
+          <strong>Use an interview-day and follow-up plan</strong>
+
+          <small>
+            Reduce avoidable stress and respond professionally
+            after the conversation.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Interview-day checklist</h3>
+
+        <ul>
+          <li>
+            Recheck the time, location, format, and interviewer’s
+            name.
+          </li>
+
+          <li>
+            Review the job’s main responsibilities and your most
+            relevant examples.
+          </li>
+
+          <li>
+            Choose clean, appropriate clothing suited to the
+            employer and role.
+          </li>
+
+          <li>
+            Bring or prepare any requested documents.
+          </li>
+
+          <li>
+            Silence unnecessary notifications and remove
+            distractions.
+          </li>
+
+          <li>
+            Arrive or connect early without joining excessively
+            early.
+          </li>
+
+          <li>
+            Listen fully, ask for clarification when necessary,
+            and answer truthfully.
+          </li>
+        </ul>
+
+        <h3>Follow up professionally</h3>
+
+        <p>
+          When appropriate, send a brief thank-you message
+          within one business day. Mention the role, express
+          appreciation, and refer to a useful point from the
+          conversation.
+        </p>
+
+        <div class="learning-example">
+          <h4>Follow-up structure</h4>
+
+          <ol>
+            <li>Thank the interviewer for their time.</li>
+            <li>Restate your genuine interest in the role.</li>
+            <li>
+              Mention one relevant detail you appreciated
+              learning.
+            </li>
+            <li>Close professionally with your name.</li>
+          </ol>
+        </div>
+
+        <p>
+          If the employer provided a decision timeline, wait
+          until that date has passed before requesting an
+          update. If no timeline was provided, a polite inquiry
+          after several business days may be appropriate.
+        </p>
+
+        <div class="learning-activity">
+          <h4>Record your next steps</h4>
+
+          <p>
+            Update your PathForge Application Tracker with the
+            interview information, personal notes, and a
+            reasonable follow-up date while the conversation is
+            still fresh.
+          </p>
+        </div>
+
+        <p class="learning-reminder">
+          A rejection does not automatically mean you performed
+          poorly. Employers consider many factors, including
+          experience, timing, internal needs, and the applicant
+          pool.
+        </p>
+      </div>
+    </details>
+
+  </div>
+</section>  
+
+<section
+  id="resumeGuidanceLessons"
+  class="learning-lessons-section"
+  aria-labelledby="resumeGuidanceTitle"
+>
+  <header class="learning-lessons-header">
+    <div>
+      <p class="dashboard-eyebrow">
+        R&eacute;sum&eacute; Guidance
+      </p>
+
+      <h2 id="resumeGuidanceTitle">
+        Present your experience clearly
+      </h2>
+
+      <p>
+        A r&eacute;sum&eacute; is a focused summary of your
+        genuine qualifications. These lessons explain what to
+        include, how to describe your experience, and how to
+        make thoughtful adjustments for different opportunities.
+      </p>
+    </div>
+
+    <span class="learning-lesson-count">
+      4 lessons
+    </span>
+  </header>
+
+  <div class="learning-lessons-list">
+
+    <details
+      id="resume-fundamentals"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">1</span>
+
+        <span>
+          <strong>
+            Learn r&eacute;sum&eacute; fundamentals
+          </strong>
+
+          <small>
+            Understand contact information, summaries,
+            objectives, and basic organization.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>What a r&eacute;sum&eacute; should accomplish</h3>
+
+        <p>
+          A r&eacute;sum&eacute; helps an employer quickly
+          understand your relevant skills, experience,
+          education, and accomplishments. It should be readable,
+          truthful, and focused on the opportunity.
+        </p>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>Contact information</h4>
+
+            <p>
+              Include your name, a reliable telephone number,
+              a professional email address, and your general
+              location. A full street address is usually
+              unnecessary.
+            </p>
+          </section>
+
+          <section>
+            <h4>Professional summary</h4>
+
+            <p>
+              Briefly describe relevant experience, strengths,
+              and the value you can offer. Use evidence instead
+              of unsupported claims.
+            </p>
+          </section>
+
+          <section>
+            <h4>Career objective</h4>
+
+            <p>
+              An objective can help first-time job seekers or
+              career changers explain the type of opportunity
+              they are pursuing and the skills they bring.
+            </p>
+          </section>
+        </div>
+
+        <h4>Common section order</h4>
+
+        <ol>
+          <li>Contact information</li>
+          <li>Summary or objective, when useful</li>
+          <li>Skills</li>
+          <li>Experience</li>
+          <li>Education</li>
+          <li>Projects, volunteer work, or certifications</li>
+        </ol>
+
+        <p>
+          The order can change. Place the most relevant and
+          convincing information where an employer can find it
+          easily.
+        </p>
+
+        <div class="learning-activity">
+          <h4>Plan your sections</h4>
+
+          <p>
+            List the sections that would best represent your
+            current qualifications. Then identify which section
+            contains your strongest evidence for the type of job
+            you want.
+          </p>
+        </div>
+
+        <p class="learning-reminder">
+          Do not include passwords, identification numbers,
+          banking information, or other sensitive personal data
+          on a r&eacute;sum&eacute;.
+        </p>
+      </div>
+    </details>
+
+    <details
+      id="resume-skills-experience"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">2</span>
+
+        <span>
+          <strong>
+            Describe skills, experience, and accomplishments
+          </strong>
+
+          <small>
+            Show what you did, how you contributed, and what
+            resulted from your work.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Choose meaningful skills</h3>
+
+        <p>
+          Include skills you can genuinely demonstrate. These
+          may include technical abilities, tools, languages,
+          certifications, communication, organization,
+          customer service, leadership, or safety practices.
+        </p>
+
+        <ul>
+          <li>
+            Use specific skill names instead of broad phrases
+            such as “good with computers.”
+          </li>
+
+          <li>
+            Prioritize skills relevant to the opportunity.
+          </li>
+
+          <li>
+            Be prepared to explain where and how you used each
+            listed skill.
+          </li>
+
+          <li>
+            Do not list software, languages, or credentials you
+            cannot actually use or do not possess.
+          </li>
+        </ul>
+
+        <h3>Write experience with evidence</h3>
+
+        <p>
+          Experience entries typically include the organization,
+          role, location, dates, and concise accomplishment
+          statements. Experience can come from paid employment,
+          internships, self-employment, or other genuine work.
+        </p>
+
+        <div class="learning-example">
+          <h4>Use action, context, and result</h4>
+
+          <p>
+            Weak: “Responsible for helping customers.”
+          </p>
+
+          <p>
+            Stronger: “Helped customers locate products and
+            resolve basic questions during busy evening shifts.”
+          </p>
+        </div>
+
+        <h4>Accomplishment-writing principles</h4>
+
+        <ul>
+          <li>Begin with a clear action verb.</li>
+          <li>Explain the task or problem you addressed.</li>
+          <li>Describe who benefited or what improved.</li>
+          <li>
+            Use numbers only when they are accurate and
+            meaningful.
+          </li>
+          <li>
+            Give enough context for someone outside the
+            organization to understand.
+          </li>
+        </ul>
+
+        <div class="learning-activity">
+          <h4>Strengthen one responsibility</h4>
+
+          <p>
+            Choose one genuine responsibility. Rewrite it by
+            answering: What did I do? How did I do it? Who or
+            what benefited? What was the accurate result?
+          </p>
+        </div>
+
+        <p class="learning-reminder">
+          Never invent metrics or enlarge your responsibilities.
+          A modest, specific, truthful accomplishment is more
+          credible than an impressive claim you cannot support.
+        </p>
+      </div>
+    </details>
+
+    <details
+      id="resume-education-projects"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">3</span>
+
+        <span>
+          <strong>
+            Present education, projects, and volunteer work
+          </strong>
+
+          <small>
+            Use relevant experience from inside and outside
+            traditional employment.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Education</h3>
+
+        <p>
+          Include the school or training provider, program,
+          credential, and completion date or expected completion
+          date when relevant. You may also include relevant
+          coursework, honors, or activities when they support
+          your application.
+        </p>
+
+        <ul>
+          <li>
+            Do not claim a degree or certification before it has
+            been earned.
+          </li>
+
+          <li>
+            Clearly label education that is currently in
+            progress.
+          </li>
+
+          <li>
+            Usually omit elementary or middle-school education.
+          </li>
+
+          <li>
+            Include grades only when useful, accurate, and
+            appropriate.
+          </li>
+        </ul>
+
+        <h3>Projects</h3>
+
+        <p>
+          Projects can demonstrate applied skills when you have
+          limited paid experience or when you are entering a new
+          field. Include the project purpose, your contribution,
+          tools used, and outcome.
+        </p>
+
+        <h3>Volunteer and community experience</h3>
+
+        <p>
+          Volunteer work can show reliability, service,
+          teamwork, planning, leadership, and other genuine
+          skills. Describe it with the same care you would use
+          for paid employment.
+        </p>
+
+        <div class="learning-guidance-grid">
+          <section>
+            <h4>School project</h4>
+
+            <p>
+              Explain the assignment, your role, the process,
+              and the finished result.
+            </p>
+          </section>
+
+          <section>
+            <h4>Personal project</h4>
+
+            <p>
+              Describe what you created or investigated and the
+              skills you practiced.
+            </p>
+          </section>
+
+          <section>
+            <h4>Volunteer work</h4>
+
+            <p>
+              Identify the organization, your responsibilities,
+              and how your work supported others.
+            </p>
+          </section>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Build an experience inventory</h4>
+
+          <p>
+            List employment, education, projects, clubs,
+            caregiving, volunteering, and community activities.
+            Beside each one, record the skills and
+            responsibilities you can truthfully demonstrate.
+          </p>
+        </div>
+      </div>
+    </details>
+
+    <details
+      id="resume-tailoring"
+      class="learning-lesson"
+    >
+      <summary>
+        <span class="learning-lesson-number">4</span>
+
+        <span>
+          <strong>
+            Avoid common mistakes and tailor thoughtfully
+          </strong>
+
+          <small>
+            Improve relevance and readability without changing
+            the truth.
+          </small>
+        </span>
+      </summary>
+
+      <div class="learning-lesson-content">
+        <h3>Common r&eacute;sum&eacute; mistakes</h3>
+
+        <ul>
+          <li>Spelling, grammar, or inconsistent formatting</li>
+          <li>Incorrect telephone numbers or email addresses</li>
+          <li>Dense paragraphs that are difficult to scan</li>
+          <li>Unexplained abbreviations or internal job titles</li>
+          <li>Irrelevant information that hides stronger evidence</li>
+          <li>Vague claims without examples</li>
+          <li>Inaccurate dates, skills, credentials, or results</li>
+          <li>
+            Decorative elements that make the document difficult
+            to read
+          </li>
+        </ul>
+
+        <h3>What tailoring means</h3>
+
+        <p>
+          Tailoring means emphasizing the genuine information
+          most relevant to a particular opportunity. It does not
+          mean changing facts to match every job description.
+        </p>
+
+        <ol>
+          <li>
+            Identify the posting’s main responsibilities and
+            required qualifications.
+          </li>
+
+          <li>
+            Compare those requirements with your genuine skills
+            and experience.
+          </li>
+
+          <li>
+            Move the most relevant evidence into prominent
+            positions.
+          </li>
+
+          <li>
+            Use accurate terminology that both you and the
+            employer understand.
+          </li>
+
+          <li>
+            Remove unrelated details when they distract from
+            stronger qualifications.
+          </li>
+        </ol>
+
+        <div class="learning-example">
+          <h4>Truthful tailoring example</h4>
+
+          <p>
+            If a posting emphasizes customer communication, you
+            might place genuine customer-service experience
+            before less relevant responsibilities. You should
+            not add customer-service experience you never had.
+          </p>
+        </div>
+
+        <div class="learning-activity">
+          <h4>Compare without rewriting</h4>
+
+          <p>
+            Choose one job posting and underline its three most
+            important requirements. Then identify where your
+            existing information provides truthful evidence for
+            each requirement.
+          </p>
+        </div>
+
+        <p class="learning-reminder">
+          Task 7.4 provides education only. PathForge is not
+          generating, uploading, parsing, rewriting, or
+          automatically tailoring a r&eacute;sum&eacute; here.
+        </p>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<section
+  class="learning-assistant-section"
+  aria-labelledby="learningAssistantTitle"
+>
+  <header class="learning-assistant-header">
+    <div>
+      <p class="dashboard-eyebrow">
+        Learning Center Assistant
+      </p>
+
+      <h2 id="learningAssistantTitle">
+        Ask a learning question
+      </h2>
+
+      <p>
+        Get educational guidance about career planning,
+        interviews, workplace readiness, and
+        r&eacute;sum&eacute; principles.
+      </p>
+    </div>
+
+    <span class="learning-assistant-badge">
+      Educational guidance
+    </span>
+  </header>
+
+  <div class="learning-assistant-layout">
+
+    <aside
+      class="learning-assistant-suggestions"
+      aria-labelledby="assistantSuggestionsTitle"
+    >
+      <h3 id="assistantSuggestionsTitle">
+        Suggested questions
+      </h3>
+
+      <div
+        id="learningAssistantSuggestions"
+        class="learning-assistant-suggestion-list"
+      >
+        <button
+          type="button"
+          data-learning-question=
+            "How do I identify my strongest skills?"
+        >
+          Identify my strengths
+        </button>
+
+        <button
+          type="button"
+          data-learning-question=
+            "How should I answer a behavioral interview question?"
+        >
+          Practice a behavioral answer
+        </button>
+
+        <button
+          type="button"
+          data-learning-question=
+            "How do I write an accomplishment statement?"
+        >
+          Write truthful accomplishments
+        </button>
+
+        <button
+          type="button"
+          data-learning-question=
+            "How can I prepare for my first job?"
+        >
+          Prepare for a first job
+        </button>
+      </div>
+
+      <p class="learning-assistant-safety-note">
+        PathForge will not help invent experience, skills,
+        credentials, or achievements.
+      </p>
+    </aside>
+
+    <div class="learning-assistant-chat">
+      <div
+        id="learningAssistantMessages"
+        class="learning-assistant-messages"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        tabindex="0"
+      >
+        <article class="learning-assistant-message assistant-message">
+          <strong>PathForge Learning Assistant</strong>
+
+          <p>
+            Ask me about career direction, interview
+            preparation, workplace readiness, or
+            r&eacute;sum&eacute; education.
+          </p>
+        </article>
+      </div>
+
+      <form
+        id="learningAssistantForm"
+        class="learning-assistant-form"
+      >
+        <label for="learningAssistantInput">
+          Your learning question
+        </label>
+
+        <textarea
+          id="learningAssistantInput"
+          rows="3"
+          maxlength="800"
+          placeholder=
+            "Example: How can I prepare a truthful STAR answer?"
+          required
+        ></textarea>
+
+        <div class="learning-assistant-form-footer">
+          <span id="learningAssistantCharacterCount">
+            0 / 800
+          </span>
+
+          <button
+            id="learningAssistantSubmit"
+            type="submit"
+          >
+            Ask assistant
+          </button>
+        </div>
+      </form>
+
+      <p
+        id="learningAssistantStatus"
+        class="learning-assistant-status"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </div>
+
+  </div>
+</section>
+
+<aside class="learning-authenticity-note">
+    <h3>Keep your work authentic</h3>
+
+    <p>
+      PathForge can help you learn and improve, but your
+      applications should always reflect your real skills,
+      experiences, and qualifications. Review and personalize
+      any AI-assisted guidance before using it.
+    </p>
+  </aside>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>

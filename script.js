@@ -1217,6 +1217,9 @@ async function checkLoginStatus() {
     const applicationsLink =
     document.getElementById("applicationsLink");
 
+    const learningCenterLink =
+    document.getElementById("learningCenterLink");
+
     const employerDashboardLink =
         document.getElementById("employerDashboardLink");
 
@@ -1262,6 +1265,10 @@ async function checkLoginStatus() {
 
         if (applicationsLink) {
             applicationsLink.style.display = "inline";
+        }
+
+        if (learningCenterLink) {
+            learningCenterLink.style.display = "inline";
         }
 
         if (logoutButton) {
@@ -1324,6 +1331,7 @@ async function protectPage() {
     "profile.html",
     "saved-jobs.html",
     "applications.html",
+    "learning-center.html",
     "employer-access.html"
 ];
 
@@ -5217,6 +5225,1064 @@ function setupEmployerCompanyProfile() {
   updateCompanyProfilePreview();
 }
 
+const LEARNING_LESSON_CATALOG = [
+  {
+    id: "career-exploration",
+    title: "Explore interests and strengths",
+    description:
+      "Identify work that may fit your interests, strengths, and preferences."
+  },
+  {
+    id: "career-goals",
+    title: "Set realistic career goals",
+    description:
+      "Turn a broad career idea into achievable next steps."
+  },
+  {
+    id: "job-search-readiness",
+    title: "Organize your job search",
+    description:
+      "Build practical job-search and workplace-readiness routines."
+  },
+  {
+    id: "career-transitions",
+    title: "Navigate a first job or career change",
+    description:
+      "Recognize transferable experience and suitable entry points."
+  },
+  {
+    id: "interview-foundations",
+    title: "Prepare for common interview questions",
+    description:
+      "Research the role and organize truthful answers."
+  },
+  {
+    id: "behavioral-interviews",
+    title: "Answer behavioral questions",
+    description:
+      "Use genuine examples and the STAR answer structure."
+  },
+  {
+    id: "interview-formats",
+    title: "Practice for interview formats",
+    description:
+      "Prepare for telephone, virtual, and in-person interviews."
+  },
+  {
+    id: "interview-day-follow-up",
+    title: "Plan interview day and follow-up",
+    description:
+      "Use a checklist and respond professionally afterward."
+  },
+  {
+    id: "resume-fundamentals",
+    title: "Learn résumé fundamentals",
+    description:
+      "Understand contact information, summaries, and organization."
+  },
+  {
+    id: "resume-skills-experience",
+    title: "Describe skills and experience",
+    description:
+      "Write truthful, evidence-based accomplishment statements."
+  },
+  {
+    id: "resume-education-projects",
+    title: "Present education and projects",
+    description:
+      "Use relevant education, projects, and volunteer experience."
+  },
+  {
+    id: "resume-tailoring",
+    title: "Tailor thoughtfully",
+    description:
+      "Improve relevance without changing or inventing facts."
+  }
+];
+
+let learningProgressByLesson = new Map();
+
+
+function setupLearningControls() {
+  const lessons =
+    document.querySelectorAll(".learning-lesson");
+
+  lessons.forEach(lesson => {
+    const lessonId = lesson.id;
+
+    if (
+      !lessonId ||
+      !LEARNING_LESSON_CATALOG.some(
+        item => item.id === lessonId
+      )
+    ) {
+      return;
+    }
+
+    const content =
+      lesson.querySelector(".learning-lesson-content");
+
+    if (!content) {
+      return;
+    }
+
+    let controls =
+      content.querySelector(
+        ".learning-completion-controls"
+      );
+
+    if (!controls) {
+      controls = document.createElement("div");
+      controls.className =
+        "learning-completion-controls";
+
+      const status = document.createElement("p");
+      status.className =
+        "learning-completion-status";
+
+      status.textContent = "Not started";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className =
+        "learning-completion-button";
+
+      button.textContent = "Mark lesson complete";
+      button.setAttribute("aria-pressed", "false");
+
+      button.addEventListener(
+        "click",
+        async function () {
+          const currentProgress =
+            learningProgressByLesson.get(lessonId);
+
+          const nextStatus =
+            currentProgress?.is_completed
+              ? "not_completed"
+              : "completed";
+
+          await saveLearningProgress(
+            lessonId,
+            nextStatus,
+            button
+          );
+        }
+      );
+
+      controls.append(status, button);
+      content.appendChild(controls);
+    }
+
+    lesson.addEventListener(
+      "toggle",
+      async function () {
+        if (!lesson.open) {
+          return;
+        }
+
+        await saveLearningProgress(
+          lessonId,
+          "started"
+        );
+      }
+    );
+  });
+}
+
+
+function renderLearningProgress(data) {
+  const progress = Array.isArray(data.progress)
+    ? data.progress
+    : [];
+
+  const summary = data.summary || {};
+
+  learningProgressByLesson = new Map(
+    progress.map(item => [
+      item.lesson_id,
+      item
+    ])
+  );
+
+  const availableLessons =
+    Number(summary.available_lessons) ||
+    LEARNING_LESSON_CATALOG.length;
+
+  const startedLessons =
+    Number(summary.started_lessons) || 0;
+
+  const completedLessons =
+    Number(summary.completed_lessons) || 0;
+
+  const startedCount =
+    document.getElementById("learningStartedCount");
+
+  const completedCount =
+    document.getElementById(
+      "learningCompletedCount"
+    );
+
+  const availableCount =
+    document.getElementById(
+      "learningAvailableCount"
+    );
+
+  const progressMessage =
+    document.getElementById(
+      "learningProgressMessage"
+    );
+
+  const progressBar =
+    document.getElementById(
+      "learningProgressBar"
+    );
+
+  const progressBarFill =
+    document.getElementById(
+      "learningProgressBarFill"
+    );
+
+  if (startedCount) {
+    startedCount.textContent = startedLessons;
+  }
+
+  if (completedCount) {
+    completedCount.textContent = completedLessons;
+  }
+
+  if (availableCount) {
+    availableCount.textContent = availableLessons;
+  }
+
+  if (progressMessage) {
+    progressMessage.classList.remove(
+      "error-message"
+    );
+
+    if (startedLessons === 0) {
+      progressMessage.textContent =
+        "Choose a topic to begin your learning journey.";
+    } else {
+      progressMessage.textContent =
+        completedLessons +
+        " completed; " +
+        startedLessons +
+        " started.";
+    }
+  }
+
+  if (progressBar) {
+    progressBar.setAttribute(
+      "aria-valuemax",
+      String(availableLessons)
+    );
+
+    progressBar.setAttribute(
+      "aria-valuenow",
+      String(completedLessons)
+    );
+  }
+
+  if (progressBarFill) {
+    const percentage =
+      availableLessons > 0
+        ? (
+            completedLessons /
+            availableLessons
+          ) * 100
+        : 0;
+
+    progressBarFill.style.width =
+      Math.min(percentage, 100) + "%";
+  }
+
+  LEARNING_LESSON_CATALOG.forEach(lesson => {
+    const lessonElement =
+      document.getElementById(lesson.id);
+
+    if (!lessonElement) {
+      return;
+    }
+
+    const savedProgress =
+      learningProgressByLesson.get(lesson.id);
+
+    const isCompleted =
+      Boolean(savedProgress?.is_completed);
+
+    const controls =
+      lessonElement.querySelector(
+        ".learning-completion-controls"
+      );
+
+    const status =
+      controls?.querySelector(
+        ".learning-completion-status"
+      );
+
+    const button =
+      controls?.querySelector(
+        ".learning-completion-button"
+      );
+
+    lessonElement.classList.toggle(
+      "is-completed",
+      isCompleted
+    );
+
+    if (status) {
+      if (isCompleted) {
+        status.textContent =
+          "Completed. You can return to review this lesson.";
+      } else if (savedProgress) {
+        status.textContent =
+          "In progress. Mark complete when you are ready.";
+      } else {
+        status.textContent =
+          "Not started";
+      }
+    }
+
+    if (button) {
+      button.classList.toggle(
+        "is-completed",
+        isCompleted
+      );
+
+      button.setAttribute(
+        "aria-pressed",
+        String(isCompleted)
+      );
+
+      button.textContent = isCompleted
+        ? "Completed — mark not complete"
+        : "Mark lesson complete";
+    }
+  });
+
+  updateLearningRecommendation(
+    progress,
+    completedLessons,
+    availableLessons
+  );
+}
+
+
+function updateLearningRecommendation(
+  progress,
+  completedLessons,
+  availableLessons
+) {
+  const title =
+    document.getElementById(
+      "learningRecommendationTitle"
+    );
+
+  const description =
+    document.getElementById(
+      "learningRecommendationDescription"
+    );
+
+  const link =
+    document.getElementById(
+      "learningRecommendationLink"
+    );
+
+  const reason =
+    document.getElementById(
+      "learningRecommendationReason"
+    );
+
+  const followUp =
+    document.getElementById(
+      "learningFollowUpPrompt"
+    );
+
+  if (
+    !title ||
+    !description ||
+    !link ||
+    !reason ||
+    !followUp
+  ) {
+    return;
+  }
+
+  const incompleteStarted = progress
+    .filter(item => !item.is_completed)
+    .sort((first, second) => {
+      const firstDate =
+        first.last_opened_at || first.updated_at || "";
+
+      const secondDate =
+        second.last_opened_at || second.updated_at || "";
+
+      return secondDate.localeCompare(firstDate);
+    });
+
+  let recommendation = null;
+
+  if (incompleteStarted.length > 0) {
+    recommendation =
+      LEARNING_LESSON_CATALOG.find(
+        lesson =>
+          lesson.id ===
+          incompleteStarted[0].lesson_id
+      );
+
+    reason.textContent =
+      "Continue the lesson you opened most recently.";
+  }
+
+  if (!recommendation) {
+    recommendation =
+      LEARNING_LESSON_CATALOG.find(
+        lesson => {
+          const saved =
+            learningProgressByLesson.get(
+              lesson.id
+            );
+
+          return !saved?.is_completed;
+        }
+      );
+
+    reason.textContent =
+      completedLessons > 0
+        ? "This follows your current learning progress."
+        : "This is a useful foundation for many career paths.";
+  }
+
+  if (!recommendation) {
+    recommendation =
+      LEARNING_LESSON_CATALOG[0];
+
+    reason.textContent =
+      "You completed every lesson. Choose one to review.";
+  }
+
+  title.textContent = recommendation.title;
+  description.textContent =
+    recommendation.description;
+
+  link.href = "#" + recommendation.id;
+
+  if (completedLessons >= availableLessons) {
+    link.textContent = "Review lesson";
+
+    followUp.textContent =
+      "You completed every available lesson. Revisit any topic when you need a refresher.";
+
+  } else if (completedLessons > 0) {
+    link.textContent = "Continue learning";
+
+    followUp.textContent =
+      "You have " +
+      (availableLessons - completedLessons) +
+      " lessons remaining. Choose the next step that feels most useful.";
+
+  } else {
+    link.textContent = "Start suggested lesson";
+
+    followUp.textContent =
+      "Open a lesson, try its activity, and mark it complete when you feel ready.";
+  }
+}
+
+
+async function loadLearningProgress() {
+  const message =
+    document.getElementById(
+      "learningProgressMessage"
+    );
+
+  if (!message) {
+    return;
+  }
+
+  message.classList.remove("error-message");
+  message.textContent = "Loading your progress...";
+
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/learning-progress",
+      {
+        credentials: "include"
+      }
+    );
+
+    if (response.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        "Your learning progress could not be loaded."
+      );
+    }
+
+    const data = await response.json();
+
+    renderLearningProgress(data);
+
+  } catch (error) {
+    console.error(
+      "Learning progress load failed:",
+      error
+    );
+
+    message.textContent =
+      error.message ||
+      "Your learning progress could not be loaded.";
+
+    message.classList.add("error-message");
+  }
+}
+
+
+async function saveLearningProgress(
+  lessonId,
+  status,
+  button = null
+) {
+  const followUp =
+    document.getElementById(
+      "learningFollowUpPrompt"
+    );
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Saving...";
+  }
+
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/learning-progress/" +
+        encodeURIComponent(lessonId),
+      {
+        method: "PUT",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        credentials: "include",
+
+        body: JSON.stringify({
+          status: status
+        })
+      }
+    );
+
+    if (response.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.detail ||
+        "Your learning progress could not be saved."
+      );
+    }
+
+    await loadLearningProgress();
+
+    if (followUp && status === "completed") {
+      followUp.textContent =
+        "Lesson completed. PathForge updated your suggested next step.";
+    }
+
+    if (
+      followUp &&
+      status === "not_completed"
+    ) {
+      followUp.textContent =
+        "Lesson returned to in progress so you can revisit it.";
+    }
+
+  } catch (error) {
+    console.error(
+      "Learning progress save failed:",
+      error
+    );
+
+    if (followUp) {
+      followUp.textContent =
+        error.message ||
+        "Your learning progress could not be saved.";
+
+      followUp.classList.add("error-message");
+    }
+
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
+}
+
+
+async function initializeLearningCenter() {
+  const learningCenter =
+    document.querySelector(
+      ".learning-center-container"
+    );
+
+  if (!learningCenter) {
+    return;
+  }
+
+  setupLearningControls();
+
+  await loadLearningProgress();
+
+  const initiallyOpenLessons =
+    document.querySelectorAll(
+      ".learning-lesson[open]"
+    );
+
+  for (const lesson of initiallyOpenLessons) {
+    if (
+      lesson.id &&
+      !learningProgressByLesson.has(lesson.id)
+    ) {
+      await saveLearningProgress(
+        lesson.id,
+        "started"
+      );
+    }
+  }
+}
+
+let learningAssistantRequestInProgress = false;
+
+function setLearningAssistantBusy(isBusy) {
+  const form =
+    document.getElementById(
+      "learningAssistantForm"
+    );
+
+  if (!form) {
+    return;
+  }
+
+  const input =
+  document.getElementById(
+    "learningAssistantInput"
+  );
+
+  if (input) {
+    input.disabled = isBusy;
+  }
+
+  const controls = form
+    .closest(".learning-assistant-section")
+    ?.querySelectorAll("button");
+
+  controls?.forEach(button => {
+    button.disabled = isBusy;
+  });
+
+  const messages =
+    document.getElementById(
+      "learningAssistantMessages"
+    );
+
+  messages?.setAttribute(
+    "aria-busy",
+    String(isBusy)
+  );
+}
+
+
+function scrollLearningAssistant() {
+  const messages =
+    document.getElementById(
+      "learningAssistantMessages"
+    );
+
+  if (messages) {
+    messages.scrollTop =
+      messages.scrollHeight;
+  }
+}
+
+
+function addLearningAssistantMessage(
+  role,
+  text,
+  followUps = [],
+  authenticityReminder = ""
+) {
+  const messages =
+    document.getElementById(
+      "learningAssistantMessages"
+    );
+
+  if (!messages) {
+    return null;
+  }
+
+  const message = document.createElement("article");
+
+  message.className =
+    "learning-assistant-message " +
+    (
+      role === "user"
+        ? "user-message"
+        : "assistant-message"
+    );
+
+  const heading = document.createElement("strong");
+
+  heading.textContent =
+    role === "user"
+      ? "You"
+      : "PathForge Learning Assistant";
+
+  const paragraph = document.createElement("p");
+  paragraph.textContent = text;
+
+  message.append(heading, paragraph);
+
+  if (
+    role === "assistant" &&
+    followUps.length > 0
+  ) {
+    const followUpContainer =
+      document.createElement("div");
+
+    followUpContainer.className =
+      "learning-assistant-follow-ups";
+
+    const followUpHeading =
+      document.createElement("p");
+
+    followUpHeading.textContent =
+      "You could also ask:";
+
+    followUpContainer.appendChild(
+      followUpHeading
+    );
+
+    followUps.forEach(question => {
+      const button =
+        document.createElement("button");
+
+      button.type = "button";
+      button.textContent = question;
+
+      button.addEventListener(
+        "click",
+        function () {
+          askLearningAssistant(question);
+        }
+      );
+
+      followUpContainer.appendChild(button);
+    });
+
+    message.appendChild(followUpContainer);
+  }
+
+  if (
+    role === "assistant" &&
+    authenticityReminder
+  ) {
+    const reminder = document.createElement("p");
+
+    reminder.className =
+      "learning-assistant-authenticity";
+
+    reminder.textContent =
+      authenticityReminder;
+
+    message.appendChild(reminder);
+  }
+
+  messages.appendChild(message);
+  scrollLearningAssistant();
+
+  return message;
+}
+
+
+function addLearningAssistantTypingMessage() {
+  const messages =
+    document.getElementById(
+      "learningAssistantMessages"
+    );
+
+  if (!messages) {
+    return null;
+  }
+
+  const message = document.createElement("article");
+
+  message.className =
+    "learning-assistant-message " +
+    "assistant-message typing-message";
+
+  const heading = document.createElement("strong");
+  heading.textContent =
+    "PathForge Learning Assistant";
+
+  const paragraph = document.createElement("p");
+  paragraph.textContent =
+    "Preparing guidance...";
+
+  message.append(heading, paragraph);
+  messages.appendChild(message);
+
+  scrollLearningAssistant();
+
+  return message;
+}
+
+
+async function askLearningAssistant(question) {
+  const input =
+    document.getElementById(
+      "learningAssistantInput"
+    );
+
+  const status =
+    document.getElementById(
+      "learningAssistantStatus"
+    );
+
+  const characterCount =
+    document.getElementById(
+      "learningAssistantCharacterCount"
+    );
+
+  const cleanedQuestion =
+    String(question || "").trim();
+
+  if (!input || !status) {
+    return;
+  }
+
+  if (learningAssistantRequestInProgress) {
+  status.textContent =
+    "Please wait for the current response.";
+
+    return;
+  }
+
+  status.classList.remove("error-message");
+
+  if (cleanedQuestion === "") {
+    status.textContent =
+      "Please enter a learning question.";
+
+    status.classList.add("error-message");
+    input.focus();
+
+    return;
+  }
+
+  if (cleanedQuestion.length > 800) {
+    status.textContent =
+      "Please keep your question under 800 characters.";
+
+    status.classList.add("error-message");
+    input.focus();
+
+    return;
+  }
+
+  addLearningAssistantMessage(
+    "user",
+    cleanedQuestion
+  );
+
+  input.value = "";
+
+  if (characterCount) {
+    characterCount.textContent = "0 / 800";
+  }
+
+  const typingMessage =
+    addLearningAssistantTypingMessage();
+
+  status.textContent =
+    "The assistant is preparing guidance.";
+
+  learningAssistantRequestInProgress = true;
+
+  learningAssistantRequestInProgress = true;  
+  setLearningAssistantBusy(true);
+
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/learning-assistant",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        credentials: "include",
+
+        body: JSON.stringify({
+          message: cleanedQuestion
+        })
+      }
+    );
+
+    if (response.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.detail ||
+        "The assistant could not answer right now."
+      );
+    }
+
+    typingMessage?.remove();
+
+    addLearningAssistantMessage(
+      "assistant",
+      data.reply,
+      Array.isArray(data.follow_up_questions)
+        ? data.follow_up_questions
+        : [],
+      data.authenticity_reminder || ""
+    );
+
+    status.textContent =
+      "Guidance received. Review and personalize it.";
+
+  } catch (error) {
+    console.error(
+      "Learning assistant request failed:",
+      error
+    );
+
+    typingMessage?.remove();
+
+    const errorMessage =
+      addLearningAssistantMessage(
+        "assistant",
+        error.message ||
+          "The assistant could not answer right now."
+      );
+
+    errorMessage?.classList.add(
+      "error-message"
+    );
+
+    status.textContent =
+      "The assistant could not answer. Please try again.";
+
+    status.classList.add("error-message");
+
+  } finally {
+    learningAssistantRequestInProgress = false;
+    setLearningAssistantBusy(false);
+    input.focus();
+  }
+}
+
+
+function setupLearningAssistant() {
+  const form =
+    document.getElementById(
+      "learningAssistantForm"
+    );
+
+  const input =
+    document.getElementById(
+      "learningAssistantInput"
+    );
+
+  const characterCount =
+    document.getElementById(
+      "learningAssistantCharacterCount"
+    );
+
+  const suggestions =
+    document.querySelectorAll(
+      "[data-learning-question]"
+    );
+
+  if (!form || !input) {
+    return;
+  }
+
+  input.addEventListener(
+    "input",
+    function () {
+      if (characterCount) {
+        characterCount.textContent =
+          input.value.length + " / 800";
+      }
+    }
+  );
+
+  input.addEventListener(
+  "keydown",
+  function (event) {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
+
+      askLearningAssistant(
+        input.value
+      );
+    }
+  }
+);
+
+  form.addEventListener(
+    "submit",
+    function (event) {
+      event.preventDefault();
+
+      askLearningAssistant(
+        input.value
+      );
+    }
+  );
+
+  suggestions.forEach(button => {
+    button.addEventListener(
+      "click",
+      function () {
+        const question =
+          button.dataset.learningQuestion;
+
+        if (question) {
+          askLearningAssistant(question);
+        }
+      }
+    );
+  });
+
+  const status =
+    document.getElementById(
+      "learningAssistantStatus"
+    );
+
+  if (status) {
+    status.textContent =
+      "Press Enter to send. Use Shift+Enter for a new line.";
+  }
+}
+
 function setupEmployerDashboard() {
   const employerJobForm =
     document.getElementById("employerJobForm");
@@ -5242,3 +6308,5 @@ setupProfileForm();
 loadSavedJobs();
 loadApplications();
 setupApplicationDialog();
+initializeLearningCenter();
+setupLearningAssistant();

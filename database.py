@@ -259,6 +259,34 @@ def create_jobs_table():
     """)
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS learning_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            lesson_id TEXT NOT NULL,
+
+            is_completed INTEGER NOT NULL DEFAULT 0
+                CHECK (is_completed IN (0, 1)),
+
+            last_opened_at TEXT,
+            completed_at TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (user_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE,
+
+            UNIQUE (user_id, lesson_id)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_learning_progress_user_id
+        ON learning_progress(user_id)
+    """)
+    
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS saved_jobs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,

@@ -106,6 +106,8 @@ def require_employer(request: Request):
 class ChatMessage(BaseModel):
     message: str
 
+class LearningAssistantMessage(BaseModel):
+    message: str
 
 class Job(BaseModel):
     title: str
@@ -194,6 +196,9 @@ class EmployerApplicationUpdate(BaseModel):
     interview_details: Optional[str] = None
     employer_notes: Optional[str] = None
 
+class LearningProgressUpdate(BaseModel):
+    status: str
+
 class CompanyProfileUpdate(BaseModel):
     company_name: str
     company_description: Optional[str] = None
@@ -201,6 +206,27 @@ class CompanyProfileUpdate(BaseModel):
     logo_url: Optional[str] = None
     brand_color: Optional[str] = None
     hiring_preferences: Optional[str] = None
+
+LEARNING_LESSON_IDS = {
+    "career-exploration",
+    "career-goals",
+    "job-search-readiness",
+    "career-transitions",
+    "interview-foundations",
+    "behavioral-interviews",
+    "interview-formats",
+    "interview-day-follow-up",
+    "resume-fundamentals",
+    "resume-skills-experience",
+    "resume-education-projects",
+    "resume-tailoring"
+}
+
+LEARNING_PROGRESS_STATUSES = {
+    "started",
+    "completed",
+    "not_completed"
+}
 
 APPLICATION_METHODS = {
     "pathforge",
@@ -2813,6 +2839,208 @@ def redeem_employer_access_code(
     }
 
 
+@app.get("/learning-progress")
+def get_learning_progress(request: Request):
+    user = get_authenticated_user(request)
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            lesson_id,
+            is_completed,
+            last_opened_at,
+            completed_at,
+            created_at,
+            updated_at
+        FROM learning_progress
+        WHERE user_id = ?
+        ORDER BY updated_at DESC, lesson_id ASC
+        """,
+        (user["id"],)
+    )
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    progress = []
+
+    for row in rows:
+        item = dict(row)
+        item["is_completed"] = bool(
+            item["is_completed"]
+        )
+        progress.append(item)
+
+    return {
+        "progress": progress,
+        "summary": {
+            "available_lessons": len(
+                LEARNING_LESSON_IDS
+            ),
+            "started_lessons": len(progress),
+            "completed_lessons": sum(
+                1
+                for item in progress
+                if item["is_completed"]
+            )
+        }
+    }
+
+
+@app.put("/learning-progress/{lesson_id}")
+def update_learning_progress(
+    lesson_id: str,
+    progress_update: LearningProgressUpdate,
+    request: Request
+):
+    user = get_authenticated_user(request)
+
+    if lesson_id not in LEARNING_LESSON_IDS:
+        raise HTTPException(
+            status_code=404,
+            detail="Learning lesson not found."
+        )
+
+    status = progress_update.status.strip().lower()
+
+    if status not in LEARNING_PROGRESS_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Learning progress status must be "
+                "started, completed, or not_completed."
+            )
+        )
+
+    timestamp = datetime.now(
+        timezone.utc
+    ).isoformat()
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    if status == "started":
+        cursor.execute(
+            """
+            INSERT INTO learning_progress (
+                user_id,
+                lesson_id,
+                is_completed,
+                last_opened_at,
+                updated_at
+            )
+            VALUES (?, ?, 0, ?, ?)
+
+            ON CONFLICT (user_id, lesson_id)
+            DO UPDATE SET
+                last_opened_at = excluded.last_opened_at,
+                updated_at = excluded.updated_at
+            """,
+            (
+                user["id"],
+                lesson_id,
+                timestamp,
+                timestamp
+            )
+        )
+
+    elif status == "completed":
+        cursor.execute(
+            """
+            INSERT INTO learning_progress (
+                user_id,
+                lesson_id,
+                is_completed,
+                last_opened_at,
+                completed_at,
+                updated_at
+            )
+            VALUES (?, ?, 1, ?, ?, ?)
+
+            ON CONFLICT (user_id, lesson_id)
+            DO UPDATE SET
+                is_completed = 1,
+                last_opened_at = excluded.last_opened_at,
+                completed_at = excluded.completed_at,
+                updated_at = excluded.updated_at
+            """,
+            (
+                user["id"],
+                lesson_id,
+                timestamp,
+                timestamp,
+                timestamp
+            )
+        )
+
+    else:
+        cursor.execute(
+            """
+            INSERT INTO learning_progress (
+                user_id,
+                lesson_id,
+                is_completed,
+                last_opened_at,
+                completed_at,
+                updated_at
+            )
+            VALUES (?, ?, 0, ?, NULL, ?)
+
+            ON CONFLICT (user_id, lesson_id)
+            DO UPDATE SET
+                is_completed = 0,
+                last_opened_at = excluded.last_opened_at,
+                completed_at = NULL,
+                updated_at = excluded.updated_at
+            """,
+            (
+                user["id"],
+                lesson_id,
+                timestamp,
+                timestamp
+            )
+        )
+
+    conn.commit()
+
+    cursor.execute(
+        """
+        SELECT
+            lesson_id,
+            is_completed,
+            last_opened_at,
+            completed_at,
+            created_at,
+            updated_at
+        FROM learning_progress
+        WHERE user_id = ?
+          AND lesson_id = ?
+        """,
+        (
+            user["id"],
+            lesson_id
+        )
+    )
+
+    saved_progress = dict(cursor.fetchone())
+    conn.close()
+
+    saved_progress["is_completed"] = bool(
+        saved_progress["is_completed"]
+    )
+
+    return {
+        "message": "Learning progress saved.",
+        "progress": saved_progress
+    }
+
+
+
 @app.get("/dashboard-summary")
 def get_dashboard_summary(request: Request):
     user = get_authenticated_user(request)
@@ -2895,6 +3123,493 @@ def get_dashboard_summary(request: Request):
             "interviews": interviews_count,
             "follow_ups": follow_ups_count
         }
+    }
+
+
+@app.post("/learning-assistant")
+def learning_assistant(
+    data: LearningAssistantMessage,
+    request: Request
+):
+    get_authenticated_user(request)
+
+    message = data.message.strip()
+
+    if message == "":
+        raise HTTPException(
+            status_code=400,
+            detail="Please enter a learning question."
+        )
+
+    if len(message) > 800:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Please keep your learning question "
+                "under 800 characters."
+            )
+        )
+
+    normalized = (
+    message
+    .lower()
+    .replace("-", " ")
+    )
+
+    reply = (
+        "I can help with career exploration, job-search "
+        "organization, interview preparation, workplace "
+        "readiness, and resume education. Tell me what "
+        "you are working on and where you feel uncertain."
+    )
+
+    follow_ups = [
+        "Where should I begin in the Learning Center?",
+        "How can I prepare for my first job?",
+        "Which interview lesson should I review?"
+    ]
+
+    specific_answers = {
+    "how do i identify my strongest skills?": (
+        "List three tasks you perform confidently and three "
+        "situations where other people rely on you. For each "
+        "one, identify the skill involved and the evidence that "
+        "shows you used it successfully. Look for skills that "
+        "appear more than once."
+    ),
+
+    "help me create a three step career goal.": (
+        "Choose one career area to investigate, identify one "
+        "qualification or skill commonly required, and select "
+        "one realistic action with a completion date. Keep the "
+        "first action small enough to begin this week."
+    ),
+
+    "how can i compare two career options?": (
+        "Compare the daily duties, required training, expected "
+        "schedule, work environment, advancement opportunities, "
+        "and how well each option fits your interests and current "
+        "responsibilities. Research both options using reliable "
+        "sources before deciding."
+    ),
+
+    "how do i choose a star example?": (
+        "Choose a genuine situation that relates to the skill "
+        "the employer is asking about. The best example has a "
+        "clear responsibility, specific actions you personally "
+        "took, and an accurate result or lesson learned."
+    ),
+
+    "how long should a behavioral answer be?": (
+        "Most behavioral answers should be focused enough to "
+        "deliver in roughly one to two minutes. Keep the "
+        "situation brief, spend most of the time explaining your "
+        "actions, and finish with the result or lesson learned."
+    ),
+
+    "what if i have not faced that exact situation?": (
+        "Say honestly that you have not faced the exact "
+        "situation. Then offer a related genuine example or "
+        "explain the steps you would take based on your actual "
+        "experience and judgment."
+    ),
+
+    "what belongs in a resume summary?": (
+        "A resume summary can include your relevant experience, "
+        "two or three important strengths, and the value you can "
+        "offer in the type of role you are pursuing. Keep it "
+        "brief, specific, and supported by the rest of the resume."
+    ),
+
+    "how do i write an accomplishment statement?": (
+        "Begin with an action verb, describe the task or problem, "
+        "and explain the accurate result or who benefited. Add "
+        "numbers only when they are truthful and meaningful."
+    ),
+
+    "what does truthful tailoring mean?": (
+        "Truthful tailoring means emphasizing the genuine "
+        "experience and skills most relevant to a particular "
+        "job. It does not mean changing dates, inventing skills, "
+        "or adding responsibilities you never had."
+    ),
+
+    "which activities count as experience?": (
+        "Relevant experience can come from employment, school "
+        "projects, volunteering, clubs, athletics, caregiving, "
+        "personal projects, and community activities. Focus on "
+        "the responsibilities and skills you can demonstrate."
+    ),
+
+    "how can i describe a school project?": (
+        "Explain the project's purpose, your specific role, the "
+        "steps or tools you used, and the result. If it was a "
+        "group project, clearly distinguish your contribution "
+        "while acknowledging the team's work."
+    ),
+
+    "what entry level jobs should i explore?": (
+        "Begin with jobs that match your current skills, schedule, "
+        "transportation, interests, and training needs. Compare "
+        "the actual duties and requirements instead of relying "
+        "only on job titles."
+    )
+}
+
+    specific_answers.update({
+        "where should i begin in the learning center?": (
+            "If you are unsure where to begin, start with "
+            "Explore Interests and Strengths. If an interview "
+            "is approaching, begin with Interview Foundations. "
+            "If you are actively applying, review Job-Search "
+            "Readiness and Resume Fundamentals."
+        ),
+
+        "how can i prepare for my first job?": (
+            "Review the role's duties, plan transportation and "
+            "your schedule, prepare genuine examples from school "
+            "or community activities, and learn how the employer "
+            "expects staff to communicate. Ask questions when "
+            "instructions are unclear."
+        ),
+
+        "which interview lesson should i review?": (
+            "Start with Interview Foundations for common "
+            "questions. Choose Behavioral Interviews for STAR "
+            "answers, Interview Formats for phone or virtual "
+            "preparation, and Interview Day and Follow-Up when "
+            "the appointment is close."
+        ),
+
+        "how can i identify transferable skills?": (
+            "List responsibilities from previous work, school, "
+            "projects, volunteering, or caregiving. For each "
+            "responsibility, identify the skill used and where "
+            "that same skill appears in the new role."
+        ),
+
+        "how do i explain limited experience honestly?": (
+            "Acknowledge that you are early in your experience, "
+            "then describe genuine responsibilities, relevant "
+            "skills, and evidence that you learn reliably. Do "
+            "not apologize for being new or invent experience."
+        ),
+
+        "which genuine examples could fit an interview?": (
+            "Consider a problem you solved, a deadline you met, "
+            "a time you helped someone, a mistake you corrected, "
+            "or a situation where you learned quickly. Choose "
+            "the example most relevant to the question."
+        ),
+
+        "how do i identify transferable skills?": (
+            "Compare the new role's duties with tasks you have "
+            "already performed. Look for shared abilities such "
+            "as communication, organization, customer service, "
+            "safety, analysis, teamwork, or leadership."
+        ),
+
+        "what is a realistic career change goal?": (
+            "Choose one target role, investigate its essential "
+            "requirements, identify your strongest transferable "
+            "skill, and select one achievable action to address "
+            "a skill gap within a specific time period."
+        ),
+
+        "how do i discuss a career change in an interview?": (
+            "Briefly explain what attracts you to the new field, "
+            "connect your genuine transferable skills to the "
+            "role, and describe the steps you are taking to "
+            "learn. Keep the explanation positive and forward-looking."
+        ),
+
+        "how should i answer tell me about yourself?": (
+            "Give a brief professional introduction: describe "
+            "your current situation, mention one or two relevant "
+            "strengths, and explain your genuine interest in the "
+            "role. Avoid sharing unrelated personal details."
+        ),
+
+        "what questions should i ask an interviewer?": (
+            "Ask about early priorities, training, team structure, "
+            "how success is measured, and the next hiring step. "
+            "Choose questions that were not already answered in "
+            "the posting or conversation."
+        ),
+
+        "how do i prepare for a virtual interview?": (
+            "Test the meeting link, camera, microphone, internet, "
+            "lighting, and display name. Close distractions, keep "
+            "the employer's contact information nearby, and join "
+            "a few minutes early."
+        ),
+
+        "how often should i follow up?": (
+            "Follow the employer's stated timeline. If no timeline "
+            "was provided, one polite message after several "
+            "business days is usually reasonable. Avoid sending "
+            "repeated daily requests."
+        ),
+
+        "how can i organize my weekly job search?": (
+            "Set separate times for finding jobs, preparing "
+            "applications, practicing interviews, and following "
+            "up. Record each application and its next action in "
+            "your PathForge Application Tracker."
+        ),
+
+        "how do i decide whether a job fits me?": (
+            "Compare the duties, required qualifications, schedule, "
+            "location, transportation, pay information, work "
+            "environment, and growth opportunities with your "
+            "current needs and genuine skills."
+        )
+    })
+
+    dishonest_terms = [
+        "make up",
+        "fabricate",
+        "lie",
+        "fake experience",
+        "invent experience"
+    ]
+
+    if normalized in specific_answers: reply, follow_ups = specific_answers[normalized], []
+
+    elif any(
+        term in normalized
+        for term in dishonest_terms
+    ):
+        reply = (
+            "Do not invent experience, skills, credentials, "
+            "or accomplishments. Look for a genuine example "
+            "from employment, school, volunteering, projects, "
+            "caregiving, athletics, or community activities. "
+            "A truthful example can still demonstrate useful "
+            "skills even when it comes from another setting."
+        )
+
+        follow_ups = [
+            "How can I identify transferable skills?",
+            "How do I explain limited experience honestly?",
+            "Which genuine examples could fit an interview?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "career change",
+            "changing careers",
+            "change careers",
+            "switch careers",
+            "new career",
+            "different career",
+            "move into",
+            "transferable"
+        ]
+    ):
+        reply = (
+            "Compare your previous responsibilities with the "
+            "duties in the new field. Look for genuine "
+            "transferable skills such as communication, "
+            "planning, customer service, safety, analysis, "
+            "leadership, or project coordination. Then choose "
+            "one realistic step that could close an important "
+            "skill gap."
+        )
+
+        follow_ups = [
+            "How do I identify transferable skills?",
+            "What is a realistic career-change goal?",
+            "How do I discuss a career change in an interview?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "workplace",
+            "work readiness",
+            "professional behavior",
+            "reliable",
+            "reliability",
+            "communicate with a supervisor",
+            "first week at work"
+        ]
+    ):
+        reply = (
+            "Workplace readiness includes arriving on time, "
+            "communicating early about problems, listening "
+            "carefully, asking useful questions, accepting "
+            "feedback, and completing agreed responsibilities. "
+            "Prepare by confirming your schedule, transportation, "
+            "dress expectations, and supervisor contact method."
+        )
+
+        follow_ups = []
+    
+
+    elif any(
+        term in normalized
+        for term in [
+            "first job",
+            "no experience",
+            "limited experience",
+            "school project",
+            "entry level",
+            "activities count as experience"
+        ]
+    ):
+        reply = (
+            "First-time job seekers can use genuine evidence "
+            "from school projects, volunteering, clubs, "
+            "athletics, caregiving, and community activities. "
+            "Focus on your responsibilities, the skills you "
+            "practiced, and how your work helped someone or "
+            "produced a useful result."
+        )
+
+        follow_ups = [
+            "Which activities count as experience?",
+            "How can I describe a school project?",
+            "What entry-level jobs should I explore?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "interest",
+            "strength",
+            "strongest skills",
+            "career goal",
+            "career path",
+            "career option",
+            "where should i begin"
+        ]
+    ):
+        reply = (
+            "Begin with evidence from your life: tasks that "
+            "hold your attention, problems you enjoy solving, "
+            "skills others rely on, and work environments you "
+            "prefer. Choose one career area to investigate and "
+            "set a small goal with a specific action and date."
+        )
+
+        follow_ups = [
+            "How do I identify my strongest skills?",
+            "Help me create a three-step career goal.",
+            "How can I compare two career options?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "behavioral",
+            "star",
+            "tell me about a time",
+            "genuine example",
+            "exact situation"
+        ]
+    ):
+        reply = (
+            "Use the STAR structure. Explain the Situation, "
+            "describe your Task or responsibility, state the "
+            "specific Actions you took, and explain the accurate "
+            "Result or lesson learned. Always choose a genuine "
+            "example and focus on your real contribution."
+        )
+
+        follow_ups = [
+            "How do I choose a STAR example?",
+            "How long should a behavioral answer be?",
+            "What if I have not faced that exact situation?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "interview",
+            "interviewer",
+            "practice question",
+            "virtual interview",
+            "phone interview",
+            "tell me about yourself",
+            "questions should i ask"
+        ]
+    ):
+        reply = (
+            "Review the job description, research the employer, "
+            "and choose genuine examples that demonstrate "
+            "relevant skills. Practice your key points aloud "
+            "instead of memorizing every word. During the "
+            "interview, listen fully and ask for clarification "
+            "when necessary."
+        )
+
+        follow_ups = [
+            "How should I answer tell me about yourself?",
+            "What questions should I ask an interviewer?",
+            "How do I prepare for a virtual interview?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "resume",
+            "résumé",
+            "skill section",
+            "tailor"
+        ]
+    ):
+        reply = (
+            "I can teach resume principles, but the Learning "
+            "Center does not generate, upload, parse, rewrite, "
+            "or automatically tailor resumes. Identify the "
+            "opportunity's main requirements and compare them "
+            "with truthful evidence from your skills, experience, "
+            "education, projects, and volunteer work."
+        )
+
+        follow_ups = [
+            "What belongs in a resume summary?",
+            "How do I write an accomplishment statement?",
+            "What does truthful tailoring mean?"
+        ]
+
+    elif any(
+        term in normalized
+        for term in [
+            "job search",
+            "application",
+            "follow up",
+            "how often should i follow",
+            "weekly job search",
+            "job fits"
+        ]
+    ):
+        reply = (
+            "Use a repeatable routine: schedule time to search, "
+            "save promising jobs, record submitted applications, "
+            "keep the job descriptions, and add appropriate "
+            "follow-up reminders. Prioritize thoughtful "
+            "applications for roles that fit your genuine "
+            "qualifications."
+        )
+
+        follow_ups = [
+            "How often should I follow up?",
+            "How can I organize my weekly job search?",
+            "How do I decide whether a job fits me?"
+        ]    
+
+    authenticity_reminder = (
+        "Review and personalize this guidance. Keep every "
+        "application and interview answer truthful."
+    )
+
+    return {
+        "reply": reply,
+        "follow_up_questions": follow_ups,
+        "authenticity_reminder": authenticity_reminder
     }
 
 @app.post("/chat")
