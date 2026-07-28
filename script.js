@@ -5860,6 +5860,16 @@ async function initializeLearningCenter() {
 
 let learningAssistantRequestInProgress = false;
 
+const learningMockInterview = {
+  active: false,
+  role: "",
+  interviewType: "general",
+  questionIndex: 0,
+  totalQuestions: 5,
+  answers: [],
+  flaggedAttempts: []
+};
+
 function setLearningAssistantBusy(isBusy) {
   const form =
     document.getElementById(
@@ -5879,13 +5889,29 @@ function setLearningAssistantBusy(isBusy) {
     input.disabled = isBusy;
   }
 
-  const controls = form
-    .closest(".learning-assistant-section")
-    ?.querySelectorAll("button");
+  const regularControls =
+    form
+      .closest(".learning-assistant-section")
+      ?.querySelectorAll(
+        "[data-learning-question], " +
+        "#openMockInterviewButton, " +
+        "#startMockInterviewButton"
+      );
 
-  controls?.forEach(button => {
-    button.disabled = isBusy;
+  regularControls?.forEach(button => {
+    button.disabled =
+      isBusy || learningMockInterview.active;
   });
+
+  const endButton =
+    document.getElementById(
+      "endMockInterviewButton"
+    );
+
+  if (endButton) {
+    endButton.disabled =
+      isBusy || !learningMockInterview.active;
+  }
 
   const messages =
     document.getElementById(
@@ -5896,6 +5922,482 @@ function setLearningAssistantBusy(isBusy) {
     "aria-busy",
     String(isBusy)
   );
+}
+
+
+function setMockInterviewInterface(isActive) {
+  const setup =
+    document.getElementById(
+      "mockInterviewSetup"
+    );
+
+  const activeControls =
+    document.getElementById(
+      "mockInterviewActiveControls"
+    );
+
+  const label =
+    document.getElementById(
+      "learningAssistantInputLabel"
+    );
+
+  const input =
+    document.getElementById(
+      "learningAssistantInput"
+    );
+
+  const submit =
+    document.getElementById(
+      "learningAssistantSubmit"
+    );
+
+  const characterCount =
+    document.getElementById(
+      "learningAssistantCharacterCount"
+    );
+
+  if (setup) {
+    setup.hidden = isActive;
+  }
+
+  if (activeControls) {
+    activeControls.hidden = !isActive;
+  }
+
+  if (label) {
+    label.textContent = isActive
+      ? "Your interview answer"
+      : "Your learning question";
+  }
+
+  if (input) {
+    input.maxLength = isActive ? 2000 : 800;
+    input.placeholder = isActive
+      ? "Type your truthful interview answer..."
+      : "Example: How can I prepare a truthful STAR answer?";
+    input.value = "";
+  }
+
+  if (submit) {
+    submit.textContent = isActive
+      ? "Submit answer"
+      : "Ask assistant";
+  }
+
+  if (characterCount) {
+    characterCount.textContent =
+      isActive ? "0 / 2000" : "0 / 800";
+  }
+
+  setLearningAssistantBusy(false);
+}
+
+
+function updateMockInterviewProgress(
+  questionNumber,
+  totalQuestions
+) {
+  const progress =
+    document.getElementById(
+      "mockInterviewProgress"
+    );
+
+  if (progress) {
+    progress.textContent =
+      "Question " +
+      questionNumber +
+      " of " +
+      totalQuestions;
+  }
+}
+
+
+function endMockInterview(showMessage = true) {
+  if (
+    showMessage &&
+    learningMockInterview.active
+  ) {
+    addLearningAssistantMessage(
+      "assistant",
+      (
+        "Mock interview ended. You can begin another " +
+        "practice session whenever you are ready."
+      )
+    );
+  }
+
+  learningMockInterview.active = false;
+  learningMockInterview.role = "";
+  learningMockInterview.interviewType = "general";
+  learningMockInterview.questionIndex = 0;
+  learningMockInterview.answers = [];
+  learningMockInterview.flaggedAttempts = [];
+
+  const progress =
+    document.getElementById(
+      "mockInterviewProgress"
+    );
+
+  if (progress) {
+    progress.textContent = "Setup";
+  }
+
+  setMockInterviewInterface(false);
+
+  const status =
+    document.getElementById(
+      "learningAssistantStatus"
+    );
+
+  if (status) {
+    status.textContent =
+      "Press Enter to send. Use Shift+Enter for a new line.";
+  }
+}
+
+
+async function startMockInterview() {
+  const roleInput =
+    document.getElementById(
+      "mockInterviewRole"
+    );
+
+  const typeSelect =
+    document.getElementById(
+      "mockInterviewType"
+    );
+
+  const status =
+    document.getElementById(
+      "learningAssistantStatus"
+    );
+
+  const role = String(
+    roleInput?.value || ""
+  ).trim();
+
+  if (!role) {
+    status.textContent =
+      "Enter the role you want to practice for.";
+    status.classList.add("error-message");
+    roleInput?.focus();
+    return;
+  }
+
+  status.classList.remove("error-message");
+  status.textContent =
+    "Preparing your mock interview...";
+
+  learningAssistantRequestInProgress = true;
+  setLearningAssistantBusy(true);
+
+  try {
+    const response = await fetch(
+      (
+        "http://127.0.0.1:8000/" +
+        "learning-assistant/mock-interview"
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          role: role,
+          interview_type:
+            typeSelect?.value || "general",
+          question_index: 0,
+          answer: ""
+        })
+      }
+    );
+
+    if (response.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.detail ||
+        "The mock interview could not begin."
+      );
+    }
+
+    learningMockInterview.active = true;
+    learningMockInterview.role = role;
+    learningMockInterview.interviewType =
+      typeSelect?.value || "general";
+    learningMockInterview.questionIndex = 0;
+    learningMockInterview.totalQuestions =
+      data.total_questions;
+    learningMockInterview.answers = [];
+    learningMockInterview.flaggedAttempts = [];
+
+    setMockInterviewInterface(true);
+    updateMockInterviewProgress(
+      data.question_number,
+      data.total_questions
+    );
+
+    addLearningAssistantMessage(
+      "assistant",
+      (
+        "Hello, and thank you for meeting with me today. " +
+        "We will be discussing the " +
+        role +
+        " role. Take a moment to think before each answer. " +
+        "To begin, " +
+        data.question
+      ),
+      [],
+      (
+        "Use only genuine experiences and describe your " +
+        "own contribution."
+      )
+    );
+
+    status.textContent =
+      "Answer question 1 when you are ready.";
+
+    document
+      .getElementById("learningAssistantInput")
+      ?.focus();
+
+  } catch (error) {
+    status.textContent =
+      error.message ||
+      "The mock interview could not begin.";
+    status.classList.add("error-message");
+
+  } finally {
+    learningAssistantRequestInProgress = false;
+    setLearningAssistantBusy(false);
+  }
+}
+
+
+async function submitMockInterviewAnswer(answer) {
+  const input =
+    document.getElementById(
+      "learningAssistantInput"
+    );
+
+  const status =
+    document.getElementById(
+      "learningAssistantStatus"
+    );
+
+  const characterCount =
+    document.getElementById(
+      "learningAssistantCharacterCount"
+    );
+
+  const cleanedAnswer =
+    String(answer || "").trim();
+
+  if (
+    !input ||
+    !status ||
+    learningAssistantRequestInProgress
+  ) {
+    return;
+  }
+
+  status.classList.remove("error-message");
+
+  if (!cleanedAnswer) {
+    status.textContent =
+      "Enter an interview answer before continuing.";
+    status.classList.add("error-message");
+    input.focus();
+    return;
+  }
+
+  if (cleanedAnswer.length > 2000) {
+    status.textContent =
+      "Keep your answer under 2,000 characters.";
+    status.classList.add("error-message");
+    input.focus();
+    return;
+  }
+
+  addLearningAssistantMessage(
+    "user",
+    cleanedAnswer
+  );
+
+  input.value = "";
+
+  if (characterCount) {
+    characterCount.textContent = "0 / 2000";
+  }
+
+  const typingMessage =
+    addLearningAssistantTypingMessage();
+
+  status.textContent =
+    "Reviewing your interview answer...";
+
+  learningAssistantRequestInProgress = true;
+  setLearningAssistantBusy(true);
+
+  try {
+    const response = await fetch(
+      (
+        "http://127.0.0.1:8000/" +
+        "learning-assistant/mock-interview"
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          role: learningMockInterview.role,
+          interview_type:
+            learningMockInterview.interviewType,
+          question_index:
+            learningMockInterview.questionIndex,
+          answer: cleanedAnswer,
+          answers: learningMockInterview.answers,
+          flagged_attempts:
+            learningMockInterview.flaggedAttempts
+        })
+      }
+    );
+
+    if (response.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.detail ||
+        "Your interview answer could not be reviewed."
+      );
+    }
+
+    typingMessage?.remove();
+
+    if (data.retry_required) {
+      learningMockInterview.flaggedAttempts.push({
+        question_index:
+          learningMockInterview.questionIndex,
+        answer: cleanedAnswer
+      });
+
+      const warningMessage =
+        addLearningAssistantMessage(
+          "assistant",
+          data.authenticity_review.message
+        );
+
+      warningMessage?.classList.add(
+        "authenticity-warning-message"
+      );
+
+      addLearningAssistantMessage(
+        "assistant",
+        (
+          data.interviewer_reply +
+          " Question " +
+          data.question_number +
+          ": " +
+          data.question
+        )
+      );
+
+      status.textContent =
+        (
+          "Try question " +
+          data.question_number +
+          " again before continuing."
+        );
+
+      return;
+    }
+
+    learningMockInterview.answers.push(
+      cleanedAnswer
+    );
+
+    if (data.complete) {
+      const reportMessage =
+        addLearningAssistantMessage(
+          "assistant",
+          data.summary,
+          [],
+          (
+            "Keep every interview answer accurate and " +
+            "personal to your own experience."
+          )
+        );
+
+      reportMessage?.classList.add(
+        "mock-interview-report-message"
+      );
+
+      endMockInterview(false);
+      status.textContent =
+        "Mock interview complete. You can start another session.";
+      return;
+    }
+
+    learningMockInterview.questionIndex += 1;
+
+    updateMockInterviewProgress(
+      data.question_number,
+      data.total_questions
+    );
+
+    addLearningAssistantMessage(
+      "assistant",
+      (
+        data.interviewer_reply +
+        " Question " +
+        data.question_number +
+        ": " +
+        data.question
+      )
+    );
+
+    status.textContent =
+      (
+        "Answer question " +
+        data.question_number +
+        " when you are ready."
+      );
+
+  } catch (error) {
+    typingMessage?.remove();
+    status.textContent =
+      error.message ||
+      "Your interview answer could not be reviewed.";
+    status.classList.add("error-message");
+
+  } finally {
+    learningAssistantRequestInProgress = false;
+    setLearningAssistantBusy(false);
+    input.focus();
+  }
+}
+
+
+function handleLearningAssistantSubmission(value) {
+  if (learningMockInterview.active) {
+    submitMockInterviewAnswer(value);
+    return;
+  }
+
+  askLearningAssistant(value);
 }
 
 
@@ -6226,7 +6728,9 @@ function setupLearningAssistant() {
     function () {
       if (characterCount) {
         characterCount.textContent =
-          input.value.length + " / 800";
+          input.value.length +
+          " / " +
+          input.maxLength;
       }
     }
   );
@@ -6240,7 +6744,7 @@ function setupLearningAssistant() {
     ) {
       event.preventDefault();
 
-      askLearningAssistant(
+      handleLearningAssistantSubmission(
         input.value
       );
     }
@@ -6252,7 +6756,7 @@ function setupLearningAssistant() {
     function (event) {
       event.preventDefault();
 
-      askLearningAssistant(
+      handleLearningAssistantSubmission(
         input.value
       );
     }
@@ -6272,6 +6776,48 @@ function setupLearningAssistant() {
     );
   });
 
+  const openMockInterviewButton =
+    document.getElementById(
+      "openMockInterviewButton"
+    );
+
+  const mockInterviewPanel =
+    document.getElementById(
+      "mockInterviewPanel"
+    );
+
+  const startMockInterviewButton =
+    document.getElementById(
+      "startMockInterviewButton"
+    );
+
+  const endMockInterviewButton =
+    document.getElementById(
+      "endMockInterviewButton"
+    );
+
+  openMockInterviewButton?.addEventListener(
+    "click",
+    function () {
+      mockInterviewPanel.hidden = false;
+      document
+        .getElementById("mockInterviewRole")
+        ?.focus();
+    }
+  );
+
+  startMockInterviewButton?.addEventListener(
+    "click",
+    startMockInterview
+  );
+
+  endMockInterviewButton?.addEventListener(
+    "click",
+    function () {
+      endMockInterview(true);
+    }
+  );
+
   const status =
     document.getElementById(
       "learningAssistantStatus"
@@ -6281,6 +6827,8 @@ function setupLearningAssistant() {
     status.textContent =
       "Press Enter to send. Use Shift+Enter for a new line.";
   }
+
+  setLearningAssistantBusy(false);
 }
 
 function setupEmployerDashboard() {

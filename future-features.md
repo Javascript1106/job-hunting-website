@@ -276,7 +276,6 @@ Quick links to:
 * Interview Tip of the Day
 * Resume Tip of the Day
 * Career Advice of the Day
-
 ## Success Metrics
 
 * Applications tracked

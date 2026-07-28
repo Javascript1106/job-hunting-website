@@ -388,7 +388,6 @@
     <details
       id="career-exploration"
       class="learning-lesson"
-      open
     >
       <summary>
         <span class="learning-lesson-number">1</span>
@@ -1723,7 +1722,7 @@
           data-learning-question=
             "How do I identify my strongest skills?"
         >
-          Identify my strengths
+          How can I identify my strongest skills?
         </button>
 
         <button
@@ -1731,7 +1730,7 @@
           data-learning-question=
             "How should I answer a behavioral interview question?"
         >
-          Practice a behavioral answer
+          How do I answer a behavioral question?
         </button>
 
         <button
@@ -1739,7 +1738,7 @@
           data-learning-question=
             "How do I write an accomplishment statement?"
         >
-          Write truthful accomplishments
+          How do I write a truthful accomplishment?
         </button>
 
         <button
@@ -1747,7 +1746,14 @@
           data-learning-question=
             "How can I prepare for my first job?"
         >
-          Prepare for a first job
+          How should I prepare for my first job?
+        </button>
+
+        <button
+          id="openMockInterviewButton"
+          type="button"
+        >
+          Start a mock interview
         </button>
       </div>
 
@@ -1758,6 +1764,90 @@
     </aside>
 
     <div class="learning-assistant-chat">
+      <section
+        id="mockInterviewPanel"
+        class="mock-interview-panel"
+        aria-labelledby="mockInterviewTitle"
+        hidden
+      >
+        <div class="mock-interview-panel-header">
+          <div>
+            <p class="dashboard-eyebrow">
+              Guided practice
+            </p>
+
+            <h3 id="mockInterviewTitle">
+              Mock interview
+            </h3>
+          </div>
+
+          <span id="mockInterviewProgress">
+            Setup
+          </span>
+        </div>
+
+        <div
+          id="mockInterviewSetup"
+          class="mock-interview-setup"
+        >
+          <label for="mockInterviewRole">
+            Role you want to practice for
+          </label>
+
+          <input
+            id="mockInterviewRole"
+            type="text"
+            maxlength="80"
+            placeholder="Example: Customer service associate"
+          >
+
+          <label for="mockInterviewType">
+            Interview type
+          </label>
+
+          <select id="mockInterviewType">
+            <option value="general">
+              General interview
+            </option>
+
+            <option value="behavioral">
+              Behavioral interview
+            </option>
+
+            <option value="first_job">
+              First-job interview
+            </option>
+          </select>
+
+          <button
+            id="startMockInterviewButton"
+            type="button"
+          >
+            Begin five-question interview
+          </button>
+        </div>
+
+        <div
+          id="mockInterviewActiveControls"
+          class="mock-interview-active-controls"
+          hidden
+        >
+          <p>
+            Answer as if you were speaking to an interviewer.
+            PathForge will provide educational feedback after
+            each response.
+          </p>
+
+          <button
+            id="endMockInterviewButton"
+            type="button"
+            class="secondary-button"
+          >
+            End mock interview
+          </button>
+        </div>
+      </section>
+
       <div
         id="learningAssistantMessages"
         class="learning-assistant-messages"
@@ -1782,7 +1872,9 @@
         class="learning-assistant-form"
       >
         <label for="learningAssistantInput">
-          Your learning question
+          <span id="learningAssistantInputLabel">
+            Your learning question
+          </span>
         </label>
 
         <textarea

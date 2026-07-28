@@ -37,6 +37,7 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 32px;
   padding: 22px 45px;
   min-height: 72px;
   box-sizing: border-box;
@@ -44,15 +45,35 @@ button:hover {
 
 .main-nav h1 {
   margin: 0;
+  flex-shrink: 0;
   font-size: 36px;
   font-family: Georgia, serif;
 }
 
 .nav-links {
   display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 24px;
+  column-gap: 24px;
+  row-gap: 12px;
+  margin-left: auto;
   margin-right: 35px;
+  min-height: 32px;
+}
+
+.nav-links {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+  column-gap: 18px;
+  margin-left: auto;
+  margin-right: 0;
   min-height: 32px;
 }
 
@@ -62,7 +83,7 @@ button:hover {
   text-decoration: none;
   font-weight: 600;
   white-space: nowrap;
-  font-size: 16px;
+  font-size: 15px;
   font-family: Georgia, serif;
 }
 
@@ -89,7 +110,7 @@ button:hover {
   background: transparent;
   color: white;
   border: none;
-  font-size: 18px;
+  font-size: 15px;
   font-family: Georgia, serif;
   font-weight: 600;
   cursor: pointer;
@@ -291,6 +312,21 @@ main {
 /* =========================
    RESPONSIVE
 ========================= */
+
+@media (max-width: 1250px) {
+  .main-nav {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .nav-links {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0;
+    row-gap: 12px;
+  }
+}
 
 @media (max-width: 900px) {
   .main-nav {
@@ -3883,6 +3919,95 @@ main {
   padding: 26px;
 }
 
+.mock-interview-panel {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  background: #eff6ff;
+}
+
+.mock-interview-panel[hidden],
+.mock-interview-setup[hidden],
+.mock-interview-active-controls[hidden] {
+  display: none;
+}
+
+.mock-interview-panel-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.mock-interview-panel-header h3 {
+  margin: 2px 0 0;
+  color: #172334;
+  font-size: 22px;
+}
+
+.mock-interview-panel-header > span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1e3a5f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mock-interview-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.7fr);
+  gap: 8px 14px;
+  align-items: end;
+}
+
+.mock-interview-setup label {
+  color: #172334;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.mock-interview-setup input,
+.mock-interview-setup select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 9px;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+.mock-interview-setup button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 6px;
+  padding: 10px 16px;
+  font-weight: 800;
+}
+
+.mock-interview-active-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mock-interview-active-controls p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.mock-interview-active-controls button {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+}
+
 .learning-assistant-messages {
   display: flex;
   height: 360px;
@@ -3918,6 +4043,15 @@ main {
   margin: 0;
 }
 
+.learning-assistant-message.mock-interview-report-message {
+  max-width: 94%;
+  border-color: #93c5fd;
+}
+
+.mock-interview-report-message > p {
+  white-space: pre-line;
+}
+
 .learning-assistant-message.assistant-message {
   align-self: flex-start;
   border: 1px solid #dbeafe;
@@ -3942,6 +4076,12 @@ main {
   border-color: #fecaca;
   background: #fef2f2;
   color: #991b1b;
+}
+
+.learning-assistant-message.authenticity-warning-message {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #78350f;
 }
 
 .learning-assistant-follow-ups {
@@ -4068,6 +4208,19 @@ main {
 
   .learning-assistant-suggestion-list {
     grid-template-columns: 1fr;
+  }
+
+  .mock-interview-setup {
+    grid-template-columns: 1fr;
+  }
+
+  .mock-interview-active-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mock-interview-active-controls button {
+    width: 100%;
   }
 
   .learning-assistant-messages {

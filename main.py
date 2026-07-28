@@ -109,6 +109,20 @@ class ChatMessage(BaseModel):
 class LearningAssistantMessage(BaseModel):
     message: str
 
+class MockInterviewFlaggedAttempt(BaseModel):
+    question_index: int
+    answer: str
+
+class MockInterviewMessage(BaseModel):
+    role: str
+    interview_type: str
+    question_index: int
+    answer: Optional[str] = None
+    answers: Optional[List[str]] = None
+    flagged_attempts: Optional[
+        List[MockInterviewFlaggedAttempt]
+    ] = None
+
 class Job(BaseModel):
     title: str
     company: str
@@ -3611,6 +3625,763 @@ def learning_assistant(
         "follow_up_questions": follow_ups,
         "authenticity_reminder": authenticity_reminder
     }
+
+
+MOCK_INTERVIEW_QUESTIONS = {
+    "general": [
+        (
+            "Tell me about yourself and briefly explain why "
+            "you are interested in the {role} role."
+        ),
+        (
+            "What is one strength you would bring to the "
+            "{role} role? Give a genuine example."
+        ),
+        (
+            "Describe a challenge you faced and the steps you "
+            "took to handle it."
+        ),
+        (
+            "Why are you interested in this organization, and "
+            "what would you want to learn in the role?"
+        ),
+        (
+            "What thoughtful question would you ask the "
+            "interviewer before the conversation ends?"
+        )
+    ],
+    "behavioral": [
+        (
+            "Tell me about a time you worked with other people "
+            "to complete an important task."
+        ),
+        (
+            "Describe a time you solved a problem with limited "
+            "information or resources."
+        ),
+        (
+            "Tell me about a time you had to meet a difficult "
+            "deadline."
+        ),
+        (
+            "Describe a time you received feedback and explain "
+            "what you did with it."
+        ),
+        (
+            "Tell me about a mistake you made, how you responded, "
+            "and what you learned."
+        )
+    ],
+    "first_job": [
+        (
+            "Tell me about yourself and why the {role} role "
+            "interests you."
+        ),
+        (
+            "Which skills from school, volunteering, activities, "
+            "caregiving, or personal projects could help you in "
+            "this role?"
+        ),
+        (
+            "Give an example that shows you can be dependable "
+            "when someone is counting on you."
+        ),
+        (
+            "How would you approach a task you have never done "
+            "before?"
+        ),
+        (
+            "What would you ask a supervisor so you could begin "
+            "the job successfully?"
+        )
+    ]
+}
+
+MOCK_INTERVIEW_AUTHENTIC_EXAMPLES = {
+    "general": [
+        (
+            "I am currently [your real situation]. Through "
+            "[real experience], I developed [relevant skill]. "
+            "I am interested in this role because [truthful "
+            "reason connected to the work]."
+        ),
+        (
+            "One strength I would bring is [real strength]. "
+            "For example, during [real situation], I personally "
+            "[specific action], which resulted in [real outcome]."
+        ),
+        (
+            "During [real challenge], my responsibility was "
+            "[your responsibility]. I [specific actions], and "
+            "the result or lesson was [truthful result]."
+        ),
+        (
+            "I am interested in this organization because "
+            "[specific researched reason]. In this role, I hope "
+            "to learn [realistic skill or responsibility]."
+        ),
+        (
+            "What would you want the person in this role to "
+            "accomplish during the first 60 to 90 days?"
+        )
+    ],
+    "behavioral": [
+        (
+            "During [real project or event], I worked with "
+            "[people involved]. My responsibility was [task]. "
+            "I personally [actions], and together we achieved "
+            "[truthful result]."
+        ),
+        (
+            "When [real problem] happened, I had [available "
+            "information or resources]. I [specific actions], "
+            "which led to [real result or lesson]."
+        ),
+        (
+            "I needed to complete [real task] by [deadline]. "
+            "I organized the work by [specific steps]. The "
+            "result was [truthful outcome]."
+        ),
+        (
+            "I received feedback that [real feedback]. I asked "
+            "[clarifying question], changed [specific action], "
+            "and afterward [real result or lesson]."
+        ),
+        (
+            "I made a mistake when [real situation]. I took "
+            "responsibility by [corrective actions]. The result "
+            "was [outcome], and I now [prevention step]."
+        )
+    ],
+    "first_job": [
+        (
+            "I am currently [your real situation], and I am "
+            "interested in this role because [truthful reason]. "
+            "A skill I could contribute is [real skill] from "
+            "[school, volunteering, or another real activity]."
+        ),
+        (
+            "During [real activity], I practiced [relevant "
+            "skill] by [specific action]. That experience would "
+            "help me with [actual duty in the role]."
+        ),
+        (
+            "When [person or group] depended on me to [real "
+            "responsibility], I [specific actions]. I completed "
+            "it by [deadline or standard], resulting in [outcome]."
+        ),
+        (
+            "I would first review the instructions and identify "
+            "what I understand. Then I would ask [appropriate "
+            "person] a specific question, take notes, and confirm "
+            "the task before beginning."
+        ),
+        (
+            "What training will I receive during my first few "
+            "weeks, and who should I ask when I need clarification?"
+        )
+    ]
+}
+
+MOCK_INTERVIEW_TRANSITIONS = [
+    "Thank you for explaining that.",
+    "I appreciate that response.",
+    "Thank you. Let us continue.",
+    "That is helpful context."
+]
+
+
+def analyze_mock_interview_answer(answer: str):
+    normalized_answer = answer.lower()
+    words = answer.split()
+    strengths = []
+    improvements = []
+
+    if len(words) >= 45:
+        strengths.append(
+            "Your answer includes enough detail to develop a "
+            "clear example."
+        )
+    elif len(words) >= 20:
+        strengths.append(
+            "Your answer is focused and gives the interviewer "
+            "a useful starting point."
+        )
+    else:
+        improvements.append(
+            "Add one or two specific details so the interviewer "
+            "can understand the situation and your contribution."
+        )
+
+    personal_action_terms = [
+        "i organized",
+        "i created",
+        "i helped",
+        "i learned",
+        "i decided",
+        "i communicated",
+        "i completed",
+        "i solved",
+        "i asked",
+        "i improved"
+    ]
+
+    if any(
+        term in normalized_answer
+        for term in personal_action_terms
+    ):
+        strengths.append(
+            "You describe an action you personally took."
+        )
+    else:
+        improvements.append(
+            "Clarify what you personally did by using a specific "
+            "statement such as “I organized,” “I communicated,” "
+            "or “I learned.”"
+        )
+
+    result_terms = [
+        "result",
+        "outcome",
+        "because",
+        "learned",
+        "improved",
+        "completed",
+        "finished",
+        "successful",
+        "feedback"
+    ]
+
+    if any(
+        term in normalized_answer
+        for term in result_terms
+    ):
+        strengths.append(
+            "You include an outcome or lesson learned."
+        )
+    else:
+        improvements.append(
+            "Finish with the truthful result, what changed, or "
+            "what you learned."
+        )
+
+    if len(words) > 220:
+        improvements.append(
+            "Shorten a few background details so the main point "
+            "can be delivered comfortably in about two minutes."
+        )
+
+    if not strengths:
+        strengths.append(
+            "You attempted the question and now have material "
+            "you can refine through practice."
+        )
+
+    template_phrases = [
+        "as an ai language model",
+        "in today's fast paced",
+        "in today’s fast paced",
+        "it is important to note",
+        "delve into",
+        "leverage my skills",
+        "dynamic landscape",
+        "seamlessly",
+        "multifaceted",
+        "uniquely qualified"
+    ]
+
+    matched_phrases = [
+        phrase
+        for phrase in template_phrases
+        if phrase in normalized_answer
+    ]
+
+    corporate_template_terms = [
+        "strategic",
+        "methodologies",
+        "proactively",
+        "optimize",
+        "exceed expectations",
+        "deadline driven",
+        "stakeholders",
+        "innovative solutions",
+        "exceptional value",
+        "organizational outcomes",
+        "commitment to excellence",
+        "professional landscape",
+        "professional capabilities"
+    ]
+
+    matched_corporate_terms = [
+        term
+        for term in corporate_template_terms
+        if term in normalized_answer
+    ]
+
+    first_person_count = (
+        normalized_answer.count(" i ") +
+        int(normalized_answer.startswith("i "))
+    )
+
+    authenticity_reasons = []
+
+    if matched_phrases:
+        authenticity_reasons.append(
+            "It contains wording commonly found in generic "
+            "templates."
+        )
+
+    if len(matched_corporate_terms) >= 2:
+        authenticity_reasons.append(
+            "It combines several corporate buzzwords without "
+            "supporting them with a specific personal example."
+        )
+
+    if len(words) >= 80 and first_person_count == 0:
+        authenticity_reasons.append(
+            "It is lengthy but gives little first-person detail."
+        )
+
+    if len(words) >= 120 and not any(
+        term in normalized_answer
+        for term in personal_action_terms
+    ):
+        authenticity_reasons.append(
+            "It is highly polished without clearly identifying "
+            "your personal actions."
+        )
+
+    needs_authenticity_review = bool(
+        authenticity_reasons
+    )
+
+    authenticity_message = (
+        (
+            "AI-like language warning: This answer sounds "
+            "generic, heavily polished, or template-like. " +
+            " ".join(authenticity_reasons) +
+            " Rewrite it in your normal speaking voice and add "
+            "specific, truthful details from your experience. "
+            "This warning identifies writing patterns and does "
+            "not prove that AI wrote the answer."
+        )
+        if needs_authenticity_review
+        else (
+            "Authenticity review: No strong template-like "
+            "patterns were found. Continue checking that every "
+            "detail is truthful and sounds like your own voice. "
+            "This review cannot determine authorship."
+        )
+    )
+
+    feedback = (
+        "What worked: " +
+        " ".join(strengths[:2]) +
+        " Next improvement: " +
+        " ".join(improvements[:2])
+        if improvements
+        else (
+            "What worked: " +
+            " ".join(strengths[:2]) +
+            " Next improvement: Practice delivering the answer "
+            "aloud while keeping every detail accurate."
+        )
+    )
+
+    return {
+        "feedback": feedback,
+        "word_count": len(words),
+        "has_personal_action": any(
+            term in normalized_answer
+            for term in personal_action_terms
+        ),
+        "has_result": any(
+            term in normalized_answer
+            for term in result_terms
+        ),
+        "needs_authenticity_review":
+            needs_authenticity_review,
+        "authenticity_reasons": authenticity_reasons,
+        "authenticity_message": authenticity_message
+    }
+
+
+def build_mock_interview_report(
+    answers: List[str],
+    role: str,
+    interview_type: str,
+    flagged_attempts: List[dict]
+):
+    analyses = [
+        analyze_mock_interview_answer(answer)
+        for answer in answers
+    ]
+
+    total_answers = len(analyses)
+    average_words = round(
+        sum(
+            item["word_count"]
+            for item in analyses
+        ) / total_answers
+    )
+
+    action_count = sum(
+        int(item["has_personal_action"])
+        for item in analyses
+    )
+
+    result_count = sum(
+        int(item["has_result"])
+        for item in analyses
+    )
+
+    review_count = len(flagged_attempts)
+
+    action_score = (
+        action_count / total_answers
+    ) * 4
+
+    result_score = (
+        result_count / total_answers
+    ) * 3
+
+    if 20 <= average_words <= 180:
+        detail_score = 2
+    elif (
+        12 <= average_words < 20 or
+        181 <= average_words <= 220
+    ):
+        detail_score = 1
+    else:
+        detail_score = 0.5
+
+    authenticity_score = max(
+        0,
+        1 - (review_count * 0.5)
+    )
+
+    overall_rating = round(
+        action_score +
+        result_score +
+        detail_score +
+        authenticity_score,
+        1
+    )
+
+    if overall_rating >= 9:
+        rating_label = "Interview-ready foundation"
+    elif overall_rating >= 7:
+        rating_label = "Strong foundation"
+    elif overall_rating >= 5:
+        rating_label = "Developing foundation"
+    else:
+        rating_label = "More practice recommended"
+
+    priorities = []
+
+    if action_count < total_answers:
+        priorities.append(
+            "state your personal action more clearly"
+        )
+
+    if result_count < total_answers:
+        priorities.append(
+            "finish examples with a result or lesson"
+        )
+
+    if average_words < 20:
+        priorities.append(
+            "add specific supporting details"
+        )
+    elif average_words > 180:
+        priorities.append(
+            "make answers more concise"
+        )
+
+    if review_count:
+        priorities.append(
+            "rewrite flagged answers in your natural voice"
+        )
+
+    if not priorities:
+        priorities.append(
+            "practice delivering the answers aloud"
+        )
+
+    flagged_details = []
+    authentic_examples = (
+        MOCK_INTERVIEW_AUTHENTIC_EXAMPLES[
+            interview_type
+        ]
+    )
+
+    for attempt_number, attempt in enumerate(
+        flagged_attempts,
+        start=1
+    ):
+        question_index = attempt["question_index"]
+        analysis = analyze_mock_interview_answer(
+            attempt["answer"]
+        )
+
+        reasons = " ".join(
+            analysis["authenticity_reasons"]
+        )
+
+        flagged_details.append(
+            "Question " +
+            str(question_index + 1) +
+            ", flagged attempt " +
+            str(attempt_number) +
+            ": AI-like or template-style response flagged\n"
+            "Why it was flagged: " +
+            reasons +
+            "\nAuthentic response framework: " +
+            authentic_examples[question_index] +
+            "\nReplace every bracketed section with truthful "
+            "details from your own experience."
+        )
+
+    authenticity_section = (
+        "\n\n".join(flagged_details)
+        if flagged_details
+        else (
+            "No answers showed strong AI-like or "
+            "template-style patterns. Continue making sure the "
+            "details are accurate and sound natural when spoken."
+        )
+    )
+
+    priority_lines = "\n".join(
+        (
+            str(index + 1) +
+            ". " +
+            priority.capitalize() +
+            "."
+        )
+        for index, priority in enumerate(
+            priorities[:2]
+        )
+    )
+
+    return (
+        "Thank you. That concludes the mock interview.\n\n"
+        "MOCK INTERVIEW REPORT\n"
+        "Role: " +
+        role +
+        "\n\nOVERALL RATING\n" +
+        str(overall_rating) +
+        " / 10 - " +
+        rating_label +
+        "\nThe rating considers clear personal actions "
+        "(4 points), results or lessons (3 points), useful "
+        "answer detail (2 points), and authentic language "
+        "(1 point). Flagged attempts affect the authenticity "
+        "portion even when the answer is later revised."
+        "\n\nSESSION OVERVIEW\n"
+        "- Questions completed: " +
+        str(total_answers) +
+        " of 5\n"
+        "- Average answer length: " +
+        str(average_words) +
+        " words\n"
+        "- Answers with a clear personal action: " +
+        str(action_count) +
+        " of 5\n"
+        "- Answers with a result or lesson: " +
+        str(result_count) +
+        " of 5\n"
+        "- Answers flagged for authenticity review: " +
+        str(review_count) +
+        "\n\nPRACTICE PRIORITIES\n" +
+        priority_lines +
+        "\n\nAUTHENTICITY REVIEW\n" +
+        authenticity_section +
+        "\n\nIMPORTANT NOTE\n"
+        "The authenticity review identifies writing "
+        "patterns only and cannot prove whether AI was used."
+    )
+
+
+@app.post("/learning-assistant/mock-interview")
+def mock_interview(
+    data: MockInterviewMessage,
+    request: Request
+):
+    get_authenticated_user(request)
+
+    role = data.role.strip()
+    interview_type = data.interview_type.strip()
+    answer = (data.answer or "").strip()
+
+    if role == "" or len(role) > 80:
+        raise HTTPException(
+            status_code=400,
+            detail="Enter a role using 1 to 80 characters."
+        )
+
+    if interview_type not in MOCK_INTERVIEW_QUESTIONS:
+        raise HTTPException(
+            status_code=400,
+            detail="Choose a valid mock interview type."
+        )
+
+    questions = MOCK_INTERVIEW_QUESTIONS[interview_type]
+
+    if (
+        data.question_index < 0 or
+        data.question_index >= len(questions)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="The mock interview question is invalid."
+        )
+
+    current_question = questions[
+        data.question_index
+    ].format(role=role)
+
+    if answer == "":
+        if data.question_index != 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Enter an answer before continuing."
+            )
+
+        return {
+            "question": current_question,
+            "question_number": 1,
+            "total_questions": len(questions),
+            "feedback": "",
+            "complete": False
+        }
+
+    if len(answer) > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Keep each mock interview answer under "
+                "2,000 characters."
+            )
+        )
+
+    previous_answers = data.answers or []
+    flagged_attempts = [
+        {
+            "question_index": attempt.question_index,
+            "answer": attempt.answer.strip()
+        }
+        for attempt in (
+            data.flagged_attempts or []
+        )
+    ]
+
+    if len(previous_answers) != data.question_index:
+        raise HTTPException(
+            status_code=400,
+            detail="The mock interview answer history is invalid."
+        )
+
+    if any(
+        not isinstance(saved_answer, str) or
+        len(saved_answer.strip()) == 0 or
+        len(saved_answer) > 2000
+        for saved_answer in previous_answers
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="A saved mock interview answer is invalid."
+        )
+
+    if len(flagged_attempts) > 15:
+        raise HTTPException(
+            status_code=400,
+            detail="Too many mock interview retry attempts."
+        )
+
+    if any(
+        attempt["question_index"] < 0 or
+        attempt["question_index"] >= len(questions) or
+        attempt["answer"] == "" or
+        len(attempt["answer"]) > 2000
+        for attempt in flagged_attempts
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="A flagged interview attempt is invalid."
+        )
+
+    analysis = analyze_mock_interview_answer(answer)
+
+    if analysis["needs_authenticity_review"]:
+        return {
+            "question": current_question,
+            "question_number":
+                data.question_index + 1,
+            "total_questions": len(questions),
+            "feedback": "",
+            "authenticity_review": {
+                "needs_review": True,
+                "message":
+                    analysis["authenticity_message"]
+            },
+            "retry_required": True,
+            "complete": False,
+            "interviewer_reply": (
+                "Please try the same question again using "
+                "specific, truthful details and your natural "
+                "speaking voice."
+            ),
+            "summary": ""
+        }
+
+    complete_answers = previous_answers + [answer]
+    next_index = data.question_index + 1
+    is_complete = next_index >= len(questions)
+
+    return {
+        "question": (
+            None
+            if is_complete
+            else questions[next_index].format(role=role)
+        ),
+        "question_number": (
+            len(questions)
+            if is_complete
+            else next_index + 1
+        ),
+        "total_questions": len(questions),
+        "feedback": analysis["feedback"],
+        "authenticity_review": {
+            "needs_review": False,
+            "message":
+                analysis["authenticity_message"]
+        },
+        "retry_required": False,
+        "complete": is_complete,
+        "interviewer_reply": (
+            ""
+            if is_complete
+            else (
+                MOCK_INTERVIEW_TRANSITIONS[
+                    data.question_index %
+                    len(MOCK_INTERVIEW_TRANSITIONS)
+                ] +
+                " Here is the next question."
+            )
+        ),
+        "summary": (
+            build_mock_interview_report(
+                complete_answers,
+                role,
+                interview_type,
+                flagged_attempts
+            )
+            if is_complete
+            else ""
+        )
+    }
+
 
 @app.post("/chat")
 def chat(data: ChatMessage):
