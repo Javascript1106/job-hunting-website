@@ -1,14 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>PathForge</title>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>PathForge — Find Jobs and Build Career Skills</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="assets/branding/pathforge-favicon.svg"
+  >
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<nav class="main-nav">
-    <h1>PathForge</h1>
+<nav class="main-nav" aria-label="Primary navigation">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+        <img
+          class="nav-brand-logo"
+          src="assets/branding/pathforge-logo-dark.svg"
+          alt=""
+          width="189"
+          height="40"
+        >
+        <img
+          class="nav-brand-mark"
+          src="assets/branding/pathforge-mark-dark.svg"
+          alt=""
+          width="44"
+          height="44"
+        >
+    </a>
 
     <div class="nav-links">
         <a href="index.html">Home</a>
@@ -59,21 +86,101 @@
     </div>
 </nav>
   
-<main>
-    <h2>Find jobs that fit you</h2>
+<main class="home-main">
+  <section
+    class="home-hero"
+    aria-labelledby="homeHeroTitle"
+  >
+    <div class="home-hero-content">
+      <p class="home-eyebrow">
+        A clearer path through work and learning
+      </p>
 
-    <p>
-      Search by job title, location, age requirements,
-      schedule, and distance.
-    </p>
+      <h1 id="homeHeroTitle">
+        Build your next career step with confidence
+      </h1>
 
-    <input
-      type="text"
-      placeholder="Search for jobs..."
+      <p class="home-hero-description">
+        Discover opportunities, organize your job search,
+        prepare for interviews, and build practical career
+        skills—all in one welcoming workspace.
+      </p>
+
+      <div
+        class="home-hero-actions"
+        aria-label="PathForge starting points"
+      >
+        <a
+          class="home-button home-button-primary"
+          href="jobs.html"
+        >
+          Explore Jobs
+        </a>
+
+        <a
+          class="home-button home-button-secondary"
+          href="learning-center.html"
+        >
+          Visit Learning Center
+        </a>
+
+        <a
+          id="homeAccountAction"
+          class="home-button home-button-account"
+          href="register.html"
+        >
+          Create an Account
+        </a>
+      </div>
+    </div>
+
+    <div
+      class="home-hero-visual"
+      aria-hidden="true"
     >
+      <div class="home-workspace-card">
+        <img
+          class="home-workspace-logo"
+          src="assets/branding/pathforge-logo.svg"
+          alt="PathForge"
+          width="189"
+          height="40"
+        >
 
-    <button>Search</button>
-  </main>
+        <span class="home-workspace-label">
+          Your PathForge workspace
+        </span>
+
+        <div class="home-workspace-row">
+          <span class="home-workspace-icon">01</span>
+
+          <div>
+            <strong>Discover</strong>
+            <small>Explore jobs that match your needs.</small>
+          </div>
+        </div>
+
+        <div class="home-workspace-row">
+          <span class="home-workspace-icon">02</span>
+
+          <div>
+            <strong>Organize</strong>
+            <small>Save opportunities and track progress.</small>
+          </div>
+        </div>
+
+        <div class="home-workspace-row">
+          <span class="home-workspace-icon">03</span>
+
+          <div>
+            <strong>Prepare</strong>
+            <small>Learn, practice, and take your next step.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 
   <!-- Floating Chat Button -->
 
@@ -133,7 +240,7 @@
 
   </section>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20260729-deadlines"></script>
 
 </body>
 </html>

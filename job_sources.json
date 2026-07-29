@@ -1,0 +1,11 @@
+{
+  "greenhouse": [],
+  "lever": [],
+  "usajobs": {
+    "enabled": true,
+    "keyword": "",
+    "location": "",
+    "remote_only": true,
+    "results_per_page": 100
+  }
+}

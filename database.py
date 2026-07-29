@@ -49,6 +49,8 @@ def create_jobs_table():
                     )
                 ),
 
+            application_deadline TEXT,
+
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -133,8 +135,46 @@ def create_jobs_table():
         cursor.execute("""
             UPDATE jobs
             SET updated_at = CURRENT_TIMESTAMP
-            WHERE updated_at IS NULL
+        WHERE updated_at IS NULL
         """)
+
+    # Optional employer-provided deadline in YYYY-MM-DD format.
+    if not column_exists(
+        cursor,
+        "jobs",
+        "application_deadline"
+    ):
+        cursor.execute("""
+            ALTER TABLE jobs
+            ADD COLUMN application_deadline TEXT
+        """)
+
+    # Adds source and verification metadata without rebuilding the table.
+    # All fields remain nullable so legacy and employer-created jobs retain
+    # their existing meaning.
+    catalog_columns = {
+        "source": "TEXT",
+        "external_job_id": "TEXT",
+        "source_url": "TEXT",
+        "posted_at": "TEXT",
+        "expires_at": "TEXT",
+        "last_verified_at": "TEXT",
+        "employment_type": "TEXT",
+        "is_remote": "INTEGER",
+        "salary_min": "REAL",
+        "salary_max": "REAL",
+        "salary_period": "TEXT",
+        "verification_status": "TEXT"
+    }
+
+    for column_name, column_type in catalog_columns.items():
+        if not column_exists(cursor, "jobs", column_name):
+            cursor.execute(
+                f"""
+                ALTER TABLE jobs
+                ADD COLUMN {column_name} {column_type}
+                """
+            )
 
     # Keeps invalid or blank older values from breaking
     # the application workflow.
@@ -171,6 +211,40 @@ def create_jobs_table():
         CREATE INDEX IF NOT EXISTS
         idx_jobs_status
         ON jobs(status)
+    """)
+
+    # Normalize only invalid values in newly added catalog fields.
+    cursor.execute("""
+        UPDATE jobs
+        SET is_remote = NULL
+        WHERE is_remote IS NOT NULL
+          AND is_remote NOT IN (0, 1)
+    """)
+
+    cursor.execute("""
+        UPDATE jobs
+        SET verification_status = NULL
+        WHERE verification_status IS NOT NULL
+          AND verification_status NOT IN (
+              'verified',
+              'unverified',
+              'expired',
+              'removed'
+          )
+    """)
+
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+        idx_jobs_source_external_job_id
+        ON jobs(source, external_job_id)
+        WHERE source IS NOT NULL
+          AND external_job_id IS NOT NULL
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_jobs_verification_status
+        ON jobs(verification_status)
     """)
 
     cursor.execute("""

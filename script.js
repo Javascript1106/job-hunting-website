@@ -2,6 +2,9 @@ let allJobs = [];
 let savedJobIds = new Set();
 let trackedJobIds = new Set();
 let activeApplicationJob = null;
+let filteredJobs = [];
+let displayedJobCount = 0;
+const JOB_PAGE_SIZE = 8;
 
 function quickMessage(message) {
   const input = document.getElementById("chatInput");
@@ -148,8 +151,8 @@ async function loadJobs() {
       );
     }
 
-    populateCategoryFilter(allJobs);
-    displayJobs(allJobs);
+    populateJobFilters(allJobs);
+    filterJobs();
 
   } catch (error) {
     console.error("Failed to load jobs:", error);
@@ -162,14 +165,67 @@ async function loadJobs() {
   }
 }
 
-function displayJobs(jobs) {
+function formatJobSalary(job) {
+  if (
+    job.salary_min == null
+    || job.salary_max == null
+    || !job.salary_period
+  ) {
+    return "Not listed";
+  }
+
+  return (
+    `$${Number(job.salary_min).toLocaleString()}`
+    + `–$${Number(job.salary_max).toLocaleString()}`
+    + `/${job.salary_period}`
+  );
+}
+
+function formatApplicationDeadline(deadline) {
+  if (!deadline) {
+    return "";
+  }
+
+  const parsedDate = new Date(`${deadline}T00:00:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return deadline;
+  }
+
+  return parsedDate.toLocaleDateString(
+    undefined,
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    }
+  );
+}
+
+
+function applicationDeadlineHasPassed(deadline) {
+  if (!deadline) {
+    return false;
+  }
+
+  const deadlineDate = new Date(`${deadline}T23:59:59`);
+  return deadlineDate.getTime() < Date.now();
+}
+
+
+function displayJobs(jobs, append = false) {
   const jobListings = document.getElementById("jobListings");
+  const resultCount = document.getElementById("jobResultCount");
+  const loadMoreButton = document.getElementById("loadMoreJobsButton");
 
   if (!jobListings) {
     return;
   }
 
-  jobListings.innerHTML = "";
+  if (!append) {
+    jobListings.innerHTML = "";
+    displayedJobCount = 0;
+  }
 
   if (jobs.length === 0) {
     jobListings.innerHTML = `
@@ -179,50 +235,118 @@ function displayJobs(jobs) {
       </div>
     `;
 
+    if (resultCount) resultCount.textContent = "0 jobs found";
+    if (loadMoreButton) loadMoreButton.classList.add("hidden");
     return;
   }
 
-  jobs.forEach(job => {
+  const nextJobs = jobs.slice(
+    displayedJobCount,
+    displayedJobCount + JOB_PAGE_SIZE
+  );
+
+  nextJobs.forEach(job => {
     const jobCard = document.createElement("article");
     jobCard.className = "job-card";
     jobCard.dataset.jobId = job.id;
 
     const isSaved = savedJobIds.has(job.id);
     const isTracked = trackedJobIds.has(job.id);
+    const applicationDeadline =
+      job.application_deadline
+      || (
+        job.expires_at
+          ? String(job.expires_at).slice(0, 10)
+          : null
+      );
+    const deadlinePassed =
+      applicationDeadlineHasPassed(applicationDeadline);
 
     jobCard.innerHTML = `
-      <h3>${job.title}</h3>
+      <div class="job-card-heading">
+        <h3>${escapeEmployerHtml(job.title)}</h3>
+        ${job.verification_status === "verified" ? `
+          <span class="verified-job-badge">Verified</span>
+        ` : ""}
+        ${job.application_method === "employer_website" ? `
+          <span class="external-job-badge">External Application</span>
+        ` : ""}
+      </div>
 
       <p>
-        <strong>Company:</strong>
-        ${job.company}
+        <strong>Employer:</strong>
+        ${escapeEmployerHtml(job.company)}
       </p>
 
       <p>
         <strong>Location:</strong>
-        ${job.location}
+        ${escapeEmployerHtml(job.location)}
       </p>
 
       <p>
-        <strong>Pay:</strong>
-        ${job.pay}
+        <strong>Employment type:</strong>
+        ${escapeEmployerHtml(job.employment_type || job.schedule || "Not listed")}
       </p>
+
+      <p>
+        <strong>Compensation:</strong>
+        ${escapeEmployerHtml(formatJobSalary(job))}
+      </p>
+
+      ${job.is_remote === 1 ? `
+        <p><strong>Work setting:</strong> Remote</p>
+      ` : ""}
+
+      ${applicationDeadline ? `
+        <p class="job-application-deadline">
+          <strong>Apply by:</strong>
+          ${escapeEmployerHtml(
+            formatApplicationDeadline(applicationDeadline)
+          )}
+        </p>
+      ` : ""}
+
+      ${job.last_verified_at ? `
+        <p class="job-verification-date">
+          Last verified:
+          ${escapeEmployerHtml(
+            new Date(job.last_verified_at).toLocaleDateString()
+          )}
+        </p>
+      ` : ""}
+
+      ${job.application_method === "employer_website" ? `
+        <p class="external-application-notice">
+          This job uses the employer's website for applications.
+        </p>
+      ` : ""}
 
       <div class="job-details hidden">
         <p>
           <strong>Description:</strong>
-          ${job.description}
-        </p>
-
-        <p>
-          <strong>Schedule:</strong>
-          ${job.schedule}
+          ${escapeEmployerHtml(job.description)}
         </p>
 
         <p>
           <strong>Experience:</strong>
-          ${job.experience}
+          ${escapeEmployerHtml(job.experience)}
         </p>
+
+        <p>
+          <strong>Category:</strong>
+          ${escapeEmployerHtml(job.category)}
+        </p>
+
+        ${job.application_method === "employer_website" ? `
+          <a
+            class="official-listing-link"
+            href="${escapeEmployerHtml(job.source_url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Official Listing
+          </a>
+        ` : ""}
       </div>
 
       <div class="job-card-actions">
@@ -247,9 +371,15 @@ function displayJobs(jobs) {
           type="button"
           class="apply-job-button ${isTracked ? "tracked" : ""}"
           onclick="ApplicationService.begin(${job.id})"
-          ${isTracked ? "disabled" : ""}
+          ${isTracked || deadlinePassed ? "disabled" : ""}
         >
-          ${isTracked ? "In Tracker" : "Apply"}
+          ${
+            isTracked
+              ? "In Tracker"
+              : deadlinePassed
+                ? "Deadline Passed"
+                : "Apply"
+          }
         </button>
       </div>
 
@@ -261,23 +391,50 @@ function displayJobs(jobs) {
 
     jobListings.appendChild(jobCard);
   });
+
+  displayedJobCount += nextJobs.length;
+  if (resultCount) {
+    resultCount.textContent =
+      `${jobs.length} job${jobs.length === 1 ? "" : "s"} found`;
+  }
+  if (loadMoreButton) {
+    loadMoreButton.classList.toggle(
+      "hidden",
+      displayedJobCount >= jobs.length
+    );
+  }
 }
 
-function populateCategoryFilter(jobs) {
-  const categoryFilter = document.getElementById("categoryFilter");
-
-  if (!categoryFilter) return;
-
-  categoryFilter.innerHTML = '<option value="all">All Categories</option>';
-
-  const categories = [...new Set(jobs.map(job => job.category))];
-
-  categories.forEach(category => {
+function populateSelect(selectId, jobs, field, label) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  select.innerHTML = `<option value="all">${label}</option>`;
+  const values = [...new Set(
+    jobs.map(job => job[field]).filter(Boolean)
+  )].sort();
+  values.forEach(value => {
     const option = document.createElement("option");
-    option.value = category;
-    option.textContent = category;
-    categoryFilter.appendChild(option);
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
   });
+}
+
+function populateJobFilters(jobs) {
+  populateSelect("categoryFilter", jobs, "category", "All Categories");
+  populateSelect("employerFilter", jobs, "company", "All Employers");
+  populateSelect(
+    "employmentTypeFilter",
+    jobs,
+    "employment_type",
+    "All Employment Types"
+  );
+  populateSelect(
+    "experienceFilter",
+    jobs,
+    "experience",
+    "All Experience Levels"
+  );
 }
 
 function toggleDetails(button) {
@@ -777,7 +934,7 @@ const ApplicationService = {
   openEmployerWebsite() {
     if (
       !activeApplicationJob ||
-      !activeApplicationJob.application_url
+      !isSafeExternalUrl(activeApplicationJob.application_url)
     ) {
       showApplicationDialogMessage(
         "This employer has not provided a valid application link.",
@@ -943,6 +1100,15 @@ const ApplicationService = {
   }
 };
 
+function isSafeExternalUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch (error) {
+    return false;
+  }
+}
+
 function openApplicationDialog(
   title,
   text,
@@ -1062,14 +1228,28 @@ function filterJobs() {
   const jobSearchInput = document.getElementById("jobSearchInput");
   const locationSearchInput = document.getElementById("locationSearchInput");
   const categoryFilter = document.getElementById("categoryFilter");
+  const employerFilter = document.getElementById("employerFilter");
+  const employmentTypeFilter =
+    document.getElementById("employmentTypeFilter");
+  const remoteFilter = document.getElementById("remoteFilter");
+  const experienceFilter = document.getElementById("experienceFilter");
+  const applicationMethodFilter =
+    document.getElementById("applicationMethodFilter");
 
   if (!jobSearchInput || !locationSearchInput || !categoryFilter) return;
 
   const jobSearch = jobSearchInput.value.toLowerCase();
   const locationSearch = locationSearchInput.value.toLowerCase();
   const selectedCategory = categoryFilter.value;
+  const selectedEmployer = employerFilter?.value || "all";
+  const selectedEmploymentType =
+    employmentTypeFilter?.value || "all";
+  const selectedRemote = remoteFilter?.value || "all";
+  const selectedExperience = experienceFilter?.value || "all";
+  const selectedApplicationMethod =
+    applicationMethodFilter?.value || "all";
 
-  const filteredJobs = allJobs.filter(job => {
+  filteredJobs = allJobs.filter(job => {
     const matchesJob =
       job.title.toLowerCase().includes(jobSearch) ||
       job.company.toLowerCase().includes(jobSearch);
@@ -1080,10 +1260,65 @@ function filterJobs() {
     const matchesCategory =
       selectedCategory === "all" || job.category === selectedCategory;
 
-    return matchesJob && matchesLocation && matchesCategory;
+    const matchesEmployer =
+      selectedEmployer === "all" || job.company === selectedEmployer;
+    const matchesEmploymentType =
+      selectedEmploymentType === "all"
+      || job.employment_type === selectedEmploymentType;
+    const matchesRemote =
+      selectedRemote === "all"
+      || (selectedRemote === "remote" && job.is_remote === 1)
+      || (selectedRemote === "onsite" && job.is_remote === 0);
+    const matchesExperience =
+      selectedExperience === "all"
+      || job.experience === selectedExperience;
+    const matchesApplicationMethod =
+      selectedApplicationMethod === "all"
+      || job.application_method === selectedApplicationMethod;
+
+    return (
+      matchesJob
+      && matchesLocation
+      && matchesCategory
+      && matchesEmployer
+      && matchesEmploymentType
+      && matchesRemote
+      && matchesExperience
+      && matchesApplicationMethod
+    );
   });
 
   displayJobs(filteredJobs);
+}
+
+function resetJobFilters() {
+  const textInputs = [
+    "jobSearchInput",
+    "locationSearchInput"
+  ];
+  const selectFilters = [
+    "categoryFilter",
+    "employerFilter",
+    "employmentTypeFilter",
+    "remoteFilter",
+    "experienceFilter",
+    "applicationMethodFilter"
+  ];
+
+  textInputs.forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (input) input.value = "";
+  });
+
+  selectFilters.forEach(filterId => {
+    const filter = document.getElementById(filterId);
+    if (filter) filter.value = "all";
+  });
+
+  filterJobs();
+
+  const firstInput = document.getElementById("jobSearchInput");
+  if (firstInput) firstInput.focus();
 }
 
 window.onload = function() {
@@ -1092,6 +1327,16 @@ window.onload = function() {
   const categoryFilter = document.getElementById("categoryFilter");
   const jobSearchInput = document.getElementById("jobSearchInput");
   const locationSearchInput = document.getElementById("locationSearchInput");
+  const additionalFilters = [
+    "employerFilter",
+    "employmentTypeFilter",
+    "remoteFilter",
+    "experienceFilter",
+    "applicationMethodFilter"
+  ];
+  const loadMoreButton = document.getElementById("loadMoreJobsButton");
+  const resetFiltersButton =
+    document.getElementById("resetJobFiltersButton");
   const chatInput = document.getElementById("chatInput");
 
   if (categoryFilter) {
@@ -1104,6 +1349,21 @@ window.onload = function() {
 
   if (locationSearchInput) {
     locationSearchInput.addEventListener("input", filterJobs);
+  }
+
+  additionalFilters.forEach(filterId => {
+    const filter = document.getElementById(filterId);
+    if (filter) filter.addEventListener("change", filterJobs);
+  });
+
+  if (loadMoreButton) {
+    loadMoreButton.addEventListener("click", () => {
+      displayJobs(filteredJobs, true);
+    });
+  }
+
+  if (resetFiltersButton) {
+    resetFiltersButton.addEventListener("click", resetJobFilters);
   }
 
   if (chatInput) {
@@ -1229,6 +1489,9 @@ async function checkLoginStatus() {
     const logoutButton =
         document.getElementById("logoutButton");
 
+    const homeAccountAction =
+        document.getElementById("homeAccountAction");
+
     try {
         const response = await fetch(
             "http://127.0.0.1:8000/me",
@@ -1273,6 +1536,18 @@ async function checkLoginStatus() {
 
         if (logoutButton) {
             logoutButton.style.display = "inline-block";
+        }
+
+        if (homeAccountAction) {
+            if (user.role === "employer") {
+                homeAccountAction.href = "employer.html";
+                homeAccountAction.textContent =
+                    "Open Employer Dashboard";
+            } else {
+                homeAccountAction.href = "dashboard.html";
+                homeAccountAction.textContent =
+                    "Open Your Dashboard";
+            }
         }
 
         if (user.role === "employer") {
@@ -1799,6 +2074,24 @@ function displaySavedJobs(jobs) {
         ${job.pay}
       </p>
 
+      ${job.application_deadline ? `
+        <p class="${
+          applicationDeadlineHasPassed(job.application_deadline)
+            ? "deadline-passed"
+            : ""
+        }">
+          <strong>Application deadline:</strong>
+          ${escapeEmployerHtml(
+            formatApplicationDeadline(job.application_deadline)
+          )}
+          ${
+            applicationDeadlineHasPassed(job.application_deadline)
+              ? " (passed)"
+              : ""
+          }
+        </p>
+      ` : ""}
+
       <div class="job-details">
         <p>
           <strong>Description:</strong>
@@ -2112,6 +2405,30 @@ function displayApplications(applications) {
           <strong>Schedule:</strong>
           ${escapeEmployerHtml(application.schedule)}
         </p>
+
+        ${application.application_deadline ? `
+          <p class="${
+            applicationDeadlineHasPassed(
+              application.application_deadline
+            )
+              ? "deadline-passed"
+              : ""
+          }">
+            <strong>Application deadline:</strong>
+            ${escapeEmployerHtml(
+              formatApplicationDeadline(
+                application.application_deadline
+              )
+            )}
+            ${
+              applicationDeadlineHasPassed(
+                application.application_deadline
+              )
+                ? " (passed)"
+                : ""
+            }
+          </p>
+        ` : ""}
       </div>
 
       <form
@@ -2822,6 +3139,9 @@ function displayEmployerJobs(jobs) {
         ? "Employer website"
         : "PathForge";
 
+    const deadlinePassed =
+      applicationDeadlineHasPassed(job.application_deadline);
+
       const applicationFormButton =
         job.application_method === "pathforge"
           ? `
@@ -2903,6 +3223,16 @@ function displayEmployerJobs(jobs) {
           <strong>Applications:</strong>
           ${escapeEmployerHtml(applicationMethod)}
         </p>
+
+        ${job.application_deadline ? `
+          <p class="${deadlinePassed ? "deadline-passed" : ""}">
+            <strong>Application deadline:</strong>
+            ${escapeEmployerHtml(
+              formatApplicationDeadline(job.application_deadline)
+            )}
+            ${deadlinePassed ? " (passed)" : ""}
+          </p>
+        ` : ""}
 
         ${applicationLink}
       </div>
@@ -3035,6 +3365,10 @@ function getNewEmployerJobData() {
       document.getElementById("employerApplicationUrl").value.trim()
       || null,
 
+    application_deadline:
+      document.getElementById("employerJobDeadline").value
+      || null,
+
     status:
       document.getElementById("employerJobStatus").value
   };
@@ -3057,6 +3391,14 @@ function setupEmployerJobForm() {
 
   const urlInput =
     document.getElementById("employerApplicationUrl");
+
+  const deadlineInput =
+    document.getElementById("employerJobDeadline");
+
+  if (deadlineInput) {
+    deadlineInput.min =
+      new Date().toISOString().split("T")[0];
+  }
 
   methodSelect.addEventListener("change", function () {
     toggleEmployerApplicationUrl(
@@ -3204,6 +3546,10 @@ function openEmployerJobEditor(jobId) {
     "editEmployerJobDescription"
   ).value = job.description;
 
+  document.getElementById(
+    "editEmployerJobDeadline"
+  ).value = job.application_deadline || "";
+
   const methodSelect =
     document.getElementById(
       "editEmployerApplicationMethod"
@@ -3313,6 +3659,12 @@ function getEditedEmployerJobData() {
         .trim()
       || null,
 
+    application_deadline:
+      document.getElementById(
+        "editEmployerJobDeadline"
+      ).value
+      || null,
+
     status:
       document.getElementById("editEmployerJobStatus").value
   };
@@ -3341,6 +3693,14 @@ function setupEmployerJobEditor() {
     document.getElementById(
       "editEmployerApplicationUrl"
     );
+
+  const deadlineInput =
+    document.getElementById("editEmployerJobDeadline");
+
+  if (deadlineInput) {
+    deadlineInput.min =
+      new Date().toISOString().split("T")[0];
+  }
 
   methodSelect.addEventListener("change", function () {
     toggleEmployerApplicationUrl(
@@ -4361,6 +4721,30 @@ function displayEmployerApplications(applications) {
           <strong>Submitted:</strong>
           ${escapeEmployerHtml(submittedDate)}
         </p>
+
+        ${application.application_deadline ? `
+          <p class="${
+            applicationDeadlineHasPassed(
+              application.application_deadline
+            )
+              ? "deadline-passed"
+              : ""
+          }">
+            <strong>Application deadline:</strong>
+            ${escapeEmployerHtml(
+              formatApplicationDeadline(
+                application.application_deadline
+              )
+            )}
+            ${
+              applicationDeadlineHasPassed(
+                application.application_deadline
+              )
+                ? " (passed)"
+                : ""
+            }
+          </p>
+        ` : ""}
       </div>
 
       <section class="employer-application-answers">

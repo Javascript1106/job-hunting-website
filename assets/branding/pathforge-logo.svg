@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="264" height="56" viewBox="0 0 264 56" role="img" aria-labelledby="title desc">
+  <title id="title">PathForge</title>
+  <desc id="desc">A rising path passing through an open gateway beside the PathForge name.</desc>
+  <defs>
+    <marker id="pathforgeArrow" viewBox="0 0 10 10" refX="2.5" refY="5" markerWidth="11" markerHeight="13" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 10 5 0 10Z" fill="#2563EB"/>
+    </marker>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 48V27C9 15 17 8 28 8s19 7 19 19v21" stroke="#172334" stroke-width="7"/>
+    <path d="M17 46l6-10 5 5 6.5-12" stroke="#2563EB" stroke-width="6" marker-end="url(#pathforgeArrow)"/>
+  </g>
+  <text x="65" y="38" fill="#172334" font-family="Georgia, 'Times New Roman', serif" font-size="31" font-weight="700" letter-spacing="-0.5">PathForge</text>
+</svg>

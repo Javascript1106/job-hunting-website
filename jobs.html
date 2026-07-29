@@ -1,14 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jobs</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<nav class="main-nav">
-    <h1>PathForge</h1>
+<nav class="main-nav" aria-label="Primary navigation">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
+      <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
+    </a>
 
     <div class="nav-links">
         <a href="index.html">Home</a>
@@ -64,21 +70,60 @@
     <h2>Find Jobs</h2>
 
     <div class="job-search-bar">
-      <input id="jobSearchInput" type="text" placeholder="Search job title or company">
+      <input id="jobSearchInput" type="text" placeholder="Keyword or employer">
       <input id="locationSearchInput" type="text" placeholder="Location">
 
       <select id="categoryFilter">
         <option value="all">All Categories</option>
       </select>
 
-      <button>Search</button>
+      <select id="employerFilter">
+        <option value="all">All Employers</option>
+      </select>
+
+      <select id="employmentTypeFilter">
+        <option value="all">All Employment Types</option>
+      </select>
+
+      <select id="remoteFilter">
+        <option value="all">Remote or On-Site</option>
+        <option value="remote">Remote</option>
+        <option value="onsite">On-Site</option>
+      </select>
+
+      <select id="experienceFilter">
+        <option value="all">All Experience Levels</option>
+      </select>
+
+      <select id="applicationMethodFilter">
+        <option value="all">All Application Methods</option>
+        <option value="pathforge">Apply on PathForge</option>
+        <option value="employer_website">External Application</option>
+      </select>
+
+      <button id="resetJobFiltersButton" class="reset-job-filters" type="button">
+        Reset Filters
+      </button>
     </div>
+
+    <p id="jobResultCount" class="job-result-count" aria-live="polite"></p>
   </section>
 
   <section class="jobs-layout">
     <div class="job-listings" id="jobListings">
       <!-- Jobs load here from the database -->
     </div>
+
+    <button id="loadMoreJobsButton" class="load-more-jobs hidden" type="button">
+      Load More
+    </button>
+
+    <p class="catalog-disclosure">
+      Major-employer listings open official external hiring systems.
+      PathForge does not represent these companies. Availability can
+      change after verification, so confirm all details on the official
+      listing before applying.
+    </p>
   </section>
 </main>
 
@@ -175,6 +220,6 @@
   </div>
 </section>
 
-<script src="script.js"></script>
+<script src="script.js?v=20260729-deadlines"></script>
 </body>
 </html>

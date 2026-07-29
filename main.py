@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional, List
 import hashlib
 import hmac
@@ -135,6 +135,7 @@ class Job(BaseModel):
     application_method: str = "pathforge"
     application_url: Optional[str] = None
     status: str = "active"
+    application_deadline: Optional[str] = None
 
 
 class JobStatusUpdate(BaseModel):
@@ -253,6 +254,35 @@ JOB_STATUSES = {
     "draft"
 }
 
+
+def clean_application_deadline(
+    application_deadline: Optional[str]
+):
+    if not application_deadline:
+        return None
+
+    cleaned_deadline = application_deadline.strip()
+
+    try:
+        parsed_deadline = date.fromisoformat(cleaned_deadline)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Application deadline must be a valid date."
+        )
+
+    return parsed_deadline.isoformat()
+
+
+def deadline_has_passed(application_deadline):
+    if not application_deadline:
+        return False
+
+    try:
+        return date.fromisoformat(application_deadline) < date.today()
+    except ValueError:
+        return False
+
 APPLICATION_QUESTION_TYPES = {
     "short_text",
     "long_text",
@@ -293,6 +323,18 @@ def get_jobs():
         SELECT *
         FROM jobs
         WHERE status = 'active'
+          AND (
+              application_method = 'pathforge'
+              OR verification_status = 'verified'
+          )
+          AND (
+              expires_at IS NULL
+              OR date(expires_at) >= date('now')
+          )
+          AND (
+              application_deadline IS NULL
+              OR date(application_deadline) >= date('now')
+          )
         ORDER BY id DESC
     """)
 
@@ -648,6 +690,18 @@ def add_job(job: Job, request: Request):
     cleaned_schedule = job.schedule.strip()
     cleaned_experience = job.experience.strip()
     cleaned_category = job.category.strip()
+    cleaned_application_deadline = clean_application_deadline(
+        job.application_deadline
+    )
+
+    if (
+        cleaned_application_deadline
+        and deadline_has_passed(cleaned_application_deadline)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Application deadline cannot be in the past."
+        )
 
     required_values = [
         cleaned_title,
@@ -706,12 +760,13 @@ def add_job(job: Job, request: Request):
             application_url,
             employer_id,
             status,
+            application_deadline,
             created_at,
             updated_at
         )
         VALUES (
             ?, ?, ?, ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
         )
         """,
         (
@@ -726,7 +781,8 @@ def add_job(job: Job, request: Request):
             job.application_method,
             cleaned_application_url,
             employer["id"],
-            job.status
+            job.status,
+            cleaned_application_deadline
         )
     )
 
@@ -780,6 +836,9 @@ def update_employer_job(
     cleaned_schedule = job.schedule.strip()
     cleaned_experience = job.experience.strip()
     cleaned_category = job.category.strip()
+    cleaned_application_deadline = clean_application_deadline(
+        job.application_deadline
+    )
 
     required_values = [
         cleaned_title,
@@ -838,6 +897,7 @@ def update_employer_job(
             application_method = ?,
             application_url = ?,
             status = ?,
+            application_deadline = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
           AND employer_id = ?
@@ -854,6 +914,7 @@ def update_employer_job(
             job.application_method,
             cleaned_application_url,
             job.status,
+            cleaned_application_deadline,
             job_id,
             employer["id"]
         )
@@ -1047,6 +1108,7 @@ def get_saved_jobs(request: Request):
             jobs.schedule,
             jobs.experience,
             jobs.category,
+            jobs.application_deadline,
             saved_jobs.saved_at
         FROM saved_jobs
         JOIN jobs
@@ -1172,7 +1234,8 @@ def get_applications(request: Request):
             jobs.pay,
             jobs.schedule,
             jobs.experience,
-            jobs.category
+            jobs.category,
+            jobs.application_deadline
         FROM applications
         JOIN jobs
             ON jobs.id = applications.job_id
@@ -1446,7 +1509,8 @@ def get_job_application_form(
             company,
             application_method,
             employer_id,
-            status
+            status,
+            application_deadline
         FROM jobs
         WHERE id = ?
         """,
@@ -1469,6 +1533,14 @@ def get_job_application_form(
         raise HTTPException(
             status_code=400,
             detail="This job is not currently accepting applications."
+        )
+
+    if deadline_has_passed(job["application_deadline"]):
+        conn.close()
+
+        raise HTTPException(
+            status_code=400,
+            detail="The application deadline for this job has passed."
         )
 
     if (
@@ -1535,7 +1607,8 @@ def submit_internal_application(
             id,
             employer_id,
             application_method,
-            status
+            status,
+            application_deadline
         FROM jobs
         WHERE id = ?
         """,
@@ -1558,6 +1631,14 @@ def submit_internal_application(
         raise HTTPException(
             status_code=400,
             detail="This job is not currently accepting applications."
+        )
+
+    if deadline_has_passed(job["application_deadline"]):
+        conn.close()
+
+        raise HTTPException(
+            status_code=400,
+            detail="The application deadline for this job has passed."
         )
 
     if (
@@ -1780,7 +1861,8 @@ def get_employer_applications(request: Request):
             users.username,
             users.email,
             jobs.title AS job_title,
-            jobs.company
+            jobs.company,
+            jobs.application_deadline
         FROM applications
         JOIN jobs
             ON jobs.id = applications.job_id
