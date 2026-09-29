@@ -222,6 +222,25 @@ class JobWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual({job["id"] for job in contact}, {contact_id})
         self.assertTrue(contact[0]["accommodation_contact"])
 
+    def test_saved_search_preserves_accessibility_and_application_filters(self):
+        self.create_user("filtered_search_user", "filtered-search@example.com")
+        self.login("filtered_search_user")
+        response = self.client.post(
+            "/saved-searches",
+            json={
+                "name": "Accessible applications",
+                "listing_quality": "accommodation",
+                "application_feature": "accommodation_contact",
+            },
+        )
+
+        self.assertEqual(response.status_code, 201)
+        saved = response.json()["saved_search"]
+        self.assertEqual(saved["listing_quality"], "accommodation")
+        self.assertEqual(saved["application_feature"], "accommodation_contact")
+        listed = self.client.get("/saved-searches").json()["saved_searches"]
+        self.assertEqual(listed[0]["application_feature"], "accommodation_contact")
+
     def test_server_side_search_supports_exact_location_and_remote_eligibility(self):
         denver_id = self.create_job("Denver Exact Role")
         worldwide_id = self.create_job("Worldwide Remote Role")

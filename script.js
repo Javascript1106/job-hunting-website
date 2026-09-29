@@ -3518,6 +3518,7 @@ function resetJobFilters() {
     "ageFitFilter",
     "datePostedFilter",
     "listingQualityFilter",
+    "applicationFeatureFilter",
     "minimumPayFilter",
     "excludeTermsFilter",
     "jobSortSelect"
@@ -3582,6 +3583,8 @@ function getCurrentSavedSearchCriteria() {
     date_posted: document.getElementById("datePostedFilter")?.value || "all",
     listing_quality:
       document.getElementById("listingQualityFilter")?.value || "all",
+    application_feature:
+      document.getElementById("applicationFeatureFilter")?.value || "all",
     minimum_pay:
       Math.max(0, Number(document.getElementById("minimumPayFilter")?.value) || 0),
     exclusions: [...document.querySelectorAll('input[name="jobExclusion"]:checked')]
@@ -3609,6 +3612,14 @@ function describeSavedSearch(savedSearch) {
   if (savedSearch.age_fit !== "all") parts.push(savedSearch.age_fit.replace("age-", "Age "));
   if (savedSearch.date_posted !== "all") parts.push(`Past ${savedSearch.date_posted} days`);
   if (savedSearch.listing_quality !== "all") parts.push(`${savedSearch.listing_quality} details`);
+  if (savedSearch.application_feature && savedSearch.application_feature !== "all") {
+    const labels = {
+      direct_apply: "Apply directly in PathForge",
+      no_cover_letter: "No cover letter required",
+      accommodation_contact: "Accommodation contact mentioned"
+    };
+    parts.push(labels[savedSearch.application_feature] || savedSearch.application_feature);
+  }
   if (Number(savedSearch.minimum_pay) > 0) parts.push(`$${Number(savedSearch.minimum_pay).toLocaleString()}+`);
   if (savedSearch.exclusions) parts.push(`Excludes ${savedSearch.exclusions.split(",").join(", ")}`);
   if (savedSearch.exclude_terms) parts.push(`Without: ${savedSearch.exclude_terms}`);
@@ -3996,6 +4007,7 @@ window.onload = function() {
     "ageFitFilter",
     "datePostedFilter",
     "listingQualityFilter",
+    "applicationFeatureFilter",
     "jobSortSelect"
   ];
   const loadMoreButton = document.getElementById("loadMoreJobsButton");

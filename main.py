@@ -1,7 +1,7 @@
 """PathForge FastAPI application: authentication, jobs, applications, learning, and employer APIs."""
 
 from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional, List, Dict
 from functools import lru_cache
@@ -506,6 +506,7 @@ def saved_search_matches_job(saved_search, job):
         age_fit=criteria.get("age_fit", "all"),
         date_posted=criteria.get("date_posted", "all"),
         listing_quality=criteria.get("listing_quality", "all"),
+        application_feature=criteria.get("application_feature", "all"),
         minimum_pay=float(criteria.get("minimum_pay", 0) or 0),
         exclusions=criteria.get("exclusions", ""),
         exclude_terms=criteria.get("exclude_terms", ""),
@@ -529,6 +530,7 @@ def validate_saved_search_input(saved_search):
         "age_fit": saved_search.age_fit.strip().lower(),
         "date_posted": saved_search.date_posted.strip().lower(),
         "listing_quality": saved_search.listing_quality.strip().lower(),
+        "application_feature": saved_search.application_feature.strip().lower(),
         "minimum_pay": saved_search.minimum_pay,
         "exclusions": saved_search.exclusions.strip().lower(),
         "exclude_terms": saved_search.exclude_terms.strip(),
@@ -560,8 +562,14 @@ def validate_saved_search_input(saved_search):
         raise HTTPException(status_code=400, detail="Invalid age fit.")
     if values["date_posted"] not in {"all", "1", "3", "7", "14", "30", "60", "90"}:
         raise HTTPException(status_code=400, detail="Invalid posting age.")
-    if values["listing_quality"] not in {"all", "pay", "deadline", "complete"}:
+    if values["listing_quality"] not in {
+        "all", "pay", "deadline", "accommodation", "complete"
+    }:
         raise HTTPException(status_code=400, detail="Invalid listing quality.")
+    if values["application_feature"] not in {
+        "all", "direct_apply", "no_cover_letter", "accommodation_contact"
+    }:
+        raise HTTPException(status_code=400, detail="Invalid application feature.")
     if values["minimum_pay"] < 0 or values["minimum_pay"] > 10_000_000:
         raise HTTPException(status_code=400, detail="Minimum pay is out of range.")
     valid_exclusions = {"senior", "staffing", "commission", "clearance", "unpaid"}
@@ -714,10 +722,10 @@ def create_saved_search(saved_search: SavedSearchInput, request: Request):
             user_id, name, keyword, location, location_scope,
             category, employment_type, remote_filter, experience,
             location_mode, remote_eligibility, age_fit, date_posted,
-            listing_quality, minimum_pay, exclusions, exclude_terms,
+            listing_quality, application_feature, minimum_pay, exclusions, exclude_terms,
             frequency, is_enabled, baseline_job_id, next_check_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             user["id"], values["name"], values["keyword"],
@@ -726,7 +734,8 @@ def create_saved_search(saved_search: SavedSearchInput, request: Request):
             values["remote_filter"], values["experience"],
             values["location_mode"], values["remote_eligibility"],
             values["age_fit"], values["date_posted"],
-            values["listing_quality"], values["minimum_pay"],
+            values["listing_quality"], values["application_feature"],
+            values["minimum_pay"],
             values["exclusions"], values["exclude_terms"],
             values["frequency"], values["is_enabled"], baseline_job_id,
             next_saved_search_check(values["frequency"])
@@ -764,6 +773,7 @@ def update_saved_search(
         "keyword", "location", "location_scope", "category",
         "employment_type", "remote_filter", "experience", "location_mode",
         "remote_eligibility", "age_fit", "date_posted", "listing_quality",
+        "application_feature",
         "minimum_pay", "exclusions", "exclude_terms"
     )
     criteria_changed = any(
@@ -787,7 +797,7 @@ def update_saved_search(
             category = ?, employment_type = ?, remote_filter = ?,
             experience = ?, location_mode = ?, remote_eligibility = ?,
             age_fit = ?, date_posted = ?, listing_quality = ?,
-            minimum_pay = ?, exclusions = ?, exclude_terms = ?,
+            application_feature = ?, minimum_pay = ?, exclusions = ?, exclude_terms = ?,
             frequency = ?, is_enabled = ?,
             baseline_job_id = ?, next_check_at = ?,
             updated_at = CURRENT_TIMESTAMP
@@ -800,6 +810,7 @@ def update_saved_search(
             values["experience"], values["location_mode"],
             values["remote_eligibility"], values["age_fit"],
             values["date_posted"], values["listing_quality"],
+            values["application_feature"],
             values["minimum_pay"], values["exclusions"],
             values["exclude_terms"], values["frequency"],
             values["is_enabled"], baseline_job_id,
@@ -9137,3 +9148,39 @@ def chat(data: ChatMessage, request: Request):
             if guidance else []
         )
     }
+
+
+# Serve the browser application from the API process without exposing the
+# project directory, database, environment file, backups, or source configs.
+PUBLIC_FRONTEND_FILES = {
+    "account-security.html", "admin-moderation.html", "alerts.html",
+    "analytics.html", "applications.html", "company.html", "dashboard.html",
+    "employer-access.html", "employer.html", "index.html", "jobs.html",
+    "learning-center.html", "login.html", "messages.html", "offline.html",
+    "profile.html", "register.html", "resume.html", "saved-jobs.html",
+    "search-history.html", "manifest.webmanifest", "offline.js",
+    "pathforge-core.js", "script.js", "service-worker.js", "style.css",
+    "us-places.json",
+}
+PUBLIC_ASSET_SUFFIXES = {".png", ".svg", ".jpg", ".jpeg", ".webp", ".gif"}
+FRONTEND_ROOT = Path(__file__).resolve().parent
+
+
+@app.get("/app", include_in_schema=False)
+def open_browser_app():
+    return RedirectResponse(url="/index.html", status_code=307)
+
+
+@app.get("/{frontend_path:path}", include_in_schema=False)
+def get_frontend_file(frontend_path: str):
+    normalized = Path(frontend_path).as_posix().lstrip("/")
+    is_public_asset = (
+        normalized.startswith("assets/")
+        and Path(normalized).suffix.lower() in PUBLIC_ASSET_SUFFIXES
+    )
+    if normalized not in PUBLIC_FRONTEND_FILES and not is_public_asset:
+        raise HTTPException(status_code=404, detail="Not found.")
+    candidate = (FRONTEND_ROOT / normalized).resolve()
+    if FRONTEND_ROOT not in candidate.parents or not candidate.is_file():
+        raise HTTPException(status_code=404, detail="Not found.")
+    return FileResponse(candidate)

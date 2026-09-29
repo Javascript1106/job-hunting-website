@@ -221,6 +221,13 @@ FastAPI should start on:
 
 http://127.0.0.1:8000
 
+Open PathForge in a browser at:
+
+http://127.0.0.1:8000/app
+
+The backend serves an explicit allowlist of frontend pages and public assets.
+It does not expose `.env`, `jobs.db`, backups, or source configuration files.
+
 For production, set `PATHFORGE_ENV=production`. If the frontend and API use
 different origins, set `PATHFORGE_ALLOWED_ORIGINS` to the exact comma-separated
 HTTPS frontend origins before starting the server.
@@ -228,9 +235,9 @@ HTTPS frontend origins before starting the server.
 Use `.env.example` as the variable-name template and follow
 `DEPLOYMENT.md` before exposing PathForge publicly.
 
-## Start the Frontend
+## Optional Separate Frontend
 
-Use:
+For frontend-only development, you can instead use:
 
 * VS Code Live Server (recommended)
 
@@ -238,7 +245,7 @@ Any localhost port works in development. Do not open the HTML files directly
 with a `file://` URL: browsers do not provide a safe credentialed origin for
 account and API requests in that mode.
 
-Recommended starting page:
+When using a separate frontend server, the recommended starting page is:
 
 index.html
 

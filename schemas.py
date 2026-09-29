@@ -83,6 +83,7 @@ class SavedSearchInput(BaseModel):
     age_fit: str = "all"
     date_posted: str = "all"
     listing_quality: str = "all"
+    application_feature: str = "all"
     minimum_pay: float = 0
     exclusions: str = ""
     exclude_terms: str = ""

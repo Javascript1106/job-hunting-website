@@ -54,6 +54,34 @@ class PublicHealthTests(unittest.TestCase):
         self.assertNotIn("last_error_detail", response)
 
 
+class FrontendServingTests(unittest.TestCase):
+    def test_public_pages_and_assets_are_served_from_same_origin(self):
+        with TestClient(main.app) as client:
+            app = client.get("/app", follow_redirects=False)
+            jobs = client.get("/jobs.html")
+            script = client.get("/script.js")
+            logo = client.get("/assets/branding/pathforge-logo.svg")
+
+        self.assertEqual(app.status_code, 307)
+        self.assertEqual(app.headers["location"], "/index.html")
+        self.assertEqual(jobs.status_code, 200)
+        self.assertIn("Opportunity search", jobs.text)
+        self.assertEqual(script.status_code, 200)
+        self.assertEqual(logo.status_code, 200)
+
+    def test_private_project_files_are_not_served(self):
+        with TestClient(main.app) as client:
+            responses = [
+                client.get("/.env"),
+                client.get("/jobs.db"),
+                client.get("/job_sources.json"),
+                client.get("/backups/example.db"),
+                client.get("/main.py"),
+            ]
+
+        self.assertTrue(all(response.status_code == 404 for response in responses))
+
+
 class DevelopmentCorsTests(unittest.TestCase):
     def test_loopback_frontend_ports_are_allowed_in_development(self):
         with TestClient(main.app) as client:

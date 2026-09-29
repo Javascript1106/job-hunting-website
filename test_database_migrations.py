@@ -33,7 +33,7 @@ class DatabaseMigrationTests(unittest.TestCase):
         ).fetchall()
         connection.close()
 
-        self.assertEqual(applied, [1, 2, 3, 4])
+        self.assertEqual(applied, [1, 2, 3, 4, 5])
         self.assertIn("users", tables)
         self.assertIn("jobs", tables)
         self.assertIn("auth_attempts", tables)
@@ -44,6 +44,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                 (2, "public_job_catalog_indexes"),
                 (3, "saved_search_parity_and_job_history"),
                 (4, "repair_application_history_integrity"),
+                (5, "saved_search_application_feature"),
             ],
         )
 

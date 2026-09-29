@@ -567,6 +567,7 @@ def create_jobs_table(db_name=DB_NAME):
             age_fit TEXT NOT NULL DEFAULT 'all',
             date_posted TEXT NOT NULL DEFAULT 'all',
             listing_quality TEXT NOT NULL DEFAULT 'all',
+            application_feature TEXT NOT NULL DEFAULT 'all',
             minimum_pay REAL NOT NULL DEFAULT 0,
             exclusions TEXT NOT NULL DEFAULT '',
             exclude_terms TEXT NOT NULL DEFAULT '',
@@ -1347,6 +1348,23 @@ def repair_application_history_integrity(db_name=DB_NAME):
         conn.close()
 
 
+def add_saved_search_application_feature(db_name=DB_NAME):
+    """Keep application-convenience filters in saved searches and alerts."""
+    conn = get_connection(db_name)
+    try:
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(saved_searches)")
+        }
+        if "application_feature" not in columns:
+            conn.execute(
+                "ALTER TABLE saved_searches "
+                "ADD COLUMN application_feature TEXT NOT NULL DEFAULT 'all'"
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Each migration has an immutable version and descriptive name. New schema
 # changes belong in a new function and tuple entry instead of being silently
 # added to application startup forever.
@@ -1355,6 +1373,7 @@ SCHEMA_MIGRATIONS = (
     (2, "public_job_catalog_indexes", create_public_job_indexes),
     (3, "saved_search_parity_and_job_history", add_saved_search_parity_and_job_history),
     (4, "repair_application_history_integrity", repair_application_history_integrity),
+    (5, "saved_search_application_feature", add_saved_search_application_feature),
 )
 
 
