@@ -3,47 +3,47 @@
     {
       "employer": "DoorDash",
       "board_token": "doordashusa",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Cloudflare",
       "board_token": "cloudflare",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Figma",
       "board_token": "figma",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Discord",
       "board_token": "discord",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Reddit",
       "board_token": "reddit",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Lyft",
       "board_token": "lyft",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Instacart",
       "board_token": "instacart",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Airbnb",
       "board_token": "airbnb",
-      "max_jobs": 100
+      "max_jobs": 500
     },
     {
       "employer": "Dropbox",
       "board_token": "dropbox",
-      "max_jobs": 100
+      "max_jobs": 500
     }
   ],
   "lever": [
@@ -496,7 +496,7 @@
     "keyword": "",
     "location": "",
     "remote_only": false,
-    "results_per_page": 100,
+    "results_per_page": 500,
     "pages": 5
   }
 }
