@@ -68,6 +68,29 @@ class RecruiteeSourceTests(unittest.TestCase):
             })
         self.assertEqual(records, [])
 
+    def test_multi_country_offer_displays_only_allowed_locations(self):
+        payload = {"offers": [{
+            "id": 10,
+            "title": "Localization Specialist",
+            "location": "Aarhus, Denmark",
+            "locations": [
+                {"city": "Aarhus", "country": "Denmark", "country_code": "DK"},
+                {"city": "Austin", "state": "Texas", "country": "United States", "country_code": "US"},
+                {"city": "Toronto", "state": "Ontario", "country": "Canada", "country_code": "CA"},
+            ],
+            "careers_url": "https://example.recruitee.com/o/localization",
+        }]}
+        with patch("job_sources.recruitee.fetch_json", return_value=payload):
+            _, records = recruitee.fetch_jobs({
+                "employer": "Example",
+                "company_subdomain": "example",
+                "country_codes": ["US", "CA"],
+            })
+        self.assertEqual(len(records), 1)
+        self.assertIn("Austin", records[0]["location"])
+        self.assertIn("Toronto", records[0]["location"])
+        self.assertNotIn("Aarhus", records[0]["location"])
+
     def test_long_description_preserves_late_accommodation_information(self):
         payload = {"offers": [{
             "id": 9,

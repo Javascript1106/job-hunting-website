@@ -43,6 +43,28 @@ def _country_codes(job):
     return codes - {""}
 
 
+def _catalog_location(job, allowed_countries):
+    matching = []
+    for location in job.get("locations") or []:
+        if not isinstance(location, dict):
+            continue
+        code = str(location.get("country_code") or "").strip().upper()
+        if allowed_countries and code not in allowed_countries:
+            continue
+        value = _location({"location": location})
+        if value and value not in matching:
+            matching.append(value)
+    if not matching:
+        return _location(job)
+    if len(matching) <= 3:
+        return "; ".join(matching)
+    countries = []
+    for code, label in (("US", "United States"), ("CA", "Canada")):
+        if code in _country_codes(job) and code in allowed_countries:
+            countries.append(label)
+    return "Multiple locations — " + " and ".join(countries)
+
+
 def _salary_fields(job):
     salary = job.get("salary") or {}
     if str(salary.get("currency") or "").upper() != "USD":
@@ -113,7 +135,9 @@ def fetch_jobs(configuration):
         title = plain_text(job.get("title"))
         if not external_id or not title or not source_url:
             continue
-        location = _location(job) or "Location not listed"
+        location = _catalog_location(
+            job, allowed_countries
+        ) or "Location not listed"
         is_remote = _is_remote(job, location)
         if configuration.get("remote_only") and not is_remote:
             continue

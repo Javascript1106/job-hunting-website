@@ -46,6 +46,17 @@ US_STATE_NAMES = {
     "south dakota", "tennessee", "texas", "utah", "vermont", "virginia",
     "washington", "west virginia", "wisconsin", "wyoming", "district of columbia",
 }
+CANADA_MARKERS = ("canada", "canadian", "remote - ca", "remote, ca")
+CANADA_PROVINCE_CODES = {
+    "ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe",
+    "qc", "sk", "yt",
+}
+CANADA_PROVINCE_NAMES = {
+    "alberta", "british columbia", "manitoba", "new brunswick",
+    "newfoundland and labrador", "nova scotia", "northwest territories",
+    "nunavut", "ontario", "prince edward island", "quebec",
+    "saskatchewan", "yukon",
+}
 
 
 def _text(value: Any) -> str:
@@ -157,12 +168,29 @@ def _is_us_location(value: Any) -> bool:
     location = _text(value)
     if not location:
         return False
-    if any(marker in location for marker in NON_US_MARKERS):
-        return False
     if any(marker in location for marker in US_MARKERS):
         return True
-    tokens = set(re.findall(r"\b[a-z]{2}\b", location))
-    return bool(tokens & US_STATE_CODES) or any(name in location for name in US_STATE_NAMES)
+    state_codes = "|".join(sorted(US_STATE_CODES))
+    return bool(re.search(rf",\s*(?:{state_codes})(?:\b|$)", location)) or any(
+        name in location for name in US_STATE_NAMES
+    )
+
+
+def _is_canada_location(value: Any) -> bool:
+    location = _text(value)
+    if not location:
+        return False
+    if any(marker in location for marker in CANADA_MARKERS):
+        return True
+    province_codes = "|".join(sorted(CANADA_PROVINCE_CODES))
+    return bool(re.search(rf",\s*(?:{province_codes})(?:\b|$)", location)) or any(
+        name in location for name in CANADA_PROVINCE_NAMES
+    )
+
+
+def is_us_or_canada_location(value: Any) -> bool:
+    """Return whether a listing explicitly includes a U.S. or Canadian location."""
+    return _is_us_location(value) or _is_canada_location(value)
 
 
 def _has_pay(job: dict[str, Any]) -> bool:
@@ -392,7 +420,7 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
                     continue
             elif normalized_location not in job_location:
                 continue
-        if location_scope == "us" and not _is_us_location(job.get("location")):
+        if location_scope == "us" and not is_us_or_canada_location(job.get("location")):
             continue
         if category != "all" and job.get("category") != category:
             continue

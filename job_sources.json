@@ -1,4 +1,7 @@
 {
+  "catalog": {
+    "countries": ["US", "CA"]
+  },
   "greenhouse": [
     {
       "employer": "DoorDash",
@@ -462,31 +465,31 @@
     {
       "employer": "TransPerfect",
       "company_subdomain": "transperfect",
-      "country_codes": ["US"],
+      "country_codes": ["US", "CA"],
       "max_jobs": 250
     },
     {
       "employer": "AnywhereWorks",
       "company_subdomain": "anywhereworks",
-      "country_codes": ["US"],
+      "country_codes": ["US", "CA"],
       "max_jobs": 20
     },
     {
       "employer": "AI Digital",
       "company_subdomain": "aidigital",
-      "country_codes": ["US"],
+      "country_codes": ["US", "CA"],
       "max_jobs": 100
     },
     {
       "employer": "Constructive Dialogue Institute",
       "company_subdomain": "constructivedialogue",
-      "country_codes": ["US"],
+      "country_codes": ["US", "CA"],
       "max_jobs": 20
     },
     {
       "employer": "Allshore Talent",
       "company_subdomain": "allshoretalent",
-      "country_codes": ["US"],
+      "country_codes": ["US", "CA"],
       "max_jobs": 50
     }
   ],

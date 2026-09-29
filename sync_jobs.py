@@ -16,6 +16,7 @@ from job_sources import (
     workable,
 )
 from job_sources.common import synchronize_records
+from job_discovery import _is_canada_location, _is_us_location
 from local_env import load_local_environment
 
 
@@ -27,6 +28,27 @@ def enabled(configuration):
     return configuration.get("enabled", True)
 
 
+def filter_catalog_countries(records, countries, verified_countries=None):
+    """Keep only listings explicitly available in configured catalog countries."""
+    allowed = {str(country).strip().upper() for country in countries}
+    if not allowed:
+        return list(records)
+    verified = {
+        str(country).strip().upper()
+        for country in (verified_countries or [])
+    }
+    if verified and verified <= allowed:
+        return list(records)
+    filtered = []
+    for record in records:
+        location = record.get("location")
+        if "US" in allowed and _is_us_location(location):
+            filtered.append(record)
+        elif "CA" in allowed and _is_canada_location(location):
+            filtered.append(record)
+    return filtered
+
+
 # Each enabled adapter returns normalized records; the shared synchronizer owns writes.
 def sync_all(mark_stale=False):
     os.chdir(BASE_DIR)
@@ -35,6 +57,9 @@ def sync_all(mark_stale=False):
 
     with CONFIG_PATH.open(encoding="utf-8") as config_file:
         configuration = json.load(config_file)
+    catalog_countries = configuration.get("catalog", {}).get(
+        "countries", []
+    )
 
     records = []
     completed_sources = set()
@@ -55,12 +80,19 @@ def sync_all(mark_stale=False):
             employer = source_config.get("employer", "Unknown employer")
             try:
                 source, fetched = adapter(source_config)
-                records.extend(fetched)
+                imported = filter_catalog_countries(
+                    fetched,
+                    catalog_countries,
+                    source_config.get("country_codes"),
+                )
+                records.extend(imported)
                 completed_sources.add(source)
                 source_results.append({
                     "source": source,
                     "employer": employer,
                     "fetched": len(fetched),
+                    "imported": len(imported),
+                    "excluded_by_country": len(fetched) - len(imported),
                     "status": "ok"
                 })
             except (KeyError, OSError, RuntimeError, ValueError) as error:
@@ -76,12 +108,17 @@ def sync_all(mark_stale=False):
     if enabled(usajobs_config):
         try:
             source, fetched = usajobs.fetch_jobs(usajobs_config)
-            records.extend(fetched)
+            imported = filter_catalog_countries(
+                fetched, catalog_countries
+            )
+            records.extend(imported)
             completed_sources.add(source)
             source_results.append({
                 "source": source,
                 "employer": "Federal agencies",
                 "fetched": len(fetched),
+                "imported": len(imported),
+                "excluded_by_country": len(fetched) - len(imported),
                 "status": "ok"
             })
         except (KeyError, OSError, RuntimeError, ValueError) as error:
