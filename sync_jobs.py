@@ -6,7 +6,15 @@ import os
 from pathlib import Path
 
 from database import DB_NAME, initialize_database
-from job_sources import ashby, greenhouse, lever, smartrecruiters, usajobs
+from job_sources import (
+    ashby,
+    greenhouse,
+    lever,
+    recruitee,
+    smartrecruiters,
+    usajobs,
+    workable,
+)
 from job_sources.common import synchronize_records
 from local_env import load_local_environment
 
@@ -36,6 +44,8 @@ def sync_all(mark_stale=False):
         ("lever", lever.fetch_jobs),
         ("smartrecruiters", smartrecruiters.fetch_jobs),
         ("ashby", ashby.fetch_jobs),
+        ("recruitee", recruitee.fetch_jobs),
+        ("workable", workable.fetch_jobs),
     )
 
     for source_type, adapter in adapters:
@@ -97,7 +107,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
             "Synchronize authorized Greenhouse, Lever, "
-            "SmartRecruiters, Ashby, and USAJOBS listings "
+            "SmartRecruiters, Ashby, Recruitee, Workable, "
+            "and USAJOBS listings "
             "into PathForge."
         )
     )

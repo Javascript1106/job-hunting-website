@@ -458,6 +458,8 @@
       "max_jobs": 150
     }
   ],
+  "recruitee": [],
+  "workable": [],
   "usajobs": {
     "enabled": true,
     "keyword": "",
