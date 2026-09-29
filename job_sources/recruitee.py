@@ -35,6 +35,44 @@ def _location(job):
     )
 
 
+def _country_codes(job):
+    codes = {str(job.get("country_code") or "").strip().upper()}
+    for location in job.get("locations") or []:
+        if isinstance(location, dict):
+            codes.add(str(location.get("country_code") or "").strip().upper())
+    return codes - {""}
+
+
+def _salary_fields(job):
+    salary = job.get("salary") or {}
+    if str(salary.get("currency") or "").upper() != "USD":
+        return None, None, None
+    try:
+        minimum = float(salary["min"])
+        maximum = float(salary["max"])
+    except (KeyError, TypeError, ValueError):
+        return None, None, None
+    period = str(salary.get("period") or "").lower()
+    if period not in {"hour", "year"}:
+        return None, None, None
+    return minimum, maximum, period
+
+
+def _employment_type(job):
+    value = plain_text(
+        job.get("employment_type")
+        or job.get("employmentType")
+        or job.get("employment_type_code")
+    )
+    return {
+        "fulltime_permanent": "Full-Time",
+        "parttime_permanent": "Part-Time",
+        "temporary": "Temporary",
+        "contract": "Contract",
+        "internship": "Internship",
+    }.get(value.lower(), value or None)
+
+
 def _is_remote(job, location):
     remote = job.get("remote")
     if isinstance(remote, bool):
@@ -56,8 +94,15 @@ def fetch_jobs(configuration):
         raise ValueError("unexpected Recruitee response format")
 
     records = []
+    allowed_countries = {
+        str(code).strip().upper()
+        for code in configuration.get("country_codes", [])
+        if str(code).strip()
+    }
     for job in jobs:
         if not isinstance(job, dict):
+            continue
+        if allowed_countries and not (_country_codes(job) & allowed_countries):
             continue
         external_id = job.get("id") or job.get("slug")
         source_url = (
@@ -84,6 +129,7 @@ def fetch_jobs(configuration):
         department = job.get("department")
         if isinstance(department, dict):
             department = department.get("name")
+        minimum, maximum, period = _salary_fields(job)
 
         records.append({
             "title": title,
@@ -96,13 +142,11 @@ def fetch_jobs(configuration):
             "preferred_qualifications": None,
             "experience": "See published qualifications",
             "category": classify_category(title, [department] if department else []),
-            "employment_type": plain_text(
-                job.get("employment_type") or job.get("employmentType")
-            ) or None,
+            "employment_type": _employment_type(job),
             "is_remote": is_remote,
-            "salary_min": None,
-            "salary_max": None,
-            "salary_period": None,
+            "salary_min": minimum,
+            "salary_max": maximum,
+            "salary_period": period,
             "source": source,
             "external_job_id": str(external_id),
             "source_url": source_url,

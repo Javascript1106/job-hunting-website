@@ -458,7 +458,38 @@
       "max_jobs": 150
     }
   ],
-  "recruitee": [],
+  "recruitee": [
+    {
+      "employer": "TransPerfect",
+      "company_subdomain": "transperfect",
+      "country_codes": ["US"],
+      "max_jobs": 250
+    },
+    {
+      "employer": "AnywhereWorks",
+      "company_subdomain": "anywhereworks",
+      "country_codes": ["US"],
+      "max_jobs": 20
+    },
+    {
+      "employer": "AI Digital",
+      "company_subdomain": "aidigital",
+      "country_codes": ["US"],
+      "max_jobs": 100
+    },
+    {
+      "employer": "Constructive Dialogue Institute",
+      "company_subdomain": "constructivedialogue",
+      "country_codes": ["US"],
+      "max_jobs": 20
+    },
+    {
+      "employer": "Allshore Talent",
+      "company_subdomain": "allshoretalent",
+      "country_codes": ["US"],
+      "max_jobs": 50
+    }
+  ],
   "workable": [],
   "usajobs": {
     "enabled": true,
