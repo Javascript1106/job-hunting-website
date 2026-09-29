@@ -163,6 +163,32 @@ class JobWorkflowIntegrationTests(unittest.TestCase):
         self.assertIn(junior_id, returned_ids)
         self.assertNotIn(senior_id, returned_ids)
 
+    def test_server_side_search_finds_application_accommodation_information(self):
+        accessible_id = self.create_job("Accessible Application Role")
+        ordinary_id = self.create_job("Ordinary Application Role")
+        connection = database.get_connection(self.database_path)
+        connection.execute(
+            "UPDATE jobs SET description = ? WHERE id = ?",
+            (
+                "Applicants who need a reasonable accommodation during the "
+                "application process may contact our recruiting team.",
+                accessible_id,
+            ),
+        )
+        connection.commit()
+        connection.close()
+
+        response = self.client.get(
+            "/jobs/search",
+            params={"location_scope": "all", "listing_quality": "accommodation"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        jobs = response.json()["jobs"]
+        self.assertEqual({job["id"] for job in jobs}, {accessible_id})
+        self.assertTrue(jobs[0]["accommodation_info"])
+        self.assertNotIn(ordinary_id, {job["id"] for job in jobs})
+
     def test_server_side_search_supports_exact_location_and_remote_eligibility(self):
         denver_id = self.create_job("Denver Exact Role")
         worldwide_id = self.create_job("Worldwide Remote Role")

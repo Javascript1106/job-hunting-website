@@ -169,6 +169,28 @@ def _has_pay(job: dict[str, Any]) -> bool:
     return job.get("salary_min") is not None or job.get("salary_max") is not None or _text(job.get("pay")) not in {"", "not listed"}
 
 
+ACCOMMODATION_PATTERN = re.compile(
+    r"\b(?:reasonable\s+accommodations?|disability\s+accommodations?|"
+    r"accommodations?\s+(?:during|for|throughout|in)\s+(?:the\s+)?"
+    r"(?:application|interview|hiring|recruit(?:ing|ment)|selection)\s+process|"
+    r"request\s+(?:an?\s+)?accommodations?|need\s+(?:an?\s+)?"
+    r"accommodations?\s+to\s+(?:apply|participate|complete)|"
+    r"alternative\s+(?:method|way)\s+(?:of|to)\s+appl(?:y|ication))\b",
+    re.I,
+)
+
+
+def has_accommodation_information(job: dict[str, Any]) -> bool:
+    """Detect explicit application or hiring accommodation language."""
+    details = " ".join(
+        str(job.get(field) or "")
+        for field in (
+            "description", "requirements", "preferred_qualifications",
+        )
+    )
+    return bool(ACCOMMODATION_PATTERN.search(details))
+
+
 def _quality_score(job: dict[str, Any]) -> int:
     checks = (
         _has_pay(job),
@@ -359,6 +381,8 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
             continue
         if listing_quality == "deadline" and not (job.get("application_deadline") or job.get("expires_at")):
             continue
+        if listing_quality == "accommodation" and not has_accommodation_information(job):
+            continue
         if listing_quality == "complete" and quality < 6:
             continue
         if minimum_pay > 0 and _minimum_annual_pay(job) < minimum_pay:
@@ -386,6 +410,7 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
 def compact_job(job: dict[str, Any]) -> dict[str, Any]:
     """Trim long card text; full text remains available from /jobs/{id}."""
     compact = dict(job)
+    compact["accommodation_info"] = has_accommodation_information(job)
     for field in ("description", "requirements", "preferred_qualifications"):
         value = str(compact.get(field) or "")
         if len(value) > 240:

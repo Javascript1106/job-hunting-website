@@ -1148,6 +1148,16 @@ function buildJobQualityReview(job) {
   return { checks, confirmed, label };
 }
 
+function hasJobAccommodationInformation(job) {
+  if (job?.accommodation_info === true) return true;
+  const details = [
+    job?.description,
+    job?.requirements,
+    job?.preferred_qualifications
+  ].map(value => String(value || "")).join(" ");
+  return /\b(?:reasonable\s+accommodations?|disability\s+accommodations?|accommodations?\s+(?:during|for|throughout|in)\s+(?:the\s+)?(?:application|interview|hiring|recruit(?:ing|ment)|selection)\s+process|request\s+(?:an?\s+)?accommodations?|need\s+(?:an?\s+)?accommodations?\s+to\s+(?:apply|participate|complete)|alternative\s+(?:method|way)\s+(?:of|to)\s+appl(?:y|ication))\b/i.test(details);
+}
+
 function buildJobQualityDetails(job) {
   const quality = buildJobQualityReview(job);
   return `<details class="job-quality-details"><summary><span>Posting quality</span><strong>${quality.confirmed} of ${quality.checks.length} details confirmed · ${quality.label}</strong></summary><ul>${quality.checks.map(([passed, availableLabel, missingLabel]) => `<li class="${passed ? "quality-present" : "quality-missing"}"><span aria-hidden="true">${passed ? "✓" : "–"}</span>${escapeEmployerHtml(passed ? availableLabel : missingLabel)}</li>`).join("")}</ul><p>This reviews the completeness of the posting, not your likelihood of being hired.</p></details>`;
@@ -1312,6 +1322,11 @@ function displayJobs(jobs, append = false) {
           ${job.application_method === "pathforge" ? `
             <span class="job-highlight-badge easy-apply-badge">
               Easily Apply
+            </span>
+          ` : ""}
+          ${hasJobAccommodationInformation(job) ? `
+            <span class="job-highlight-badge accommodation-info-badge" title="The employer posting mentions application or hiring accommodations.">
+              Accommodation Info
             </span>
           ` : ""}
           ${responseDays ? `
@@ -3171,6 +3186,7 @@ function filterJobs(refreshFromServer = true) {
     const matchesListingQuality = selectedListingQuality === "all"
       || (selectedListingQuality === "pay" && (job.salary_min != null || job.salary_max != null || (job.pay && job.pay !== "Not listed")))
       || (selectedListingQuality === "deadline" && Boolean(job.application_deadline || job.expires_at))
+      || (selectedListingQuality === "accommodation" && hasJobAccommodationInformation(job))
       || (selectedListingQuality === "complete" && quality.confirmed >= 6);
     const matchesMinimumPay = !minimumPay || getJobMinimumAnnualPay(job) >= minimumPay;
     const matchesExclusions = jobMatchesStrictExclusions(job, exclusions, excludedTerms);

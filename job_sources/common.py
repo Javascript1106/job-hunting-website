@@ -78,6 +78,22 @@ def concise_summary(value, fallback, limit=320):
         return fallback
     if len(text) <= limit:
         return text
+    accommodation = re.search(
+        r"[^.!?]{0,180}\b(?:reasonable\s+accommodations?|"
+        r"disability\s+accommodations?|request\s+(?:an?\s+)?"
+        r"accommodations?|need\s+(?:an?\s+)?accommodations?\s+to\s+"
+        r"(?:apply|participate|complete))\b[^.!?]{0,180}[.!?]?",
+        text,
+        re.I,
+    )
+    if accommodation and accommodation.start() >= limit:
+        statement = accommodation.group(0).strip()
+        statement_limit = min(180, max(100, limit // 2))
+        if len(statement) > statement_limit:
+            statement = statement[:statement_limit].rsplit(" ", 1)[0] + "…"
+        opening_limit = max(80, limit - len(statement) - 4)
+        opening = text[:opening_limit].rsplit(" ", 1)[0]
+        return f"{opening}… {statement}"
     shortened = text[:limit].rsplit(" ", 1)[0]
     return f"{shortened}…"
 

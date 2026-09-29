@@ -66,6 +66,27 @@ class RecruiteeSourceTests(unittest.TestCase):
             })
         self.assertEqual(records, [])
 
+    def test_long_description_preserves_late_accommodation_information(self):
+        payload = {"offers": [{
+            "id": 9,
+            "title": "Operations Associate",
+            "country_code": "US",
+            "location": "Denver, Colorado, United States",
+            "description": (
+                "This role supports daily operations and customer needs. " * 20
+                + "Applicants may request a reasonable accommodation during "
+                "the application process by contacting the recruiting team."
+            ),
+            "careers_url": "https://example.recruitee.com/o/operations",
+        }]}
+        with patch("job_sources.recruitee.fetch_json", return_value=payload):
+            _, records = recruitee.fetch_jobs({
+                "employer": "Example",
+                "company_subdomain": "example",
+                "country_codes": ["US"],
+            })
+        self.assertIn("reasonable accommodation", records[0]["description"])
+
 
 if __name__ == "__main__":
     unittest.main()
