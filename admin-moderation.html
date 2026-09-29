@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- Administrator-only queue for reviewing reported jobs and recording moderation decisions. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Moderation — PathForge</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
+</head>
+<body>
+  <!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
+      <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="jobs.html">Jobs</a>
+      <a id="adminModerationLink" href="admin-moderation.html" aria-current="page">Report Moderation</a>
+      <a id="loginLink" href="login.html">Login</a>
+      <a id="registerLink" href="register.html">Register</a>
+      <button id="logoutButton" class="nav-logout">Logout</button>
+    </div>
+  </nav>
+  <!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="moderation-main">
+    <section class="moderation-hero" aria-labelledby="moderationTitle">
+      <p class="section-eyebrow">Administrator workspace</p>
+      <h1 id="moderationTitle">Listing Report Moderation</h1>
+      <p>Review user concerns with the listing context attached. A report is a request for review—not proof that a listing is unsafe.</p>
+    </section>
+    <section class="moderation-summary" aria-label="Report totals">
+      <div><strong id="moderationSubmittedCount">0</strong><span>Awaiting review</span></div>
+      <div><strong id="moderationReviewedCount">0</strong><span>Reviewed</span></div>
+      <div><strong id="moderationResolvedCount">0</strong><span>Resolved</span></div>
+      <div><strong id="moderationAllCount">0</strong><span>All reports</span></div>
+    </section>
+    <section class="moderation-queue" aria-labelledby="operationsTitle">
+      <div class="moderation-toolbar"><div><h2 id="operationsTitle">Catalog health</h2><p>See which sources and listings need attention before they affect job seekers.</p></div><button id="refreshOperationsButton" type="button">Refresh Health</button></div>
+      <section class="moderation-summary" aria-label="Catalog health totals">
+        <div><strong id="operationsActiveCount">0</strong><span>Active jobs</span></div>
+        <div><strong id="operationsBrokenCount">0</strong><span>Broken links</span></div>
+        <div><strong id="operationsStaleCount">0</strong><span>Need verification</span></div>
+        <div><strong id="operationsExpiringCount">0</strong><span>Expiring in 7 days</span></div>
+        <div><strong id="operationsChangesCount">0</strong><span>Changes in 24 hours</span></div>
+        <div><strong id="operationsPendingCount">0</strong><span>Pending reports</span></div>
+      </section>
+      <p id="operationsStatus" class="form-message" role="status" aria-live="polite"></p>
+      <div class="table-scroll"><table class="operations-table"><caption>Health by listing source</caption><thead><tr><th>Source</th><th>Total</th><th>Active</th><th>Broken</th><th>Stale</th><th>Last verified</th></tr></thead><tbody id="operationsSourceRows"></tbody></table></div>
+      <div><h3>Listings needing attention</h3><div id="operationsIssueList" class="moderation-report-list"></div></div>
+    </section>
+    <section class="moderation-queue" aria-labelledby="moderationQueueTitle">
+      <div class="moderation-toolbar">
+        <div>
+          <h2 id="moderationQueueTitle">Review queue</h2>
+          <p>Prioritize new reports, record an internal note, and preserve an audit trail.</p>
+        </div>
+        <label for="moderationStatusFilter">Show
+          <select id="moderationStatusFilter">
+            <option value="submitted">Awaiting review</option>
+            <option value="reviewed">Reviewed</option>
+            <option value="resolved">Resolved</option>
+            <option value="all">All reports</option>
+          </select>
+        </label>
+      </div>
+      <p id="moderationPageStatus" class="form-message" role="status" aria-live="polite"></p>
+      <div id="moderationReportList" class="moderation-report-list" aria-live="polite"></div>
+    </section>
+  </main>
+  <script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+</body>
+</html>

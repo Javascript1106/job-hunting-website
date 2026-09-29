@@ -1,11 +1,14 @@
+"""Synchronize authorized external job sources into PathForge's normalized job records."""
+
 import argparse
 import json
 import os
 from pathlib import Path
 
-from database import DB_NAME, create_jobs_table
-from job_sources import greenhouse, lever, usajobs
+from database import DB_NAME, initialize_database
+from job_sources import ashby, greenhouse, lever, smartrecruiters, usajobs
 from job_sources.common import synchronize_records
+from local_env import load_local_environment
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,9 +19,11 @@ def enabled(configuration):
     return configuration.get("enabled", True)
 
 
+# Each enabled adapter returns normalized records; the shared synchronizer owns writes.
 def sync_all(mark_stale=False):
     os.chdir(BASE_DIR)
-    create_jobs_table()
+    load_local_environment(BASE_DIR / ".env")
+    initialize_database()
 
     with CONFIG_PATH.open(encoding="utf-8") as config_file:
         configuration = json.load(config_file)
@@ -28,7 +33,9 @@ def sync_all(mark_stale=False):
     source_results = []
     adapters = (
         ("greenhouse", greenhouse.fetch_jobs),
-        ("lever", lever.fetch_jobs)
+        ("lever", lever.fetch_jobs),
+        ("smartrecruiters", smartrecruiters.fetch_jobs),
+        ("ashby", ashby.fetch_jobs),
     )
 
     for source_type, adapter in adapters:
@@ -46,7 +53,7 @@ def sync_all(mark_stale=False):
                     "fetched": len(fetched),
                     "status": "ok"
                 })
-            except (KeyError, RuntimeError, ValueError) as error:
+            except (KeyError, OSError, RuntimeError, ValueError) as error:
                 source_results.append({
                     "source": source_type,
                     "employer": employer,
@@ -67,7 +74,7 @@ def sync_all(mark_stale=False):
                 "fetched": len(fetched),
                 "status": "ok"
             })
-        except (KeyError, RuntimeError, ValueError) as error:
+        except (KeyError, OSError, RuntimeError, ValueError) as error:
             source_results.append({
                 "source": "USAJOBS",
                 "employer": "Federal agencies",
@@ -89,8 +96,9 @@ def sync_all(mark_stale=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Synchronize authorized Greenhouse, Lever, and "
-            "USAJOBS listings into PathForge."
+            "Synchronize authorized Greenhouse, Lever, "
+            "SmartRecruiters, Ashby, and USAJOBS listings "
+            "into PathForge."
         )
     )
     parser.add_argument(

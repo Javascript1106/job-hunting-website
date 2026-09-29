@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- Authenticated job-seeker notifications and job-alert activity page. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - PathForge</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
+</head>
+
+<body>
+  <!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
+      <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
+    </a>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="jobs.html">Jobs</a>
+      <a id="dashboardLink" href="dashboard.html">Dashboard</a>
+      <a id="profileLink" href="profile.html">Profile</a>
+      <a id="savedJobsLink" href="saved-jobs.html">Saved Jobs</a>
+      <a id="applicationsLink" href="applications.html">Applications</a>
+      <a id="learningCenterLink" href="learning-center.html">Resources + AI Assistant</a>
+      <a id="employerAccessLink" href="employer-access.html">Employer Access</a>
+      <a id="loginLink" href="login.html">Login</a>
+      <a id="registerLink" href="register.html">Register</a>
+      <a id="employerDashboardLink" href="employer.html">Employer Dashboard</a>
+      <button id="logoutButton" class="nav-logout" type="button">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="alerts-page-container">
+    <header class="alerts-page-header">
+      <p class="dashboard-eyebrow">Your PathForge activity</p>
+      <h1>Notification Center</h1>
+      <p>Review job matches, application updates, interviews, follow-ups, and approaching deadlines in one place.</p>
+    </header>
+
+    <div class="alerts-page-actions">
+      <a href="jobs.html#savedSearchesSection">Manage Saved Searches</a>
+      <label for="notificationCategoryFilter">Show
+        <select id="notificationCategoryFilter">
+          <option value="all">All notifications</option>
+          <option value="job_match">Job matches</option>
+          <option value="application_update">Application updates</option>
+          <option value="interview">Interviews</option>
+          <option value="follow_up">Follow-ups</option>
+          <option value="deadline">Deadlines</option>
+        </select>
+      </label>
+      <button id="markAllAlertsReadButton" type="button">
+        Mark All as Read
+      </button>
+    </div>
+
+    <p id="alertsPageStatus" class="alerts-page-status" role="status" aria-live="polite">
+      Loading notifications...
+    </p>
+
+    <section id="jobAlertsList" class="job-alerts-list" aria-label="Notifications"></section>
+  </main>
+
+  <script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+</body>
+</html>

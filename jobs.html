@@ -1,15 +1,17 @@
 <!DOCTYPE html>
+<!-- Public job discovery page; filtering, bookmarking, comparison, and assistant behavior live in script.js. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jobs</title>
+  <title>Find Jobs - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
       <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -39,9 +41,9 @@
         <a
           id="learningCenterLink"
           href="learning-center.html"
-        >
-          Learning Center
-        </a>
+    >
+          Resources + AI Assistant
+    </a>
 
         <a id="employerAccessLink" href="employer-access.html">
             Employer Access
@@ -65,91 +67,197 @@
     </div>
 </nav>
 
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
 <main>
   <section class="jobs-header">
-    <h2>Find Jobs</h2>
+    <div class="jobs-heading-row">
+      <div>
+        <p class="section-kicker">Opportunity search</p>
+        <h1>Find Jobs</h1>
+      </div>
 
-    <div class="job-search-bar">
-      <input id="jobSearchInput" type="text" placeholder="Keyword or employer">
-      <input id="locationSearchInput" type="text" placeholder="Location">
-
-      <select id="categoryFilter">
-        <option value="all">All Categories</option>
-      </select>
-
-      <select id="employerFilter">
-        <option value="all">All Employers</option>
-      </select>
-
-      <select id="employmentTypeFilter">
-        <option value="all">All Employment Types</option>
-      </select>
-
-      <select id="remoteFilter">
-        <option value="all">Remote or On-Site</option>
-        <option value="remote">Remote</option>
-        <option value="onsite">On-Site</option>
-      </select>
-
-      <select id="experienceFilter">
-        <option value="all">All Experience Levels</option>
-      </select>
-
-      <select id="applicationMethodFilter">
-        <option value="all">All Application Methods</option>
-        <option value="pathforge">Apply on PathForge</option>
-        <option value="employer_website">External Application</option>
-      </select>
-
-      <button id="resetJobFiltersButton" class="reset-job-filters" type="button">
-        Reset Filters
+      <button
+        id="chatToggleButton"
+        type="button"
+        aria-controls="chatbotWindow"
+        aria-expanded="false"
+        data-action="toggle-job-chat"
+      >
+        Job Search AI Assistant
       </button>
     </div>
 
-    <p id="jobResultCount" class="job-result-count" aria-live="polite"></p>
+    <form id="jobSearchForm" class="job-search-bar" role="search">
+      <label class="visually-hidden" for="jobSearchInput">Job title, skill, or employer</label>
+      <input id="jobSearchInput" type="search" placeholder="Job title, skill, or employer">
+      <label class="visually-hidden" for="locationSearchInput">City, state, or ZIP code</label>
+      <input
+        id="locationSearchInput"
+        type="search"
+        aria-label="Search by city, state, or ZIP code"
+        placeholder="City, state, or ZIP code"
+      >
+
+      <button
+        id="useCurrentLocationButton"
+        class="use-current-location-button"
+        type="button"
+      >
+        Use My Location
+      </button>
+
+      <button id="jobSearchButton" class="job-search-submit" type="submit">
+        Search Jobs
+      </button>
+
+    </form>
+
+    <details class="advanced-job-filters">
+      <summary>
+        More filters
+        <span id="advancedFilterCount" class="advanced-filter-count" hidden></span>
+      </summary>
+      <div class="advanced-job-filter-grid">
+        <select id="locationScopeFilter" aria-label="Country"><option value="us" selected>Country: United States</option><option value="all">Country: Any</option></select>
+        <select id="locationMatchFilter" aria-label="Location matching"><option value="nearby">Location: Include Matching Areas</option><option value="exact">Location: Exact Only</option></select>
+        <select id="categoryFilter" aria-label="Job field"><option value="all">All Job Fields</option></select>
+        <select id="employmentTypeFilter" aria-label="Full-time or part-time jobs"><option value="all">Any Schedule</option><option value="full-time">Full-Time</option><option value="part-time">Part-Time</option></select>
+        <select id="remoteFilter" aria-label="Work setting"><option value="all">Any Work Setting</option><option value="onsite">On-Site</option><option value="hybrid">Hybrid</option><option value="remote">Remote</option></select>
+        <select id="remoteEligibilityFilter" aria-label="Remote work eligibility"><option value="all">Remote Eligibility: Any</option><option value="us">Can Work From the U.S.</option><option value="anywhere">Can Work From Anywhere</option></select>
+        <select id="experienceFilter" aria-label="Experience level"><option value="all">Any Experience Level</option><option value="entry-level">Entry Level or No Experience</option><option value="experienced">Experienced</option></select>
+        <select id="ageFitFilter" aria-label="Applicant age"><option value="all">Any Applicant Age</option><option value="age-14">Age 14</option><option value="age-15">Age 15</option><option value="age-16-17">Age 16–17</option><option value="age-18-plus">Age 18 or Older</option></select>
+        <select id="datePostedFilter" aria-label="Date posted"><option value="all">Posted: Any Time</option><option value="1">Posted: Past 24 Hours</option><option value="7">Posted: Past 7 Days</option><option value="30">Posted: Past 30 Days</option></select>
+        <select id="listingQualityFilter" aria-label="Listing details"><option value="all">Any Listing Details</option><option value="pay">Pay Information Listed</option><option value="deadline">Application Deadline Listed</option><option value="complete">Well-Documented Listings</option></select>
+        <label class="job-filter-field" for="minimumPayFilter"><span>Minimum annual pay</span><input id="minimumPayFilter" type="number" min="0" max="10000000" step="1000" inputmode="numeric" placeholder="Example: 50000"></label>
+        <label class="job-filter-field" for="excludeTermsFilter"><span>Exclude words</span><input id="excludeTermsFilter" type="text" maxlength="200" placeholder="Example: travel, weekends"></label>
+        <fieldset class="job-exclusion-filters"><legend>Never show</legend><label><input type="checkbox" name="jobExclusion" value="senior"> Senior or management roles</label><label><input type="checkbox" name="jobExclusion" value="staffing"> Staffing-agency listings</label><label><input type="checkbox" name="jobExclusion" value="commission"> Commission-only or 1099 work</label><label><input type="checkbox" name="jobExclusion" value="clearance"> Security-clearance roles</label><label><input type="checkbox" name="jobExclusion" value="unpaid"> Unpaid roles</label></fieldset>
+        <button id="restoreHiddenJobsButton" class="restore-hidden-jobs-button" type="button">Restore Hidden Jobs</button>
+        <button id="resetJobFiltersButton" class="reset-job-filters" type="button">Clear Search and Filters</button>
+      </div>
+      <p id="teenJobFilterGuidance" class="teen-job-filter-guidance" hidden><strong>For applicants under 18:</strong> PathForge uses age requirements stated in the posting when available. Always confirm the employer’s minimum age and your local work-permit rules before applying.</p>
+    </details>
+
+    <details class="natural-job-search" aria-labelledby="naturalJobSearchTitle">
+      <summary>Not sure what filters to choose?</summary>
+      <div>
+        <strong id="naturalJobSearchTitle">Describe the job you want</strong>
+        <p>Use a simple sentence and PathForge will choose filters you can review.</p>
+      </div>
+      <div class="natural-job-search-controls">
+        <label for="naturalJobSearchInput" class="visually-hidden">Describe the job you want</label>
+        <input id="naturalJobSearchInput" type="text" maxlength="240" placeholder="Describe the work, schedule, or location you want">
+        <button id="naturalJobSearchButton" type="button">Use This Description</button>
+      </div>
+      <p id="naturalJobSearchStatus" class="form-message" role="status" aria-live="polite"></p>
+    </details>
+
+    <p
+      id="jobLocationStatus"
+      class="job-location-status"
+      aria-live="polite"
+    ></p>
+
+    <div id="activeJobFilters" class="active-job-filters" aria-label="Active job filters"></div>
+
+    <div class="job-results-toolbar">
+      <p id="jobResultCount" class="job-result-count" aria-live="polite"></p>
+      <label for="jobSortSelect">Sort by
+        <select id="jobSortSelect">
+          <option value="recommended">Best Match</option>
+          <option value="newest">Newest</option>
+          <option value="pay-high">Highest Pay</option>
+          <option value="verified">Most Complete</option>
+        </select>
+      </label>
+    </div>
+
+  </section>
+
+  <section id="jobComparisonBar" class="job-comparison-bar hidden" aria-live="polite">
+    <div><strong id="jobComparisonCount">0 jobs selected</strong><span>Select up to 4 jobs.</span></div>
+    <div><button id="clearJobComparisonButton" class="button-secondary" type="button">Clear</button><button id="openJobComparisonButton" type="button">Compare Jobs</button></div>
   </section>
 
   <section class="jobs-layout">
     <div class="job-listings" id="jobListings">
-      <!-- Jobs load here from the database -->
+      <div class="job-loading-state" role="status" aria-live="polite">
+        <span class="visually-hidden">Loading job listings</span>
+        <article class="job-card-skeleton" aria-hidden="true"></article>
+        <article class="job-card-skeleton" aria-hidden="true"></article>
+        <article class="job-card-skeleton" aria-hidden="true"></article>
+      </div>
     </div>
 
-    <button id="loadMoreJobsButton" class="load-more-jobs hidden" type="button">
-      Load More
+    <button id="loadMoreJobsButton" class="load-more-jobs hidden" type="button" aria-live="polite">
+      Load more jobs
     </button>
 
+    <p id="jobResultsEndMessage" class="job-results-end hidden" role="status" aria-live="polite">
+      You have reached the end of the job results.
+    </p>
+
     <p class="catalog-disclosure">
-      Major-employer listings open official external hiring systems.
-      PathForge does not represent these companies. Availability can
-      change after verification, so confirm all details on the official
-      listing before applying.
+      External listings open the employer's official career site.
+      Confirm current details before applying.
     </p>
   </section>
 </main>
 
-<button id="chatToggleButton" onclick="toggleChat()">
-  Ask PathForge AI
-</button>
+<dialog id="jobComparisonDialog" class="job-comparison-dialog" aria-labelledby="jobComparisonTitle">
+  <div class="job-comparison-dialog-heading"><div><p class="section-kicker">Side-by-side review</p><h2 id="jobComparisonTitle">Compare Jobs</h2></div><button id="closeJobComparisonButton" class="dialog-close-button" type="button" aria-label="Close job comparison">×</button></div>
+  <p>Compare facts from each posting. Missing information is shown clearly instead of being guessed.</p>
+  <div id="jobComparisonTable" class="job-comparison-table"></div>
+</dialog>
 
-<section class="chatbot hidden-chat" id="chatbotWindow">
+<section
+  class="chatbot hidden-chat"
+  id="chatbotWindow"
+  aria-labelledby="jobChatTitle"
+>
   <div class="chat-header">
     <div>
-      <h3>AI Job Assistant</h3>
-      <p>Ask about jobs, resumes, interviews, or schedules.</p>
+      <h3 id="jobChatTitle">PathForge Job Search Assistant</h3>
+      <p>Get help using jobs and application options available through PathForge.</p>
     </div>
 
-    <button class="close-chat" onclick="toggleChat()">✕</button>
+    <button class="close-chat" type="button" data-action="toggle-job-chat" aria-label="Close job assistant">✕</button>
   </div>
 
   <div class="chat-box" id="chatBox">
+    <section id="connectedGuidancePanel" class="connected-guidance-panel" aria-labelledby="connectedGuidanceTitle" hidden>
+      <div class="connected-guidance-heading">
+        <strong id="connectedGuidanceTitle">Connected PathForge guidance</strong>
+        <span>Based on saved account activity</span>
+      </div>
+      <p id="connectedGuidanceStatus" role="status" aria-live="polite">Loading your next useful step…</p>
+      <div id="connectedGuidanceAction"></div>
+      <details id="connectedGuidanceEvidence">
+        <summary>Why this suggestion appears</summary>
+        <div id="connectedGuidanceEvidenceList"></div>
+      </details>
+    </section>
     <div class="bot-message">
-      Hi! I can help with jobs, resumes, interviews, and career planning.
+      Hi! I can help you explore current PathForge listings,
+      use job filters, save opportunities, and understand
+      application options.
+    </div>
+  </div>
+
+  <div class="chat-suggestion-area" aria-label="Quick questions">
+    <span>Quick questions</span>
+    <div class="chat-suggestions">
+      <button type="button" data-action="quick-job-message" data-message="What should I do next?">My Next Step</button>
+      <button type="button" data-action="quick-job-message" data-message="show available jobs">Available Jobs</button>
+      <button type="button" data-action="quick-job-message" data-message="part-time jobs">Part-Time Jobs</button>
+      <button type="button" data-action="quick-job-message" data-message="how do I save a job?">Saving Jobs</button>
+      <button type="button" data-action="quick-job-message" data-message="how do applications work?">Applications</button>
     </div>
   </div>
 
   <div class="chat-input-area">
-    <input id="chatInput" type="text" placeholder="Ask the job assistant...">
-    <button onclick="sendMessage()">Send</button>
+    <label for="chatInput" class="visually-hidden">Ask the Job Search AI Assistant</label>
+    <input id="chatInput" type="text" placeholder="Ask about jobs available on PathForge...">
+    <button type="button" data-action="send-job-message">Send</button>
   </div>
 </section>
 
@@ -220,6 +328,86 @@
   </div>
 </section>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<section
+  id="jobReportDialog"
+  class="application-dialog-overlay hidden"
+  aria-hidden="true"
+>
+  <div
+    class="application-dialog job-report-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="jobReportDialogTitle"
+  >
+    <button
+      id="closeJobReportDialog"
+      class="application-dialog-close"
+      type="button"
+      aria-label="Close report listing dialog"
+    >
+      ✕
+    </button>
+
+    <h2 id="jobReportDialogTitle">Report this listing</h2>
+    <p>
+      Reports help PathForge review potential safety and quality problems.
+      Submitting a report does not automatically prove the listing is unsafe.
+    </p>
+
+    <form id="jobReportForm" class="job-report-form">
+      <label for="jobReportReason">Reason</label>
+      <select id="jobReportReason" required>
+        <option value="">Choose a reason</option>
+        <option value="suspected_scam">Suspected scam or fraud</option>
+        <option value="misleading_information">Misleading information</option>
+        <option value="expired_or_broken_link">Expired or broken link</option>
+        <option value="discriminatory_content">Discriminatory content</option>
+        <option value="duplicate_listing">Duplicate listing</option>
+        <option value="other">Other concern</option>
+      </select>
+
+      <label for="jobReportDetails">
+        Additional details <span>(optional)</span>
+      </label>
+      <textarea
+        id="jobReportDetails"
+        maxlength="1000"
+        rows="5"
+        placeholder="Describe what you noticed without including sensitive personal information."
+      ></textarea>
+
+      <button id="submitJobReportButton" type="submit">
+        Submit Report
+      </button>
+    </form>
+
+    <p
+      id="jobReportMessage"
+      class="application-dialog-message"
+      role="status"
+      aria-live="polite"
+    ></p>
+  </div>
+</section>
+
+  <script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+<footer class="home-footer">
+  <div class="home-footer-brand">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img src="assets/branding/pathforge-logo.svg" alt="PathForge" width="189" height="40">
+    </a>
+    <p>Explore verified opportunities and practical career resources.</p>
+  </div>
+  <nav aria-label="Footer navigation">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="learning-center.html">Resources</a>
+    <a href="employer-access.html">Employers</a>
+    <a href="login.html">Login</a>
+  </nav>
+  <p class="home-footer-note">&copy; 2026 PathForge. Confirm current requirements and application details with the employer.</p>
+</footer>
+
 </body>
 </html>

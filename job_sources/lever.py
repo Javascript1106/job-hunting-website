@@ -1,8 +1,12 @@
+"""Adapter for retrieving and normalizing jobs from authorized Lever boards."""
+
 from urllib.parse import quote
 
 from .common import (
     classify_category,
     concise_summary,
+    extract_qualification_text,
+    extract_structured_qualifications,
     fetch_json,
     plain_text,
     utc_now
@@ -31,6 +35,7 @@ def salary_fields(posting):
     return float(minimum), float(maximum), periods[interval]
 
 
+# Convert provider-specific fields into the shared record schema in common.py.
 def fetch_jobs(configuration):
     employer = configuration["employer"].strip()
     site = configuration["site"].strip()
@@ -70,17 +75,25 @@ def fetch_jobs(configuration):
             f"Official {employer} posting for {title}. "
             "See the employer listing for complete requirements."
         )
+        description_source = (
+            posting.get("descriptionPlain")
+            or posting.get("description")
+        )
 
         records.append({
             "title": title,
             "company": employer,
             "location": location,
             "description": concise_summary(
-                posting.get("descriptionPlain")
-                or posting.get("description"),
+                description_source,
                 fallback
             ),
-            "experience": "Not listed",
+            "requirements": (
+                extract_structured_qualifications(posting.get("lists"))
+                or extract_qualification_text(description_source)
+            ),
+            "preferred_qualifications": None,
+            "experience": "See published qualifications",
             "category": classify_category(
                 title,
                 [value for value in department_values if value]

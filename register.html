@@ -1,14 +1,16 @@
 <!DOCTYPE html>
+<!-- Job-seeker account registration page; employer access follows its separate verification flow. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
       <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -38,9 +40,9 @@
         <a
           id="learningCenterLink"
           href="learning-center.html"
-        >
-          Learning Center
-        </a>
+    >
+      Resources + AI Assistant
+    </a>
 
         <a id="employerAccessLink" href="employer-access.html">
             Employer Access
@@ -64,21 +66,126 @@
     </div>
 </nav>
 
-<main class="auth-container">
-  <h2>Create Your PathForge Account</h2>
-  <p>Sign up to start using PathForge.</p>
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="auth-page">
+  <section class="auth-card" aria-labelledby="registerTitle">
+    <div class="auth-form-panel">
+      <p class="auth-eyebrow">Start your account</p>
+      <h1 id="registerTitle">Create a PathForge account</h1>
+      <p class="auth-introduction">
+        Create one account for job-search organization, learning,
+        and interview preparation.
+      </p>
 
-  <form id="registerForm" class="auth-form">
-    <input type="text" id="registerUsername" placeholder="Username" required>
-    <input type="email" id="registerEmail" placeholder="Email" required>
-    <input type="password" id="registerPassword" placeholder="Password" required>
+      <form id="registerForm" class="auth-form">
+        <div class="auth-field">
+          <label for="registerUsername">Username</label>
+          <input
+            type="text"
+            id="registerUsername"
+            autocomplete="username"
+            placeholder="Choose a username"
+            required
+          >
+        </div>
 
-    <button type="submit">Create Account</button>
-  </form>
+        <div class="auth-field">
+          <label for="registerEmail">Email address</label>
+          <input
+            type="email"
+            id="registerEmail"
+            autocomplete="email"
+            placeholder="Enter your email address"
+            required
+          >
+        </div>
 
-  <p id="registerMessage" class="auth-message"></p>
+        <div class="auth-field">
+          <label for="registerPassword">Password</label>
+          <input
+            type="password"
+            id="registerPassword"
+            autocomplete="new-password"
+            minlength="12"
+            maxlength="72"
+            aria-describedby="registerPasswordHelp"
+            placeholder="Create a password"
+            required
+          >
+          <p id="registerPasswordHelp" class="auth-field-help">
+            Use at least 12 characters. A unique multi-word passphrase works well.
+            Common passwords and your username or email name are not allowed. Maximum: 72 UTF-8 bytes.
+          </p>
+        </div>
+
+        <button type="submit" class="auth-submit">Create account</button>
+      </form>
+
+      <p
+        id="registerMessage"
+        class="auth-message"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <p class="auth-switch">
+        Already have an account?
+        <a href="login.html">Log in</a>
+      </p>
+    </div>
+
+    <aside class="auth-benefits" aria-labelledby="registerBenefitsTitle">
+      <p class="auth-eyebrow">Before you begin</p>
+      <h2 id="registerBenefitsTitle">Three details get you started</h2>
+      <ul>
+        <li>
+          <span aria-hidden="true">1</span>
+          <div>
+            <strong>Choose a username</strong>
+            <p>You can use it with your password whenever you log in.</p>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">2</span>
+          <div>
+            <strong>Enter your email address</strong>
+            <p>Each PathForge account needs a unique email address.</p>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">3</span>
+          <div>
+            <strong>Create a secure password</strong>
+            <p>Use at least eight characters and keep it private.</p>
+          </div>
+        </li>
+      </ul>
+      <p class="auth-privacy-note">
+        New accounts begin with job-seeker access. Employer tools
+        require a valid PathForge employer access code.
+      </p>
+    </aside>
+  </section>
 </main>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+<footer class="home-footer">
+  <div class="home-footer-brand">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img src="assets/branding/pathforge-logo.svg" alt="PathForge" width="189" height="40">
+    </a>
+    <p>Explore verified opportunities and practical career resources.</p>
+  </div>
+  <nav aria-label="Footer navigation">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="learning-center.html">Resources</a>
+    <a href="employer-access.html">Employers</a>
+    <a href="login.html">Login</a>
+  </nav>
+  <p class="home-footer-note">&copy; 2026 PathForge. Confirm current requirements and application details with the employer.</p>
+</footer>
+
 </body>
 </html>

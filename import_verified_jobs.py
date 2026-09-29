@@ -1,3 +1,5 @@
+"""Validate and import curated job records into the PathForge SQLite database."""
+
 import argparse
 import json
 import os
@@ -6,7 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-from database import DB_NAME, create_jobs_table
+from database import DB_NAME, get_connection, initialize_database
+from job_history import record_job_changes
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -51,6 +54,7 @@ def pay_text(job):
     return f"${amount(minimum)}-${amount(maximum)}/{period}"
 
 
+# Reject incomplete, unsafe, or unverifiable catalog entries before database writes.
 def validate_job(job):
     missing = [
         field for field in REQUIRED_FIELDS
@@ -73,9 +77,10 @@ def validate_job(job):
             raise ValueError("salary_min cannot exceed salary_max")
 
 
+# Validate the complete catalog first so a bad record cannot cause a partial import.
 def import_catalog(mark_stale=False):
     os.chdir(BASE_DIR)
-    create_jobs_table()
+    initialize_database()
 
     with CATALOG_PATH.open(encoding="utf-8") as catalog_file:
         jobs = json.load(catalog_file)
@@ -90,7 +95,7 @@ def import_catalog(mark_stale=False):
     seen_keys = set()
     seen_sources = set()
 
-    conn = sqlite3.connect(BASE_DIR / DB_NAME)
+    conn = get_connection(DB_NAME)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
@@ -101,7 +106,7 @@ def import_catalog(mark_stale=False):
         "external_job_id", "source_url", "posted_at", "expires_at",
         "last_verified_at", "employment_type", "is_remote",
         "salary_min", "salary_max", "salary_period",
-        "verification_status"
+        "verification_status", "link_status", "last_link_checked_at"
     ]
 
     for index, raw_job in enumerate(jobs, start=1):
@@ -125,6 +130,12 @@ def import_catalog(mark_stale=False):
                     if job["verification_status"] == "verified"
                     else "closed"
                 ),
+                "link_status": (
+                    "working"
+                    if job["verification_status"] == "verified"
+                    else "unavailable"
+                ),
+                "last_link_checked_at": job.get("last_verified_at"),
                 "is_remote": (
                     None if job.get("is_remote") is None
                     else int(job["is_remote"])
@@ -165,6 +176,11 @@ def import_catalog(mark_stale=False):
             assignments = ", ".join(
                 f"{column} = ?" for column in columns
             )
+            record_job_changes(
+                cursor, existing["id"], existing,
+                {column: job.get(column) for column in columns},
+                "catalog_import",
+            )
             cursor.execute(
                 f"""
                 UPDATE jobs
@@ -184,7 +200,7 @@ def import_catalog(mark_stale=False):
         placeholders = ", ".join("?" for _ in seen_sources)
         stale_rows = cursor.execute(
             f"""
-            SELECT id, source, external_job_id
+            SELECT *
             FROM jobs
             WHERE employer_id IS NULL
               AND source IN ({placeholders})
@@ -197,11 +213,18 @@ def import_catalog(mark_stale=False):
             key = (stale["source"], stale["external_job_id"])
             if key in seen_keys:
                 continue
+            record_job_changes(
+                cursor, stale["id"], stale,
+                {"status": "closed", "verification_status": "expired", "link_status": "unavailable"},
+                "catalog_import",
+            )
             cursor.execute(
                 """
                 UPDATE jobs
                 SET status = 'closed',
                     verification_status = 'expired',
+                    link_status = 'unavailable',
+                    last_link_checked_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """,

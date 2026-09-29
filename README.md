@@ -2,19 +2,17 @@
 
 # PathForge
 
-PathForge is a hybrid job-hunting platform designed to help users not only find jobs, but successfully obtain them through AI-assisted career tools.
+PathForge is a job-search and hiring platform that combines a verified opportunity catalog, application organization, employer workflows, practical career resources, and clearly bounded AI assistance.
 
 The long-term goal is to combine traditional job searching with modern AI-powered assistance while keeping the platform accessible, educational, and user-friendly for job seekers of all experience levels.
 
 ---
 
-# Target Completion Date
+# Current Status
 
-Current target completion date:
-
-**August 16, 2026**
-
-This accelerated timeline allows the project to be completed before Fall 2026 college coursework begins.
+PathForge is under active development. Core job-seeker, employer, catalog,
+resource, messaging, analytics, authentication, and moderation workflows are
+implemented. Run the automated suite before merging changes.
 
 ---
 
@@ -93,9 +91,9 @@ Available on:
 * Home page
 * Jobs page
 
-## Interview Learning Center Assistant (Planned Week 8)
+## Resource Center AI Assistant
 
-Separate from the main assistant.
+Available inside the public Resource Center.
 
 Purpose:
 
@@ -103,10 +101,11 @@ Purpose:
 * Interview coaching
 * Interview evaluations
 * Interview practice
-* Authenticity scoring
 * Personalized feedback
 
-Both assistants share backend infrastructure while providing specialized experiences.
+The Resource Center is a reference library rather than a course. It does not
+save lesson completion or learning progress. Mock-interview answers and résumé
+document contents are not silently added to connected account history.
 
 ---
 
@@ -131,14 +130,15 @@ Both assistants share backend infrastructure while providing specialized experie
 
 # Security
 
-Planned:
+Implemented:
 
-* Password hashing
-* Authentication
-* Session management
-* Protected routes
-* Secure logout
+* Argon2id password hashing with automatic legacy-hash upgrades
+* Authentication rate limiting and verification-attempt protection
+* Server-side, hashed session tokens
+* Protected routes with job-seeker, employer, and administrator checks
+* Secure logout and account session revocation
 * Duplicate account prevention
+* Environment-aware browser security headers and API documentation
 
 ---
 
@@ -156,6 +156,12 @@ job-hunting-website/
 ├── script.js
 
 ├── main.py
+├── app_config.py
+├── auth.py
+├── auth_routes.py
+├── job_routes.py
+├── saved_job_routes.py
+├── schemas.py
 ├── database.py
 ├── jobs.db
 
@@ -166,7 +172,46 @@ job-hunting-website/
 
 # Running PathForge Locally
 
+## Install Python Dependencies
+
+From the project folder, create and activate a virtual environment before
+installing the pinned development dependencies:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements-dev.txt
+```
+
+Use `requirements.txt` instead when a deployed environment needs only runtime
+packages. Keeping dependencies pinned makes development, testing, and deployment
+use the same verified versions.
+
 ## Start the Backend
+
+Apply any pending versioned database migrations before starting a deployed
+instance. The command is safe to repeat and reports when the schema is current:
+
+```powershell
+python migrate_database.py
+```
+
+Development startup also checks for pending migrations, so an existing local
+database upgrades automatically without rebuilding or deleting user data.
+
+By default, PathForge stores SQLite data in `jobs.db` inside the project folder,
+regardless of which terminal folder starts the backend. To keep the database in
+a different location, set an absolute `PATHFORGE_DATABASE_PATH` before running
+the migration and backend commands:
+
+```powershell
+$env:PATHFORGE_DATABASE_PATH="C:\secure-data\pathforge.db"
+python migrate_database.py
+```
+
+All application and maintenance-tool connections share the same foreign-key
+enforcement and lock-timeout settings.
 
 Open a terminal inside the project folder and run:
 
@@ -176,15 +221,22 @@ FastAPI should start on:
 
 http://127.0.0.1:8000
 
+For production, set `PATHFORGE_ENV=production`. If the frontend and API use
+different origins, set `PATHFORGE_ALLOWED_ORIGINS` to the exact comma-separated
+HTTPS frontend origins before starting the server.
+
+Use `.env.example` as the variable-name template and follow
+`DEPLOYMENT.md` before exposing PathForge publicly.
+
 ## Start the Frontend
 
 Use:
 
 * VS Code Live Server (recommended)
 
-or
-
-* Open HTML files directly in a browser.
+Any localhost port works in development. Do not open the HTML files directly
+with a `file://` URL: browsers do not provide a safe credentialed origin for
+account and API requests in that mode.
 
 Recommended starting page:
 
@@ -200,7 +252,15 @@ Returns backend status.
 
 GET /jobs
 
-Returns all jobs.
+Returns the complete eligible public-job collection for compatibility.
+
+GET /jobs/catalog?limit=250&offset=0
+
+Returns lightweight, paginated job cards for the live catalog.
+
+GET /jobs/{id}
+
+Returns complete details for one eligible public job.
 
 POST /jobs
 

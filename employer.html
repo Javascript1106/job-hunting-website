@@ -1,14 +1,16 @@
 <!DOCTYPE html>
+<!-- Authenticated employer workspace for job postings, applicants, and company information. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Employer Dashboard - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20260729-application-method">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
       <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -38,9 +40,9 @@
         <a
           id="learningCenterLink"
           href="learning-center.html"
-        >
-          Learning Center
-        </a>
+    >
+          Resources + AI Assistant
+    </a>
 
         <a id="employerAccessLink" href="employer-access.html">
             Employer Access
@@ -64,20 +66,20 @@
     </div>
 </nav>
 
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
 <main class="employer-dashboard-container">
 
-  <section class="employer-dashboard-header">
+  <section class="employer-dashboard-header" id="employerWorkspaceTop">
     <p class="dashboard-eyebrow">
-      Verified Employer Workspace
+      Employer workspace
     </p>
 
-    <h2 id="employerDashboardWelcome">
-      Employer Dashboard
-    </h2>
+    <h1 id="employerDashboardWelcome">
+      Manage hiring
+    </h1>
 
     <p>
-      Create job postings and manage every position owned by
-      your employer account.
+      Post jobs, review applicants, and manage your company information.
     </p>
   </section>
 
@@ -88,8 +90,28 @@
     aria-live="polite"
   ></div>
 
+  <nav class="employer-task-navigation" aria-label="Employer workspace sections">
+    <a href="#postJob">Post a job</a>
+    <a href="#manageJobs">Manage jobs</a>
+    <a href="#reviewApplications">Review applicants</a>
+    <a href="#companyProfileSettings">Company profile</a>
+  </nav>
+
+  <section class="employer-workflow-guide" aria-labelledby="employerWorkflowTitle">
+    <div>
+      <p class="dashboard-eyebrow">Start here</p>
+      <h2 id="employerWorkflowTitle">Your hiring workflow</h2>
+    </div>
+    <ol>
+      <li><strong>Post a job</strong><span>Add the role and choose where candidates apply.</span></li>
+      <li><strong>Review applicants</strong><span>Applications appear here when you accept them through PathForge.</span></li>
+      <li><strong>Update the job</strong><span>Edit, close, or reopen the posting at any time.</span></li>
+    </ol>
+  </section>
+
       <section
     class="employer-statistics-section"
+    id="employerOverview"
     aria-labelledby="employerStatisticsTitle"
   >
     <div class="employer-section-heading">
@@ -98,9 +120,9 @@
           Hiring Overview
         </p>
 
-        <h3 id="employerStatisticsTitle">
-          Dashboard Statistics
-        </h3>
+        <h2 id="employerStatisticsTitle">
+          Current activity
+        </h2>
       </div>
     </div>
 
@@ -189,18 +211,17 @@
     ></p>
     </section>
   
-    <section class="employer-company-profile-section">
-    <div class="employer-section-heading">
+    <details class="employer-company-profile-section employer-collapsible-section" id="companyProfileSettings">
+    <summary class="employer-section-heading">
       <div>
-        <p class="dashboard-eyebrow">Company Management</p>
-        <h3>Company Profile</h3>
+        <p class="dashboard-eyebrow">Optional settings</p>
+        <h2>Company profile</h2>
 
         <p>
-          Manage the company information and hiring preferences
-          connected to your employer account.
+          Add branding and information applicants can use to learn about you.
         </p>
       </div>
-    </div>
+    </summary>
 
     <form
       id="employerCompanyProfileForm"
@@ -333,17 +354,16 @@
         </aside>
       </div>
     </form>
-  </section>
+  </details>
   
   <section class="employer-dashboard-layout">
 
-    <section class="employer-job-form-card">
+    <section class="employer-job-form-card" id="postJob">
       <div class="employer-section-heading">
-        <h3>Post a New Job</h3>
+        <h2>Post a job</h2>
 
         <p>
-          Enter the position details and choose how candidates
-          should apply.
+          Add the essential details first. You can edit the posting later.
         </p>
       </div>
 
@@ -377,25 +397,26 @@
 
           <div class="employer-form-field">
             <label for="employerJobLocation">
-              Location
+              City, State, or ZIP code
             </label>
 
             <input
               type="text"
               id="employerJobLocation"
+              placeholder="City, state, ZIP code, or Remote"
               required
             >
           </div>
 
           <div class="employer-form-field">
             <label for="employerJobPay">
-              Pay
+              Pay or salary offered
             </label>
 
             <input
               type="text"
               id="employerJobPay"
-              placeholder="$15-$18/hr"
+              placeholder="Example: $15–$18 per hour"
               required
             >
           </div>
@@ -441,13 +462,12 @@
 
           <div class="employer-form-field">
             <label for="employerJobStatus">
-              Initial status
+              Publish as
             </label>
 
             <select id="employerJobStatus" required>
-              <option value="active">Active</option>
+              <option value="active">Published</option>
               <option value="draft">Draft</option>
-              <option value="closed">Closed</option>
             </select>
           </div>
 
@@ -520,12 +540,36 @@
           ></textarea>
         </div>
 
+        <div class="employer-form-field employer-description-field">
+          <label for="employerJobRequirements">Job requirements</label>
+          <textarea
+            id="employerJobRequirements"
+            rows="5"
+            maxlength="5000"
+            placeholder="List the qualifications or conditions applicants must meet."
+          ></textarea>
+          <small>Optional. Include only qualifications that are truly required.</small>
+        </div>
+
+        <div class="employer-form-field employer-description-field">
+          <label for="employerJobPreferredQualifications">
+            Preferred qualifications
+          </label>
+          <textarea
+            id="employerJobPreferredQualifications"
+            rows="5"
+            maxlength="5000"
+            placeholder="List helpful experience, skills, or credentials that are not required."
+          ></textarea>
+          <small>Optional. Applicants may still qualify without these preferences.</small>
+        </div>
+
         <button
           type="submit"
           id="employerJobSubmitButton"
           class="employer-primary-button"
         >
-          Post Job
+          Save Job
         </button>
 
         <p
@@ -538,10 +582,10 @@
       </form>
     </section>
 
-    <section class="employer-jobs-section">
+    <section class="employer-jobs-section" id="manageJobs">
       <div class="employer-section-heading employer-jobs-heading">
         <div>
-          <h3>My Jobs</h3>
+          <h2>Manage jobs</h2>
 
           <p>
             Edit, close, reopen, or delete jobs posted by your
@@ -563,7 +607,7 @@
       </div>
     </section>
 
-    <section class="employer-applications-section">
+    <section class="employer-applications-section" id="reviewApplications">
       <div
         class="
           employer-section-heading
@@ -571,7 +615,7 @@
         "
       >
         <div>
-          <h3>Received Applications</h3>
+          <h2>Review applicants</h2>
 
           <p>
             Review applications submitted directly through
@@ -656,19 +700,20 @@
 
         <div class="employer-form-field">
           <label for="editEmployerJobLocation">
-            Location
+            City, State, or ZIP code
           </label>
 
           <input
             type="text"
             id="editEmployerJobLocation"
+            placeholder="City, state, ZIP code, or Remote"
             required
           >
         </div>
 
         <div class="employer-form-field">
           <label for="editEmployerJobPay">
-            Pay
+            Pay or salary offered
           </label>
 
           <input
@@ -795,6 +840,28 @@
         ></textarea>
       </div>
 
+      <div class="employer-form-field employer-description-field">
+        <label for="editEmployerJobRequirements">Job requirements</label>
+        <textarea
+          id="editEmployerJobRequirements"
+          rows="5"
+          maxlength="5000"
+          placeholder="List the qualifications or conditions applicants must meet."
+        ></textarea>
+      </div>
+
+      <div class="employer-form-field employer-description-field">
+        <label for="editEmployerJobPreferredQualifications">
+          Preferred qualifications
+        </label>
+        <textarea
+          id="editEmployerJobPreferredQualifications"
+          rows="5"
+          maxlength="5000"
+          placeholder="List helpful experience, skills, or credentials that are not required."
+        ></textarea>
+      </div>
+
       <div class="employer-edit-actions">
         <button
           type="submit"
@@ -915,7 +982,8 @@
   </section>
 </div>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
 
 </body>
 </html>

@@ -1,3 +1,5 @@
+"""Shared fetching, sanitization, classification, and persistence helpers for job adapters."""
+
 import html
 import json
 import re
@@ -7,16 +9,20 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from database import get_connection
+from job_history import record_job_changes
+
 
 SYNC_COLUMNS = [
     "title", "company", "location", "pay", "description",
+    "requirements", "preferred_qualifications",
     "schedule", "experience", "category", "application_method",
     "application_url", "employer_id", "status", "source",
     "external_job_id", "source_url", "posted_at", "expires_at",
     "application_deadline",
     "last_verified_at", "employment_type", "is_remote",
     "salary_min", "salary_max", "salary_period",
-    "verification_status"
+    "verification_status", "link_status", "last_link_checked_at"
 ]
 
 
@@ -24,6 +30,7 @@ def utc_now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+# Network requests use a recognizable agent and bounded timeout for reliable sync runs.
 def fetch_json(url, headers=None, timeout=30):
     request_headers = {
         "Accept": "application/json",
@@ -56,8 +63,13 @@ def fetch_json(url, headers=None, timeout=30):
 def plain_text(value):
     if not value:
         return ""
-    without_tags = re.sub(r"<[^>]+>", " ", str(value))
-    return " ".join(html.unescape(without_tags).split())
+    decoded = str(value)
+
+    for _ in range(2):
+        decoded = html.unescape(decoded)
+
+    without_tags = re.sub(r"<[^>]+>", " ", decoded)
+    return " ".join(without_tags.split())
 
 
 def concise_summary(value, fallback, limit=320):
@@ -70,41 +82,196 @@ def concise_summary(value, fallback, limit=320):
     return f"{shortened}…"
 
 
+def text_lines(value):
+    """Preserve ATS headings and bullets while removing markup."""
+    if not value:
+        return []
+    decoded = str(value)
+    for _ in range(2):
+        decoded = html.unescape(decoded)
+    decoded = re.sub(
+        r"(?i)<\s*(?:br\s*/?|/p|/li|/ul|/ol|/h[1-6]|/div)\s*>",
+        "\n",
+        decoded,
+    )
+    decoded = re.sub(r"(?i)<\s*li[^>]*>", "\n- ", decoded)
+    decoded = re.sub(r"<[^>]+>", " ", decoded)
+    return [" ".join(line.split()) for line in decoded.splitlines() if line.strip()]
+
+
+def extract_qualification_text(value, limit=1800):
+    """Return employer-written qualifications, never a generic placeholder."""
+    lines = text_lines(value)
+    qualification_heading = re.compile(
+        r"^(?:minimum|required|basic|preferred|desired|key)?\s*"
+        r"(?:qualifications?|requirements?|skills(?:\s+and\s+experience)?|"
+        r"what (?:you(?:'|’)ll|we) need|what (?:you|we) bring|who you are|"
+        r"what we(?:'|’)re looking for|examples? of desirable skills(?:, knowledge and experience)?|"
+        r"we(?:'|’)re excited about you because)\s*[?:]?$",
+        re.I,
+    )
+    end_heading = re.compile(
+        r"^(?:about(?: us| the (?:company|team|role))?|responsibilities|what you(?:'|’)ll do|"
+        r"day in the life|benefits|perks|compensation|salary|additional information|"
+        r"equal opportunity|privacy|how to apply|application process|our values|"
+        r"the impact you(?:'|’)ll make|job description)\s*[?:]?$",
+        re.I,
+    )
+    signal = re.compile(
+        r"\b(?:required|must|minimum|at least|years? of experience|degree|diploma|"
+        r"license|certification|proficien(?:t|cy)|fluency|bilingual|ability to|"
+        r"experience (?:with|in)|knowledge of|eligible|authorization to work)\b",
+        re.I,
+    )
+    collected = []
+    in_section = False
+    for line in lines:
+        candidate = line.strip(" -:•")
+        if qualification_heading.fullmatch(candidate):
+            if in_section and collected:
+                break
+            in_section = True
+            continue
+        if in_section and end_heading.fullmatch(candidate):
+            break
+        if in_section:
+            collected.append(line)
+    if not collected:
+        collected = [line for line in lines if signal.search(line)][:8]
+    cleaned = []
+    for line in collected:
+        item = re.sub(r"^[\s•*\-]+", "", line).strip()
+        if item and item not in cleaned:
+            cleaned.append(item)
+    if not cleaned:
+        return None
+    result = " • ".join(cleaned)
+    return result if len(result) <= limit else result[:limit].rsplit(" ", 1)[0] + "…"
+
+
+def extract_structured_qualifications(sections, limit=1800):
+    items = []
+    for section in sections or []:
+        label = plain_text(section.get("text")).strip(" :").lower()
+        if not re.search(
+            r"\b(?:qualifications?|requirements?|what (?:you(?:'|’)ll|you|we) "
+            r"(?:need|bring)|who you are|nice[- ]?to[- ]?have|"
+            r"you(?:'|’)ll crush this role if you have|what you are good at)\b",
+            label,
+        ):
+            continue
+        for line in text_lines(section.get("content")):
+            item = re.sub(r"^[\s•*\-]+", "", line).strip()
+            if item and item not in items:
+                items.append(item)
+    if not items:
+        return None
+    result = " • ".join(items)
+    return result if len(result) <= limit else result[:limit].rsplit(" ", 1)[0] + "…"
+
+
 def classify_category(title, departments=None):
-    searchable = " ".join(
-        [title] + list(departments or [])
+    title_text = plain_text(title).lower()
+    department_text = " ".join(
+        plain_text(value) for value in (departments or []) if value
     ).lower()
-    category_rules = [
-        ("Pharmacy", ("pharmacy", "pharmacist")),
-        ("Technology", (
-            "software", "engineer", "developer", "technology",
-            "data scientist", "cyber"
-        )),
-        ("Customer Service", (
-            "customer service", "customer support", "support specialist"
-        )),
-        ("Healthcare", (
-            "health", "nurse", "medical", "clinical", "therapist"
-        )),
-        ("Warehouse", (
-            "warehouse", "fulfillment", "distribution", "inventory"
-        )),
-        ("Food Service", (
-            "restaurant", "barista", "food", "kitchen", "cook"
-        )),
-        ("Sales", ("sales", "account executive")),
-        ("Marketing", ("marketing", "communications")),
-        ("Finance", ("finance", "accounting", "accountant")),
-        ("Human Resources", (
-            "human resources", "recruiter", "talent acquisition"
-        )),
-        ("Retail", (
-            "retail", "store", "cashier", "merchandising"
-        ))
-    ]
-    for category, keywords in category_rules:
-        if any(keyword in searchable for keyword in keywords):
-            return category
+
+    def title_matches(*patterns):
+        return any(re.search(pattern, title_text) for pattern in patterns)
+
+    def context_matches(*patterns):
+        searchable = f"{title_text} {department_text}"
+        return any(re.search(pattern, searchable) for pattern in patterns)
+
+    # High-precision physical warehouse and logistics titles. Generic words
+    # such as "distribution" or "fulfillment" are deliberately insufficient.
+    if title_matches(
+        r"\bwarehouse\b", r"\bmaterial handler\b", r"\bpackage handler\b",
+        r"\bpicker(?:/packer)?\b", r"\bpacker\b", r"\bforklift\b",
+        r"\bshipping (?:and|&) receiving\b", r"\breceiving associate\b",
+        r"\bfreight/receiving\b", r"\bdock worker\b", r"\bstocker\b",
+        r"\binventory (?:associate|clerk|specialist|control)\b",
+        r"\bfulfillment (?:associate|team member|specialist)\b",
+        r"\bdashmart team member\b", r"\bdashmart site manager\b"
+    ):
+        return "Warehouse"
+    if title_matches(r"\bpharmac(?:y|ist|ist technician)\b"):
+        return "Pharmacy"
+    if title_matches(
+        r"\bregistered nurse\b", r"\bnurse\b", r"\btherapist\b",
+        r"\bphysician\b", r"\bpatient care\b", r"\bphlebotomist\b",
+        r"\bmedical (?:assistant|technician|technologist|coder|bill(?:er|ing))\b",
+        r"\bdental (?:assistant|hygienist|technician)\b",
+        r"\bclinical (?:specialist|coordinator|technician|researcher)\b"
+    ):
+        return "Healthcare"
+    if title_matches(
+        r"\bbarista\b", r"\bcook\b", r"\bchef\b", r"\bkitchen\b",
+        r"\bserver\b", r"\bfood service\b", r"\bdishwasher\b"
+    ):
+        return "Food Service"
+    if title_matches(
+        r"\baccount executive\b", r"\bsales\b", r"\bbusiness development\b",
+        r"\b(?:sales|account) development representative\b"
+    ):
+        return "Sales"
+    if title_matches(
+        r"\bcashier\b", r"\bretail\b", r"\bstore (?:associate|manager)\b",
+        r"\bmerchandis(?:er|ing)\b", r"\bsales floor\b"
+    ):
+        return "Retail"
+    if title_matches(
+        r"\bcustomer (?:service|support|care|success)\b",
+        r"\bclient support\b", r"\bsupport (?:representative|specialist)\b",
+        r"\bcall center\b"
+    ):
+        return "Customer Service"
+    if title_matches(
+        r"\bsoftware\b", r"\bdeveloper\b", r"\bdata (?:scientist|engineer)\b",
+        r"\bcyber(?:security)?\b", r"\bmachine learning\b",
+        r"\bsite reliability\b", r"\bdevops\b", r"\bcloud engineer\b",
+        r"\bit (?:support|specialist|administrator|manager)\b",
+        r"\btechnical support\b", r"\bvoip\b", r"\bfull[ -]?stack\b",
+        r"\bfront[ -]?end\b", r"\bback[ -]?end\b",
+        r"\bandroid (?:developer|engineer)\b", r"\bios (?:developer|engineer)\b"
+    ):
+        return "Technology"
+    if title_matches(
+        r"\bmarketing\b", r"\bcontent (?:writer|manager|strategist)\b",
+        r"\bpublic relations\b", r"\bbrand (?:manager|strategist)\b"
+    ):
+        return "Marketing"
+    if title_matches(
+        r"\baccountant\b", r"\baccounting\b", r"\bfinancial\b",
+        r"\bfinance\b", r"\bpayroll\b", r"\bbookkeeper\b", r"\bfp&a\b"
+    ):
+        return "Finance"
+    if title_matches(
+        r"\bhuman resources\b", r"\bpeople operations\b", r"\brecruit(?:er|ing)\b",
+        r"\btalent acquisition\b", r"\bhr (?:manager|generalist|specialist)\b"
+    ):
+        return "Human Resources"
+    if title_matches(
+        r"\bparalegal\b", r"\blegal\b", r"\battorney\b",
+        r"\bcounsel\b", r"\bcompliance\b"
+    ):
+        return "Legal"
+    if title_matches(
+        r"\badministrative\b", r"\bexecutive assistant\b", r"\boffice manager\b",
+        r"\breceptionist\b", r"\bdata entry\b"
+    ):
+        return "Administrative"
+    if title_matches(
+        r"\bcivil engineer\b", r"\bmechanical engineer\b",
+        r"\belectrical engineer\b", r"\bfield engineer\b",
+        r"\bconstruction\b", r"\barchitect\b", r"\bsurveyor\b"
+    ):
+        return "Engineering & Construction"
+    if context_matches(
+        r"\boperations (?:associate|coordinator|specialist|manager)\b",
+        r"\blogistics (?:associate|coordinator|specialist|manager)\b"
+    ):
+        return "Operations"
     return "Other"
 
 
@@ -122,6 +289,24 @@ def pay_text(job):
     return f"${minimum:g}-${maximum:g}/{period}"
 
 
+def normalize_employment_type(value):
+    cleaned = str(value or "").strip().rstrip(".")
+    normalized = cleaned.lower()
+
+    if normalized in {
+        "part time",
+        "part-time",
+        "12-39 hours per week"
+    }:
+        return "Part-Time"
+
+    if normalized in {"full time", "full-time"}:
+        return "Full-Time"
+
+    return cleaned or None
+
+
+# Validation is shared across providers so trust requirements remain consistent.
 def validate_record(job):
     required = (
         "title", "company", "location", "description",
@@ -150,6 +335,9 @@ def validate_record(job):
 def prepare_record(raw_job):
     validate_record(raw_job)
     job = dict(raw_job)
+    job["employment_type"] = normalize_employment_type(
+        job.get("employment_type")
+    )
     if not job.get("application_deadline") and job.get("expires_at"):
         job["application_deadline"] = str(
             job["expires_at"]
@@ -162,6 +350,10 @@ def prepare_record(raw_job):
         "employer_id": None,
         "status": "active",
         "verification_status": "verified",
+        "link_status": "working",
+        "last_link_checked_at": (
+            job.get("last_verified_at") or utc_now()
+        ),
         "is_remote": (
             None if job.get("is_remote") is None
             else int(job["is_remote"])
@@ -170,6 +362,8 @@ def prepare_record(raw_job):
     return job
 
 
+# Synchronization upserts normalized records and can mark missing listings stale
+# without deleting historical application references.
 def synchronize_records(
     database_path,
     records,
@@ -184,7 +378,7 @@ def synchronize_records(
         "failed": 0
     }
     seen_keys = set()
-    conn = sqlite3.connect(database_path)
+    conn = get_connection(database_path)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
@@ -231,6 +425,13 @@ def synchronize_records(
             assignments = ", ".join(
                 f"{column} = ?" for column in SYNC_COLUMNS
             )
+            record_job_changes(
+                cursor,
+                existing["id"],
+                existing,
+                {column: job.get(column) for column in SYNC_COLUMNS},
+                "source_sync",
+            )
             cursor.execute(
                 f"""
                 UPDATE jobs
@@ -255,7 +456,7 @@ def synchronize_records(
             }
             existing_rows = cursor.execute(
                 """
-                SELECT id, external_job_id
+                SELECT *
                 FROM jobs
                 WHERE source = ?
                   AND employer_id IS NULL
@@ -266,11 +467,20 @@ def synchronize_records(
             for row in existing_rows:
                 if row["external_job_id"] in source_keys:
                     continue
+                record_job_changes(
+                    cursor,
+                    row["id"],
+                    row,
+                    {"status": "closed", "verification_status": "expired", "link_status": "unavailable"},
+                    "source_sync",
+                )
                 cursor.execute(
                     """
                     UPDATE jobs
                     SET status = 'closed',
                         verification_status = 'expired',
+                        link_status = 'unavailable',
+                        last_link_checked_at = CURRENT_TIMESTAMP,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                     """,

@@ -1,11 +1,469 @@
 {
-  "greenhouse": [],
-  "lever": [],
+  "greenhouse": [
+    {
+      "employer": "DoorDash",
+      "board_token": "doordashusa",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Cloudflare",
+      "board_token": "cloudflare",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Figma",
+      "board_token": "figma",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Discord",
+      "board_token": "discord",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Reddit",
+      "board_token": "reddit",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Lyft",
+      "board_token": "lyft",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Instacart",
+      "board_token": "instacart",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Airbnb",
+      "board_token": "airbnb",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Dropbox",
+      "board_token": "dropbox",
+      "max_jobs": 100
+    }
+  ],
+  "lever": [
+    {
+      "employer": "Filevine",
+      "site": "filevine",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Zanskar",
+      "site": "Zanskar",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Stanley Consultants",
+      "site": "stanleygroup",
+      "max_jobs": 150
+    },
+    {
+      "employer": "IDT Corporation",
+      "site": "idt",
+      "max_jobs": 150
+    }
+  ],
+  "smartrecruiters": [
+    {
+      "employer": "Domino's",
+      "company_id": "Dominos",
+      "max_jobs": 400,
+      "scan_limit": 5000,
+      "detail_scan_limit": 1200,
+      "detail_workers": 12
+    },
+    {
+      "employer": "Wynn Resorts",
+      "company_id": "WynnResorts",
+      "max_jobs": 25,
+      "scan_limit": 1000,
+      "detail_scan_limit": 100,
+      "detail_workers": 8
+    },
+    {
+      "employer": "Aspen Skiing Company",
+      "company_id": "AspenSkiingCompany",
+      "max_jobs": 50,
+      "scan_limit": 1000,
+      "detail_scan_limit": 200,
+      "detail_workers": 8
+    },
+    {
+      "employer": "GQT Movies",
+      "company_id": "GQTMovies",
+      "max_jobs": 50,
+      "scan_limit": 500,
+      "detail_scan_limit": 100,
+      "detail_workers": 8
+    },
+    {
+      "employer": "Gap Inc.",
+      "company_id": "GapInc2",
+      "max_jobs": 25,
+      "scan_limit": 500,
+      "detail_scan_limit": 100,
+      "detail_workers": 8
+    }
+  ],
+  "ashby": [
+    {
+      "employer": "Ramp",
+      "board_name": "ramp",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Ashby",
+      "board_name": "ashby",
+      "max_jobs": 100
+    },
+    {
+      "employer": "ReadMe",
+      "board_name": "readme",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Reflection AI",
+      "board_name": "reflectionai",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Forus",
+      "board_name": "forus",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Vivun",
+      "board_name": "vivun",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Datum",
+      "board_name": "datum",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Polymarket",
+      "board_name": "polymarket",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Qdrant",
+      "board_name": "qdrant.tech",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Directive Consulting",
+      "board_name": "directive",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Northslope Technologies",
+      "board_name": "northslope-technologies",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Mural Group",
+      "board_name": "themuralgroup",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Reindeer",
+      "board_name": "reindeer-ai",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Linear",
+      "board_name": "linear",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Harvey",
+      "board_name": "harvey",
+      "max_jobs": 350
+    },
+    {
+      "employer": "Cursor",
+      "board_name": "cursor",
+      "max_jobs": 150
+    },
+    {
+      "employer": "ElevenLabs",
+      "board_name": "elevenlabs",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Perplexity",
+      "board_name": "perplexity",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Vanta",
+      "board_name": "vanta",
+      "max_jobs": 150
+    },
+    {
+      "employer": "OpenAI",
+      "board_name": "openai",
+      "max_jobs": 500
+    },
+    {
+      "employer": "Notion",
+      "board_name": "notion",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Sierra",
+      "board_name": "sierra",
+      "max_jobs": 200
+    },
+    {
+      "employer": "Crusoe",
+      "board_name": "crusoe",
+      "max_jobs": 400
+    },
+    {
+      "employer": "Abridge",
+      "board_name": "abridge",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Watershed",
+      "board_name": "watershed",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Pylon",
+      "board_name": "pylon",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Decagon",
+      "board_name": "decagon",
+      "max_jobs": 200
+    },
+    {
+      "employer": "Cognition",
+      "board_name": "cognition",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Modal",
+      "board_name": "modal",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Runway",
+      "board_name": "runway",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Graphite",
+      "board_name": "graphite",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Modern Treasury",
+      "board_name": "moderntreasury",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Supabase",
+      "board_name": "supabase",
+      "max_jobs": 100
+    },
+    {
+      "employer": "PostHog",
+      "board_name": "posthog",
+      "max_jobs": 100
+    },
+    {
+      "employer": "LangChain",
+      "board_name": "langchain",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Pinecone",
+      "board_name": "pinecone",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Replit",
+      "board_name": "replit",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Render",
+      "board_name": "render",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Railway",
+      "board_name": "railway",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Common Room",
+      "board_name": "commonroom",
+      "max_jobs": 100,
+      "enabled": false
+    },
+    {
+      "employer": "Headway",
+      "board_name": "headway",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Rula",
+      "board_name": "rula",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Suno",
+      "board_name": "suno",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Baseten",
+      "board_name": "baseten",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Anyscale",
+      "board_name": "anyscale",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Hightouch",
+      "board_name": "hightouch",
+      "max_jobs": 100
+    },
+    {
+      "employer": "MotherDuck",
+      "board_name": "motherduck",
+      "max_jobs": 100
+    },
+    {
+      "employer": "ClickHouse",
+      "board_name": "clickhouse",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Temporal",
+      "board_name": "temporal",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Docker",
+      "board_name": "docker",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Zapier",
+      "board_name": "zapier",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Quora",
+      "board_name": "quora",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Reducto",
+      "board_name": "reducto",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Unify",
+      "board_name": "unify",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Blackbird Labs",
+      "board_name": "blackbird-labs-inc",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Bolt Farm Treehouse",
+      "board_name": "bolt-farm",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Deepgram",
+      "board_name": "deepgram",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Delinea",
+      "board_name": "delinea",
+      "max_jobs": 100
+    },
+    {
+      "employer": "FWD People",
+      "board_name": "fwd-people",
+      "max_jobs": 100
+    },
+    {
+      "employer": "MeritFirst",
+      "board_name": "meritfirst",
+      "max_jobs": 100
+    },
+    {
+      "employer": "MoeGo",
+      "board_name": "moego",
+      "max_jobs": 100
+    },
+    {
+      "employer": "NerdWallet",
+      "board_name": "nerdwallet",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Newform",
+      "board_name": "newform",
+      "max_jobs": 100
+    },
+    {
+      "employer": "OnePay",
+      "board_name": "oneapp",
+      "max_jobs": 100
+    },
+    {
+      "employer": "SpotOn",
+      "board_name": "Spoton",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Tenex Labs",
+      "board_name": "tenexlabs",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Tensec",
+      "board_name": "tensec",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Triumph",
+      "board_name": "triumph-arcade",
+      "max_jobs": 100
+    },
+    {
+      "employer": "UiPath",
+      "board_name": "uipath",
+      "max_jobs": 150
+    }
+  ],
   "usajobs": {
     "enabled": true,
     "keyword": "",
     "location": "",
-    "remote_only": true,
-    "results_per_page": 100
+    "remote_only": false,
+    "results_per_page": 100,
+    "pages": 5
   }
 }

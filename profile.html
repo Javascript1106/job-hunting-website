@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Authenticated job-seeker profile used for preferences and opportunity matching context. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,11 +8,12 @@
   <title>User Profile - PathForge</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
   <a class="nav-brand" href="index.html" aria-label="PathForge home">
     <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -42,7 +44,7 @@
       id="learningCenterLink"
       href="learning-center.html"
     >
-      Learning Center
+      Resources + AI Assistant
     </a>
 
     <a id="employerAccessLink" href="employer-access.html">
@@ -67,6 +69,7 @@
   </div>
 </nav>
 
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
 <main class="profile-container">
 
   <section class="profile-header">
@@ -74,19 +77,29 @@
       Career Profile
     </p>
 
-    <h2>Your PathForge Profile</h2>
+    <h1>Your PathForge Profile</h1>
+
+    <p
+      id="profileMessage"
+      class="profile-message"
+      aria-live="polite"
+    ></p>
 
     <p>
       Add information about your experience, interests, skills,
       and job preferences. PathForge will use this information
       later for personalized job recommendations and career tools.
     </p>
+
+    <a class="profile-resume-link" href="resume.html">
+      Review your resume
+    </a>
   </section>
 
   <form id="profileForm" class="profile-form">
 
     <section class="profile-section">
-      <h3>Basic Information</h3>
+      <h2>Basic Information</h2>
 
       <div class="profile-field">
         <label for="profileDisplayName">
@@ -103,7 +116,21 @@
     </section>
 
     <section class="profile-section">
-      <h3>Career Information</h3>
+      <h2>Career Information</h2>
+
+      <div class="profile-field">
+        <label for="profileCareerStage">Career stage (optional)</label>
+        <select id="profileCareerStage">
+          <option value="">No preference selected</option>
+          <option value="first_time">First-time job seeker</option>
+          <option value="student">Student</option>
+          <option value="recent_graduate">Recent graduate</option>
+          <option value="career_changer">Career changer</option>
+          <option value="returning_worker">Returning to work</option>
+          <option value="experienced">Experienced professional</option>
+        </select>
+        <p class="field-help">This changes examples and guidance only. It does not restrict jobs or determine whether you qualify.</p>
+      </div>
 
       <div class="profile-field">
         <label for="profileCareerInterests">
@@ -112,7 +139,7 @@
 
         <textarea
           id="profileCareerInterests"
-          placeholder="Example: transportation engineering, retail, customer service"
+          placeholder="Enter job titles or types of work"
           rows="4"
         ></textarea>
       </div>
@@ -124,7 +151,7 @@
 
         <textarea
           id="profilePreferredIndustries"
-          placeholder="Example: technology, transportation, education, healthcare"
+          placeholder="Enter industries or work environments"
           rows="4"
         ></textarea>
       </div>
@@ -136,7 +163,7 @@
 
         <textarea
           id="profileSkills"
-          placeholder="Example: communication, Python, customer service, organization"
+          placeholder="Enter skills you want to use or develop"
           rows="5"
         ></textarea>
       </div>
@@ -146,20 +173,30 @@
           Experience Level
         </label>
 
-        <select id="profileExperienceLevel">
-          <option value="">Select experience level</option>
-          <option value="First job">First job</option>
-          <option value="Entry level">Entry level</option>
-          <option value="Some experience">Some experience</option>
-          <option value="Experienced">Experienced</option>
-          <option value="Career changer">Career changer</option>
-          <option value="Returning to work">Returning to work</option>
-        </select>
+        <input id="profileExperienceLevel" type="hidden" value="">
+        <details
+          id="profileExperienceLevelDropdown"
+          class="profile-checkbox-dropdown profile-single-select-dropdown"
+        >
+          <summary>
+            <span id="profileExperienceLevelSummary">
+              Select experience level
+            </span>
+          </summary>
+          <div class="profile-checkbox-options">
+            <label><input type="radio" name="experienceLevel" value="First job"> First job</label>
+            <label><input type="radio" name="experienceLevel" value="Entry level"> Entry level</label>
+            <label><input type="radio" name="experienceLevel" value="Some experience"> Some experience</label>
+            <label><input type="radio" name="experienceLevel" value="Experienced"> Experienced</label>
+            <label><input type="radio" name="experienceLevel" value="Career changer"> Career changer</label>
+            <label><input type="radio" name="experienceLevel" value="Returning to work"> Returning to work</label>
+          </div>
+        </details>
       </div>
     </section>
 
     <section class="profile-section">
-      <h3>Job Preferences</h3>
+      <h2>Job Preferences</h2>
 
       <div class="profile-field">
         <label for="profilePreferredLocation">
@@ -169,26 +206,41 @@
         <input
           type="text"
           id="profilePreferredLocation"
-          placeholder="Example: Orem, Utah"
+          placeholder="City, state, ZIP code, or Remote"
           maxlength="150"
         >
       </div>
 
       <div class="profile-field">
-        <label for="profileSchedulePreference">
+        <label id="profileSchedulePreferenceLabel">
           Schedule Preference
         </label>
 
-        <select id="profileSchedulePreference">
-          <option value="">Select schedule preference</option>
-          <option value="Full-time">Full-time</option>
-          <option value="Part-time">Part-time</option>
-          <option value="Flexible">Flexible</option>
-          <option value="Weekdays">Weekdays</option>
-          <option value="Weekends">Weekends</option>
-          <option value="Evenings">Evenings</option>
-          <option value="Seasonal">Seasonal</option>
-        </select>
+        <details
+          id="profileSchedulePreference"
+          class="profile-checkbox-dropdown"
+          aria-labelledby="profileSchedulePreferenceLabel"
+          aria-describedby="profileSchedulePreferenceHelp"
+        >
+          <summary>
+            <span id="profileSchedulePreferenceSummary">
+              Choose schedules
+            </span>
+          </summary>
+
+          <div class="profile-checkbox-options">
+            <label><input type="checkbox" value="Full-time"> Full-time</label>
+            <label><input type="checkbox" value="Part-time"> Part-time</label>
+            <label><input type="checkbox" value="Flexible"> Flexible</label>
+            <label><input type="checkbox" value="Weekdays"> Weekdays</label>
+            <label><input type="checkbox" value="Weekends"> Weekends</label>
+            <label><input type="checkbox" value="Evenings"> Evenings</label>
+            <label><input type="checkbox" value="Seasonal"> Seasonal</label>
+          </div>
+        </details>
+        <small id="profileSchedulePreferenceHelp">
+          Select every schedule that works for you.
+        </small>
       </div>
 
       <div class="profile-field">
@@ -196,31 +248,126 @@
           Work Preference
         </label>
 
-        <select id="profileWorkPreference">
-          <option value="">Select work preference</option>
-          <option value="On-site">On-site</option>
-          <option value="Remote">Remote</option>
-          <option value="Hybrid">Hybrid</option>
-          <option value="No preference">No preference</option>
-        </select>
+        <input id="profileWorkPreference" type="hidden" value="">
+        <details
+          id="profileWorkPreferenceDropdown"
+          class="profile-checkbox-dropdown profile-single-select-dropdown"
+        >
+          <summary>
+            <span id="profileWorkPreferenceSummary">
+              Select work preference
+            </span>
+          </summary>
+          <div class="profile-checkbox-options">
+            <label><input type="radio" name="workPreference" value="On-site"> On-site</label>
+            <label><input type="radio" name="workPreference" value="Remote"> Remote</label>
+            <label><input type="radio" name="workPreference" value="Hybrid"> Hybrid</label>
+            <label><input type="radio" name="workPreference" value="No preference"> No preference</label>
+            <button type="button" id="clearWorkPreference" class="profile-dropdown-clear">Clear selection</button>
+          </div>
+        </details>
+      </div>
+
+      <div class="profile-preferences-grid">
+        <div class="profile-field">
+          <label for="profileMaximumCommuteDistance">
+            Maximum Commute Distance
+          </label>
+
+          <div class="profile-input-with-unit">
+            <input
+              type="number"
+              id="profileMaximumCommuteDistance"
+              min="0"
+              max="500"
+              step="1"
+              placeholder="0"
+            >
+            <span>miles</span>
+          </div>
+        </div>
+
+        <div class="profile-field">
+          <label for="profileMaximumCommuteTime">
+            Maximum Commute Time
+          </label>
+
+          <div class="profile-input-with-unit">
+            <input
+              type="number"
+              id="profileMaximumCommuteTime"
+              min="0"
+              max="600"
+              step="1"
+              placeholder="0"
+            >
+            <span>minutes</span>
+          </div>
+        </div>
+
+        <div class="profile-field">
+          <label for="profileMinimumBasePay">
+            Minimum Base Pay
+          </label>
+
+          <div class="profile-input-with-unit profile-pay-input">
+            <span>$</span>
+            <input
+              type="number"
+              id="profileMinimumBasePay"
+              min="0"
+              max="10000000"
+              step="0.01"
+              placeholder="18.00"
+            >
+            <select
+              id="profilePayPeriod"
+              aria-label="Minimum base pay period"
+            >
+              <option value="hour">$/hr</option>
+              <option value="year">$/yr</option>
+            </select>
+          </div>
+          <small>Choose whether your minimum is hourly or yearly.</small>
+        </div>
       </div>
 
       <div class="profile-field">
-        <label for="profileDesiredPay">
-          Desired Pay
+        <label id="profileDesiredPayLabel">
+          Additional Pay Preferences
         </label>
 
-        <input
-          type="text"
+        <details
           id="profileDesiredPay"
-          placeholder="Example: $18 per hour"
-          maxlength="100"
+          class="profile-checkbox-dropdown"
+          aria-labelledby="profileDesiredPayLabel"
+          aria-describedby="profileDesiredPayHelp"
         >
+          <summary>
+            <span id="profileDesiredPaySummary">
+              Choose additional pay preferences
+            </span>
+          </summary>
+
+          <div class="profile-checkbox-options">
+            <label><input type="checkbox" value="Tips"> Tips</label>
+            <label><input type="checkbox" value="Commission"> Commission</label>
+            <label><input type="checkbox" value="Performance bonuses"> Performance bonuses</label>
+            <label><input type="checkbox" value="Signing bonus"> Signing bonus</label>
+            <label><input type="checkbox" value="Overtime pay"> Overtime pay</label>
+            <label><input type="checkbox" value="Shift differential"> Shift differential</label>
+            <label><input type="checkbox" value="Equity or stock"> Equity or stock</label>
+            <label><input type="checkbox" value="Negotiable pay"> Negotiable pay</label>
+          </div>
+        </details>
+        <small id="profileDesiredPayHelp">
+          Select every type of additional pay you prefer.
+        </small>
       </div>
     </section>
 
     <section class="profile-section">
-      <h3>Career Goals</h3>
+      <h2>Career Goals</h2>
 
       <div class="profile-field">
         <label for="profileCareerGoals">
@@ -241,17 +388,13 @@
         </button>
     </div>
 
-    <p
-      id="profileMessage"
-      class="profile-message"
-      aria-live="polite"
-    ></p>
-
   </form>
 
 </main>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100">
+</script>
 
 </body>
 </html>

@@ -1,14 +1,16 @@
 <!DOCTYPE html>
+<!-- Shared account sign-in page for job seekers, employers, and administrators. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
       <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -38,9 +40,9 @@
         <a
           id="learningCenterLink"
           href="learning-center.html"
-        >
-          Learning Center
-        </a>
+    >
+          Resources + AI Assistant
+    </a>
 
         <a id="employerAccessLink" href="employer-access.html">
             Employer Access
@@ -64,26 +66,122 @@
     </div>
 </nav>
 
-<main class="auth-container">
-  <h2>Log In to PathForge</h2>
-  <p>Welcome back. Log in to continue.</p>
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="auth-page">
+  <section class="auth-card" aria-labelledby="loginTitle">
+    <div class="auth-form-panel">
+      <p class="auth-eyebrow">Welcome back</p>
+      <h1 id="loginTitle">Log in to PathForge</h1>
+      <p class="auth-introduction">
+        Continue organizing your job search, applications, and
+        career preparation.
+      </p>
 
-  <form id="loginForm" class="auth-form">
-    <input 
-    type="text" 
-    id="loginIdentifier" 
-    placeholder="Email or Username" 
-    required
->
-    <input type="password" id="loginPassword" placeholder="Password" required>
+      <form id="loginForm" class="auth-form">
+        <div class="auth-field">
+          <label for="loginIdentifier">Email or username</label>
+          <input
+            type="text"
+            id="loginIdentifier"
+            autocomplete="username"
+            placeholder="Enter your email or username"
+            required
+          >
+        </div>
 
-    <button type="submit">Log In</button>
-  </form>
+        <div class="auth-field">
+          <label for="loginPassword">Password</label>
+          <input
+            type="password"
+            id="loginPassword"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
 
-  <p id="loginMessage" class="auth-message"></p>
+        <button type="submit" class="auth-submit">Log in</button>
+      </form>
+
+      <p
+        id="loginMessage"
+        class="auth-message"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <details class="password-reset-panel">
+        <summary>Forgot your password?</summary>
+        <form id="passwordResetRequestForm" class="auth-form">
+          <div class="auth-field"><label for="passwordResetEmail">Account email</label><input id="passwordResetEmail" type="email" autocomplete="email" required></div>
+          <button type="submit" class="button-secondary">Send reset code</button>
+        </form>
+        <form id="passwordResetConfirmForm" class="auth-form hidden">
+          <div class="auth-field"><label for="passwordResetCode">Six-digit code</label><input id="passwordResetCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></div>
+          <div class="auth-field"><label for="passwordResetNewPassword">New password</label><input id="passwordResetNewPassword" type="password" minlength="12" maxlength="72" autocomplete="new-password" aria-describedby="passwordResetHelp" required><small id="passwordResetHelp">Use at least 12 characters. Common passwords and your email name are not allowed. Maximum: 72 UTF-8 bytes.</small></div>
+          <button type="submit" class="auth-submit">Reset password</button>
+        </form>
+        <p id="passwordResetStatus" class="auth-message" role="status" aria-live="polite"></p>
+      </details>
+
+      <p class="auth-switch">
+        New to PathForge?
+        <a href="register.html">Create an account</a>
+      </p>
+    </div>
+
+    <aside class="auth-benefits" aria-labelledby="loginBenefitsTitle">
+      <p class="auth-eyebrow">Account access</p>
+      <h2 id="loginBenefitsTitle">Sign in with confidence</h2>
+      <ul>
+        <li>
+          <span aria-hidden="true">1</span>
+          <div>
+            <strong>Use either account identifier</strong>
+            <p>Enter the email address or username associated with your account.</p>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">2</span>
+          <div>
+            <strong>Keep your password private</strong>
+            <p>PathForge will not ask for your password inside either assistant.</p>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">3</span>
+          <div>
+            <strong>Using a shared device?</strong>
+            <p>Log out from the main menu when you finish your session.</p>
+          </div>
+        </li>
+      </ul>
+      <p class="auth-privacy-note">
+        Only enter your credentials on the PathForge login page.
+      </p>
+    </aside>
+  </section>
 </main>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+<footer class="home-footer">
+  <div class="home-footer-brand">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img src="assets/branding/pathforge-logo.svg" alt="PathForge" width="189" height="40">
+    </a>
+    <p>Explore verified opportunities and practical career resources.</p>
+  </div>
+  <nav aria-label="Footer navigation">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="learning-center.html">Resources</a>
+    <a href="employer-access.html">Employers</a>
+    <a href="login.html">Login</a>
+  </nav>
+  <p class="home-footer-note">&copy; 2026 PathForge. Confirm current requirements and application details with the employer.</p>
+</footer>
+
 
 </body>
 </html>

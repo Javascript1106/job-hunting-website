@@ -1,0 +1,31 @@
+{
+  "name": "PathForge Career Workspace",
+  "short_name": "PathForge",
+  "description": "Find jobs, organize applications, prepare for interviews, and build career skills.",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#172334",
+  "orientation": "any",
+  "categories": ["business", "education", "productivity"],
+  "icons": [
+    {
+      "src": "assets/branding/pathforge-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/branding/pathforge-mark.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Find jobs", "short_name": "Jobs", "url": "jobs.html", "icons": [{ "src": "assets/branding/pathforge-mark.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "Applications", "short_name": "Applications", "url": "applications.html", "icons": [{ "src": "assets/branding/pathforge-mark.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "Messages", "short_name": "Messages", "url": "messages.html", "icons": [{ "src": "assets/branding/pathforge-mark.svg", "sizes": "any", "type": "image/svg+xml" }] }
+  ]
+}

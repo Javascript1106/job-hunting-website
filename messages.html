@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!-- Authenticated applicant-employer conversations tied to PathForge applications. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - PathForge</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
+</head>
+<body>
+<!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
+  <a class="nav-brand" href="index.html" aria-label="PathForge home"><img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40"><img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44"></a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="jobs.html">Jobs</a><a id="dashboardLink" href="dashboard.html">Dashboard</a><a id="profileLink" href="profile.html">Profile</a><a id="savedJobsLink" href="saved-jobs.html">Saved Jobs</a><a id="applicationsLink" href="applications.html">Applications</a><a id="learningCenterLink" href="learning-center.html">Resources + AI Assistant</a><a id="employerAccessLink" href="employer-access.html">Employer Access</a><a id="loginLink" href="login.html">Login</a><a id="registerLink" href="register.html">Register</a><a id="employerDashboardLink" href="employer.html">Employer Dashboard</a><button id="logoutButton" class="nav-logout" type="button">Logout</button></div>
+</nav>
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="messages-page">
+  <header class="messages-hero"><p class="section-kicker">Application conversations</p><h1>Messages</h1><p>Communicate about active PathForge applications without sharing passwords, Social Security numbers, banking information, or payment-card details.</p></header>
+  <p id="messagesPageStatus" class="form-message" role="status" aria-live="polite"></p>
+  <div class="messages-layout">
+    <aside class="messages-sidebar" aria-label="Conversations">
+      <div class="messages-sidebar-heading"><h2>Conversations</h2><button id="newConversationButton" class="button-secondary" type="button">Start</button></div>
+      <div id="conversationList" class="conversation-list"><p>Loading conversations…</p></div>
+    </aside>
+    <section id="messageThread" class="message-thread" aria-labelledby="messageThreadTitle">
+      <div class="message-thread-empty"><h2 id="messageThreadTitle">Choose a conversation</h2><p>Select an application conversation or start a new one.</p></div>
+    </section>
+  </div>
+</main>
+
+<div id="newConversationDialog" class="application-dialog-overlay hidden" role="presentation">
+  <section class="application-dialog messages-start-dialog" role="dialog" aria-modal="true" aria-labelledby="newConversationTitle">
+    <button id="closeNewConversationDialog" class="application-dialog-close" type="button" aria-label="Close">✕</button>
+    <h2 id="newConversationTitle">Start an application conversation</h2>
+    <p>Messaging is available only for applications submitted directly through PathForge.</p>
+    <div id="eligibleConversationList" class="eligible-conversation-list"><p>Loading applications…</p></div>
+  </section>
+</div>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+</body>
+</html>

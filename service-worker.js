@@ -1,0 +1,51 @@
+// Offline shell for public PathForge pages and versioned static assets.
+const CACHE_NAME = "pathforge-shell-20260922-v100";
+const ASSET_VERSION = "20260922-v100";
+// Cache only the public application shell. Account data and API responses
+// remain network-backed so private or stale records are never served offline.
+const SHELL_FILES = [
+  "./", "./index.html", "./jobs.html", "./search-history.html", "./login.html", "./register.html",
+  "./offline.html", "./offline.js", `./style.css?v=${ASSET_VERSION}`, `./pathforge-core.js?v=${ASSET_VERSION}`, `./script.js?v=${ASSET_VERSION}`, "./manifest.webmanifest",
+  "./assets/branding/pathforge-logo.svg", "./assets/branding/pathforge-logo-dark.svg",
+  "./assets/branding/pathforge-mark.svg", "./assets/branding/pathforge-mark-dark.svg",
+  "./assets/branding/pathforge-favicon.svg"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_FILES)));
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", event => {
+  // A version change removes the previous shell atomically after installation.
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))));
+  self.clients.claim();
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate") {
+    // Prefer a fresh page, falling back to a cached route or the offline screen.
+    event.respondWith(
+      fetch(request).catch(async () => (
+        await caches.match(request, { ignoreSearch: true })
+        || await caches.match("./offline.html")
+      ))
+    );
+    return;
+  }
+
+  if (["style", "script", "image", "font", "manifest"].includes(request.destination)) {
+    // Static assets are cache-first and populate the active version on demand.
+    event.respondWith(
+      caches.match(request).then(cached => cached || fetch(request).then(response => {
+        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+        return response;
+      }))
+    );
+  }
+});

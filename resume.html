@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<!-- Résumé review workspace; job comparisons report evidence and gaps without rewriting the user's facts. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Review - PathForge</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
+</head>
+<body>
+<!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
+  <a class="nav-brand" href="index.html" aria-label="PathForge home">
+    <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
+    <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a id="dashboardLink" href="dashboard.html">Dashboard</a>
+    <a id="profileLink" href="profile.html">Profile</a>
+    <a id="savedJobsLink" href="saved-jobs.html">Saved Jobs</a>
+    <a id="applicationsLink" href="applications.html">Applications</a>
+    <a id="learningCenterLink" href="learning-center.html">Resources + AI Assistant</a>
+    <a id="employerAccessLink" href="employer-access.html">Employer Access</a>
+    <a id="loginLink" href="login.html">Login</a>
+    <a id="registerLink" href="register.html">Register</a>
+    <a id="employerDashboardLink" href="employer.html">Employer Dashboard</a>
+    <button id="logoutButton" class="nav-logout">Logout</button>
+  </div>
+</nav>
+
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="resume-review-container">
+  <header class="resume-review-hero">
+    <p class="dashboard-eyebrow">Resume workspace</p>
+    <h1>Review your resume</h1>
+    <p>
+      Check structure, clarity, measurable results, and how clearly your
+      résumé supports a target job's stated requirements. This review is
+      guidance—not a hiring decision or guarantee.
+    </p>
+  </header>
+
+  <section class="resume-privacy-note" aria-label="Privacy note">
+    <strong>Your resume is not saved to your account.</strong>
+    A selected file is processed only to extract readable text for this review.
+  </section>
+
+  <form id="resumeReviewForm" class="resume-review-form">
+    <section class="resume-review-panel">
+      <h2>1. Add your resume</h2>
+      <div class="resume-upload-field">
+        <label id="resumeUploadLabel" class="resume-upload-label" for="resumeFile">Upload your resume (optional)</label>
+        <div id="resumeDropZone" class="resume-drop-zone" role="button" tabindex="0"
+          aria-labelledby="resumeUploadLabel resumeDropZoneTitle" aria-describedby="resumeFileStatus">
+          <svg class="resume-drop-zone-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+          </svg>
+          <strong id="resumeDropZoneTitle">Drag and drop your resume here</strong>
+          <span id="resumeDropZoneHint">or select this box to browse your files</span>
+          <span class="resume-drop-zone-action" aria-hidden="true">Browse files</span>
+        </div>
+        <input id="resumeFile" class="resume-file-input" type="file" accept=".pdf,.docx,.rtf,.txt,.md,.csv,.json,.html,.htm,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/rtf" tabindex="-1">
+        <p id="resumeFileStatus" class="field-help" aria-live="polite">
+          Supported: PDF, DOCX, RTF, TXT, Markdown, CSV, JSON, HTML, and XML up to 5 MB.
+        </p>
+      </div>
+      <button id="showResumeTextButton" class="resume-text-fallback-button button-secondary" type="button" aria-expanded="false" aria-controls="resumeTextFallback">Can't upload a file? Paste resume text instead</button>
+      <div id="resumeTextFallback" class="profile-field resume-text-fallback hidden">
+        <label for="resumeText">Resume text</label>
+        <textarea id="resumeText" rows="16"
+          placeholder="Paste your resume text here…"></textarea>
+      </div>
+    </section>
+
+    <section class="resume-review-panel">
+      <h2>2. Choose a job to review against (optional)</h2>
+      <p id="resumeJobTargetStatus" class="resume-target-status" role="status" aria-live="polite"></p>
+      <div class="profile-field">
+        <label for="resumeTargetRole">Target role</label>
+        <input id="resumeTargetRole" type="text" maxlength="120"
+          placeholder="Enter a role or career area">
+      </div>
+      <div class="profile-field">
+        <label for="resumeCareerStage">Experience level</label>
+        <select id="resumeCareerStage" aria-describedby="resumeCareerStageHelp">
+          <option value="auto" selected>Let PathForge decide</option>
+          <option value="student">Student</option>
+          <option value="entry_level">First job or entry-level</option>
+          <option value="career_changer">Career changer</option>
+          <option value="mid_level">Mid-level or experienced</option>
+          <option value="executive">Executive or senior leadership</option>
+        </select>
+        <p id="resumeCareerStageHelp" class="field-help">Optional. Leave this on automatic unless the detected stage does not fit your background.</p>
+      </div>
+      <div class="profile-field">
+        <label for="resumeJobDescription">Job description</label>
+        <textarea id="resumeJobDescription" rows="10"
+          placeholder="Paste a job description to compare its requirements with evidence in your résumé…"></textarea>
+      </div>
+    </section>
+
+    <div class="resume-review-actions">
+      <button type="submit" id="reviewResumeButton">Review resume</button>
+      <button type="button" id="clearResumeButton" class="button-secondary">
+        Clear
+      </button>
+    </div>
+    <p id="resumeReviewStatus" class="profile-message" aria-live="polite"></p>
+  </form>
+
+  <section id="resumeReviewResults" class="resume-review-results hidden"
+    aria-labelledby="resumeReviewResultsTitle" tabindex="-1">
+    <p class="resume-review-complete success-message" role="status">✓ Resume reviewed successfully</p>
+    <div class="resume-results-heading">
+      <div>
+        <p class="dashboard-eyebrow">Review complete</p>
+        <h2 id="resumeReviewResultsTitle">Your resume feedback</h2>
+      </div>
+    </div>
+    <div class="resume-score-overview">
+      <section class="resume-score-overview-card resume-score-number-card" aria-label="Overall resume score">
+        <p class="resume-score-card-label">Overall score</p>
+        <div class="resume-readiness">
+          <span class="resume-readiness-value"><strong id="resumeReadinessScore">0</strong><span>/100</span></span>
+        </div>
+        <p id="resumeCurrentScoreRange" class="resume-current-score-range"></p>
+      </section>
+      <section class="resume-score-overview-card resume-score-summary-card" aria-labelledby="resumeScoreSummaryTitle">
+        <h3 id="resumeScoreSummaryTitle">Score summary</h3>
+        <p id="resumeReviewSummary" class="resume-review-summary"></p>
+      </section>
+      <section class="resume-score-overview-card resume-score-range-card" aria-labelledby="resumeScoreRangesTitle">
+        <h3 id="resumeScoreRangesTitle">Score ranges</h3>
+        <div class="resume-score-ranges" aria-label="Resume score range guide">
+          <span data-score-min="1" data-score-max="40"><strong>1–40</strong> Early foundation</span>
+          <span data-score-min="41" data-score-max="60"><strong>41–60</strong> Developing</span>
+          <span data-score-min="61" data-score-max="80"><strong>61–80</strong> Strong</span>
+          <span data-score-min="81" data-score-max="100"><strong>81–100</strong> Exceptional evidence</span>
+        </div>
+      </section>
+      </div>
+    <section id="resumeScoreContext" class="resume-score-context" aria-labelledby="resumeScoreContextTitle">
+      <div class="resume-score-context-heading">
+        <div>
+          <p class="dashboard-eyebrow">How this score was determined</p>
+          <h3 id="resumeScoreContextTitle">Score context</h3>
+        </div>
+        <span id="resumeDetectedCareerStage" class="resume-career-stage-badge"></span>
+      </div>
+      <p id="resumeScoreContextExplanation"></p>
+      <p id="resumeScoreRubric" class="resume-score-rubric"></p>
+      <div class="resume-score-factor-grid">
+        <div>
+          <h4>What held the score back</h4>
+          <ul id="resumeScoreLoweringFactors"></ul>
+        </div>
+        <div>
+          <h4>What supported the score</h4>
+          <ul id="resumeScoreSupportingFactors"></ul>
+        </div>
+      </div>
+      <p id="resumeScoreReassurance" class="resume-score-reassurance"></p>
+    </section>
+    <section class="resume-strengths-section">
+      <h3>Strong points</h3>
+      <ul id="resumeStrengths"></ul>
+    </section>
+    <div id="resumeReviewChecks" class="resume-review-checks"></div>
+    <section id="resumeKeywordSection" class="resume-keyword-section hidden">
+      <h3>Job-match words</h3>
+      <p id="resumeKeywordSummary"></p>
+      <div id="resumeKeywordList" class="resume-keyword-list"></div>
+    </section>
+    <section id="resumeTailoringEvidence" class="resume-tailoring-evidence hidden">
+      <h3>Résumé suitability evidence for this job</h3>
+      <p>This comparison checks whether your résumé contains wording that may support the posting's requirements. It cannot determine eligibility or predict the employer's decision.</p>
+      <p id="resumeSuitabilitySummary" class="resume-suitability-summary" role="status"></p>
+      <div class="resume-tailoring-columns">
+        <div><h4>Possible supporting evidence</h4><div id="resumeSupportedEvidence"></div></div>
+        <div><h4>Evidence not clearly found</h4><div id="resumeMissingEvidence"></div></div>
+      </div>
+      <div class="resume-tailoring-prompts"><h4>Questions to verify before applying</h4><ul id="resumeTailoringPrompts"></ul></div>
+    </section>
+    <section class="resume-next-steps">
+      <h3>What to improve first</h3>
+      <ol id="resumeNextSteps"></ol>
+    </section>
+  </section>
+</main>
+
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+</body>
+</html>

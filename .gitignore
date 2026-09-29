@@ -224,3 +224,4 @@ jobs.db
 jobs.db-journal
 jobs.db-shm
 jobs.db-wal
+backups/

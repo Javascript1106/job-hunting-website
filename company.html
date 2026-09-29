@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!-- Public company research view assembled from verified listing data. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Research — PathForge</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
+</head>
+<body>
+  <!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
+      <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="jobs.html">Jobs</a>
+      <a id="dashboardLink" href="dashboard.html">Dashboard</a>
+      <a id="profileLink" href="profile.html">Profile</a>
+      <a id="savedJobsLink" href="saved-jobs.html">Saved Jobs</a>
+      <a id="applicationsLink" href="applications.html">Applications</a>
+      <a id="learningCenterLink" href="learning-center.html">Resources + AI Assistant</a>
+      <a id="employerAccessLink" href="employer-access.html">Employer Access</a>
+      <a id="loginLink" href="login.html">Login</a><a id="registerLink" href="register.html">Register</a>
+      <a id="employerDashboardLink" href="employer.html">Employer Dashboard</a>
+      <button id="logoutButton" class="nav-logout">Logout</button>
+    </div>
+  </nav>
+  <!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main id="companyResearchMain" class="company-research-main">
+    <p id="companyResearchStatus" class="form-message" role="status" aria-live="polite">Loading company research…</p>
+    <section id="companyResearchContent" hidden>
+      <header class="company-research-hero">
+        <div id="companyResearchLogo" class="company-research-logo" aria-hidden="true"></div>
+        <div><p class="section-eyebrow">Company research</p><h1 id="companyResearchName"></h1><p id="companyResearchDescription"></p></div>
+        <a id="companyResearchWebsite" class="company-website-link" target="_blank" rel="noopener noreferrer" hidden>Visit company website</a>
+      </header>
+      <p class="company-research-disclaimer">Information is labeled by source. PathForge does not independently verify employer-provided descriptions, benefits, or hiring-process statements.</p>
+      <section id="companyResearchSummary" class="company-research-summary" aria-label="Company job summary"></section>
+      <div class="company-research-grid">
+        <section class="company-research-panel"><h2>Workplace and hiring information</h2><div id="companyResearchWorkplace"></div></section>
+        <section class="company-research-panel"><h2>Verified external resources</h2><div id="companyResearchSources"></div></section>
+      </div>
+      <section class="company-research-panel company-jobs-section"><div class="company-jobs-heading"><div><h2>Active PathForge jobs</h2><p id="companyJobsCount"></p></div><a href="jobs.html">Browse all jobs</a></div><div id="companyResearchJobs" class="company-research-jobs"></div></section>
+    </section>
+  </main>
+  <script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+<footer class="home-footer">
+  <div class="home-footer-brand">
+    <a class="nav-brand" href="index.html" aria-label="PathForge home">
+      <img src="assets/branding/pathforge-logo.svg" alt="PathForge" width="189" height="40">
+    </a>
+    <p>Explore verified opportunities and practical career resources.</p>
+  </div>
+  <nav aria-label="Footer navigation">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="learning-center.html">Resources</a>
+    <a href="employer-access.html">Employers</a>
+    <a href="login.html">Login</a>
+  </nav>
+  <p class="home-footer-note">&copy; 2026 PathForge. Confirm current requirements and application details with the employer.</p>
+</footer>
+
+</body>
+</html>

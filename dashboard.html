@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Authenticated job-seeker dashboard summarizing saved jobs, applications, and next actions. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,12 +12,13 @@
   <title>User Dashboard - PathForge</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 
 <body>
 
-  <nav class="main-nav" aria-label="Primary navigation">
+  <!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
       <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
       <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
@@ -63,8 +65,8 @@
       id="learningCenterLink"
       href="learning-center.html"
     >
-      Learning Center
-    </a> 
+      Resources + AI Assistant
+    </a>
 
 
       <a
@@ -105,16 +107,17 @@
     </div>
   </nav>
 
-  <main class="dashboard-container">
+  <!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="dashboard-container">
 
     <section class="dashboard-welcome">
       <p class="dashboard-eyebrow">
         Your PathForge workspace
       </p>
 
-      <h2 id="dashboardWelcome">
+      <h1 id="dashboardWelcome">
         Welcome back!
-      </h2>
+      </h1>
 
       <p>
         Track your progress and quickly return to the
@@ -207,14 +210,64 @@
         </p>
       </a>
 
+      <a
+        class="dashboard-card dashboard-card-link"
+        href="jobs.html#savedSearchesSection"
+      >
+        <p class="dashboard-card-label">
+          New Job Alerts
+        </p>
+
+        <p
+          class="dashboard-card-value"
+          id="jobAlertsCount"
+        >
+          0
+        </p>
+
+        <p class="dashboard-card-note">
+          Newly added jobs matching your saved searches
+        </p>
+      </a>
+
+    </section>
+
+    <section
+      class="next-best-actions-section"
+      aria-labelledby="nextBestActionsTitle"
+    >
+      <div class="dashboard-section-heading">
+        <div>
+          <p class="dashboard-eyebrow">Prioritized from your activity</p>
+          <h2 id="nextBestActionsTitle">Next Best Actions</h2>
+        </div>
+
+        <p>
+          Useful steps based on dates and information already saved in
+          PathForge.
+        </p>
+      </div>
+
+      <p
+        id="nextBestActionsStatus"
+        class="next-best-actions-status"
+        role="status"
+        aria-live="polite"
+      >
+        Loading your next actions...
+      </p>
+
+      <div id="nextBestActionsList" class="next-best-actions-list"></div>
+
+      <p id="nextBestActionsExplanation" class="next-best-actions-explanation"></p>
     </section>
 
     <section class="dashboard-actions-section">
 
       <div class="dashboard-section-heading">
-        <h3>
+        <h2>
           Quick Actions
-        </h3>
+        </h2>
 
         <p>
           Jump directly to your next job-search task.
@@ -282,7 +335,8 @@
 
   </main>
 
-  <script src="script.js?v=20260729-deadlines"></script>
+  <script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
 
 </body>
 </html>

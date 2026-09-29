@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Authenticated collection of jobs bookmarked from the public search experience. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,11 +12,12 @@
   <title>Saved Jobs - PathForge</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
   <a class="nav-brand" href="index.html" aria-label="PathForge home">
     <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -46,7 +48,7 @@
       id="learningCenterLink"
       href="learning-center.html"
     >
-      Learning Center
+      Resources + AI Assistant
     </a>
 
     <a
@@ -81,13 +83,14 @@
   </div>
 </nav>
 
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
 <main class="saved-jobs-container">
   <section class="saved-jobs-header">
     <p class="dashboard-eyebrow">
       Your job shortlist
     </p>
 
-    <h2>Saved Jobs</h2>
+    <h1>Saved Jobs</h1>
 
     <p>
       Review the jobs you saved and remove positions
@@ -104,7 +107,8 @@
   </section>
 </main>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
 
 </body>
 </html>

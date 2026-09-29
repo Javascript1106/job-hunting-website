@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<!-- Minimal fallback shown when navigation fails while PathForge is offline. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#142238">
+  <title>Offline - PathForge</title>
+  <link rel="icon" href="assets/branding/pathforge-favicon.svg">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #142238;
+      background: #f3f7ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(42, 100, 230, 0.14), transparent 32rem),
+        linear-gradient(145deg, #f8fbff 0%, #edf4ff 100%);
+    }
+
+    main {
+      width: min(100%, 650px);
+      padding: clamp(28px, 6vw, 52px);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #cbdcf7;
+      border-radius: 28px;
+      box-shadow: 0 24px 70px rgba(20, 34, 56, 0.14);
+    }
+
+    .brand {
+      width: min(260px, 75%);
+      height: auto;
+      margin-bottom: 30px;
+    }
+
+    .status-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      display: grid;
+      place-items: center;
+      color: #245be0;
+      background: #eaf1ff;
+      border-radius: 22px;
+    }
+
+    .status-icon svg { width: 38px; height: 38px; }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 6vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+    }
+
+    p {
+      max-width: 500px;
+      margin: 0 auto;
+      color: #52627a;
+      font-size: clamp(1rem, 2.4vw, 1.15rem);
+      line-height: 1.7;
+    }
+
+    .connection-status {
+      margin-top: 18px;
+      color: #7a4d00;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    button,
+    .home-link {
+      min-height: 48px;
+      padding: 12px 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 750;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    button {
+      color: #fff;
+      background: #245be0;
+      border: 2px solid #245be0;
+      box-shadow: 0 8px 20px rgba(36, 91, 224, 0.24);
+    }
+
+    .home-link {
+      color: #173a82;
+      background: #fff;
+      border: 2px solid #b7caf0;
+    }
+
+    button:hover,
+    .home-link:hover { transform: translateY(-2px); }
+    button:hover { background: #174bc7; }
+    .home-link:hover { background: #f1f6ff; }
+
+    button:focus-visible,
+    .home-link:focus-visible {
+      outline: 4px solid rgba(36, 91, 224, 0.28);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 14px; }
+      main { border-radius: 22px; }
+      .actions { flex-direction: column; }
+      button, .home-link { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      button, .home-link { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main>
+    <img class="brand" src="assets/branding/pathforge-logo.svg" alt="PathForge">
+
+    <div class="status-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+        <path d="M12 20h.01"></path>
+        <path d="M3 3l18 18"></path>
+      </svg>
+    </div>
+
+    <h1>PathForge couldn’t load this page</h1>
+    <p>
+      Your saved information remains safe. Check that the PathForge website server is
+      running, confirm your connection, and then try again.
+    </p>
+    <p id="connectionStatus" class="connection-status" role="status" aria-live="polite">
+      Waiting for PathForge to become available
+    </p>
+
+    <div class="actions">
+      <button id="retryConnectionButton" type="button">Try again</button>
+      <a class="home-link" href="index.html">Go to cached home page</a>
+    </div>
+  </main>
+
+  <script src="offline.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Employer sign-in and onboarding gateway; protected employer tools remain on employer.html. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,11 +8,12 @@
   <title>Employer Access - PathForge</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
   <a class="nav-brand" href="index.html" aria-label="PathForge home">
     <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -42,8 +44,8 @@
       id="learningCenterLink"
       href="learning-center.html"
     >
-    Learning Center
-    </a> 
+      Resources + AI Assistant
+    </a>
 
 
     <a id="employerAccessLink" href="employer-access.html">
@@ -68,25 +70,57 @@
   </div>
 </nav>
 
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
 <main class="employer-access-container">
 
   <section class="employer-access-card">
 
-    <p class="dashboard-eyebrow">
-      Employer Approval
-    </p>
+    <p class="dashboard-eyebrow">Employer setup</p>
 
-    <h2>Unlock Employer Access</h2>
+    <h1>Set up your employer workspace</h1>
 
     <p>
-      Enter the one-time Employer Access Code supplied by PathForge.
-      A valid code will permanently upgrade your account to an employer account.
+      Use your current PathForge login to post jobs and review applicants.
+      You do not need a separate employer account.
     </p>
+
+    <ol class="employer-setup-steps" aria-label="Employer setup steps">
+      <li><strong>Name your organization</strong><span>Enter the name applicants should see.</span></li>
+      <li><strong>Confirm it is you</strong><span>Re-enter your current PathForge password.</span></li>
+      <li><strong>Open your workspace</strong><span>Add company details and publish jobs.</span></li>
+    </ol>
+
+    <form id="employerWorkspaceForm" class="auth-form employer-workspace-form">
+      <label for="employerWorkspaceCompany">Company or organization name</label>
+      <input id="employerWorkspaceCompany" type="text" maxlength="120" autocomplete="organization" required placeholder="Enter your organization name">
+
+      <label for="employerWorkspacePassword">Current PathForge password</label>
+      <input id="employerWorkspacePassword" type="password" autocomplete="current-password" required>
+      <p class="auth-help">This confirms that only you can add employer access to your account.</p>
+
+      <details class="employer-optional-setup">
+        <summary>Optional company details</summary>
+        <label for="employerWorkspaceWebsite">Company website</label>
+        <input id="employerWorkspaceWebsite" type="url" maxlength="300" autocomplete="url" placeholder="https://example.com">
+
+        <label for="employerWorkspaceEmail">Employer contact email</label>
+        <input id="employerWorkspaceEmail" type="email" autocomplete="email" placeholder="Use your PathForge email or enter another address">
+        <p class="auth-help">You may use the same email as your personal account.</p>
+      </details>
+
+      <button type="submit">Set Up Employer Workspace</button>
+    </form>
+
+    <p id="employerWorkspaceMessage" class="auth-message" aria-live="polite"></p>
+
+    <details class="legacy-employer-code">
+      <summary>Use an employer invitation code</summary>
+      <p>Only use this option if PathForge gave you a code.</p>
 
     <form id="employerAccessForm" class="auth-form">
 
       <label for="employerAccessCode">
-        Employer Access Code
+        Invitation code
       </label>
 
       <input
@@ -98,7 +132,7 @@
       >
 
       <button type="submit">
-        Verify Access Code
+        Continue with Code
       </button>
 
     </form>
@@ -108,12 +142,14 @@
       class="auth-message"
       aria-live="polite"
     ></p>
+    </details>
 
   </section>
 
 </main>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
 
 </body>
 </html>

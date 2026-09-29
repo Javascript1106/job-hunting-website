@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!-- Authenticated settings page for account security, sessions, verification, and privacy choices. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - PathForge</title>
+  <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
+</head>
+<body>
+<!-- Shared navigation is populated according to the current session and account role. -->
+<nav class="main-nav" aria-label="Primary navigation">
+  <a class="nav-brand" href="index.html" aria-label="PathForge home">
+    <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
+    <img class="nav-brand-mark" src="assets/branding/pathforge-mark-dark.svg" alt="" width="44" height="44">
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="jobs.html">Jobs</a>
+    <a id="dashboardLink" href="dashboard.html">Dashboard</a>
+    <a id="profileLink" href="profile.html">Profile</a>
+    <a id="savedJobsLink" href="saved-jobs.html">Saved Jobs</a>
+    <a id="applicationsLink" href="applications.html">Applications</a>
+    <a id="learningCenterLink" href="learning-center.html">Resources + AI Assistant</a>
+    <a id="employerAccessLink" href="employer-access.html">Employer Access</a>
+    <a id="loginLink" href="login.html">Login</a><a id="registerLink" href="register.html">Register</a>
+    <a id="employerDashboardLink" href="employer.html">Employer Dashboard</a>
+    <button id="logoutButton" class="nav-logout" type="button">Logout</button>
+  </div>
+</nav>
+
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
+<main class="account-security-page">
+  <header class="account-security-hero">
+    <p class="section-kicker">Your preferences</p>
+    <h1>Settings</h1>
+    <p>Choose how PathForge works for you. Account and privacy tools are available below whenever you need them.</p>
+  </header>
+
+  <div class="account-security-grid">
+    <section class="account-security-card account-security-wide" aria-labelledby="privacyHeading">
+      <h2 id="privacyHeading">Your PathForge preferences</h2>
+      <form id="privacySettingsForm" class="privacy-settings-form">
+        <label><input id="allowPersonalizedGuidance" type="checkbox"> Personalize guidance using my PathForge activity</label>
+        <label><input id="allowEmployerDiscovery" type="checkbox"> Let verified employers find my profile</label>
+        <label><input id="securityNotifications" type="checkbox"> Turn on PathForge notifications</label>
+        <small>When turned off, PathForge pauses the notification feed and hides new-alert counts. Saved searches remain saved.</small>
+        <button type="submit">Save settings</button>
+        <p id="privacySettingsStatus" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <details class="account-security-card settings-details">
+      <summary><span id="emailVerificationHeading">Email and verification</span><small>Confirm your email or resend a code</small></summary>
+      <p id="emailVerificationSummary">Checking your verification status…</p>
+      <div id="emailVerificationControls" class="email-verification-controls hidden">
+        <button id="sendVerificationCodeButton" type="button">Send verification code</button>
+        <form id="emailVerificationForm" class="hidden">
+          <label for="emailVerificationCode">Six-digit code</label>
+          <input id="emailVerificationCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+          <button type="submit">Verify email</button>
+        </form>
+      </div>
+      <p id="emailVerificationStatus" class="form-message" role="status" aria-live="polite"></p>
+    </details>
+
+    <details class="account-security-card settings-details">
+      <summary><span id="passwordHeading">Password</span><small>Update the password used to sign in</small></summary>
+      <p>For your protection, each new login must be verified by email before changing the password. Verification lasts 15 minutes and logging out clears it.</p>
+      <div class="sensitive-verification-controls">
+        <button id="sendSensitiveCodeButton" type="button">Verify identity by email</button>
+        <form id="sensitiveVerificationForm" class="hidden">
+          <label for="sensitiveVerificationCode">Six-digit security code</label>
+          <input id="sensitiveVerificationCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+          <button type="submit">Confirm it is me</button>
+        </form>
+        <p id="sensitiveVerificationStatus" class="form-message" role="status" aria-live="polite"></p>
+      </div>
+      <form id="changePasswordForm" class="hidden">
+        <label for="currentPassword">Current password</label>
+        <input id="currentPassword" type="password" autocomplete="current-password" required>
+        <label for="newPassword">New password</label>
+        <input id="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="72" required aria-describedby="passwordHelp">
+        <small id="passwordHelp">Use at least 12 characters. Common passwords and your username or email name are not allowed. Maximum: 72 UTF-8 bytes.</small>
+        <button type="submit">Securely change password</button>
+        <p id="passwordChangeStatus" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </details>
+
+    <details class="account-security-card account-security-wide settings-details">
+      <summary><span id="sessionsHeading">Signed-in devices</span><small>Review where your account is signed in</small></summary>
+      <div class="account-security-heading-row"><p>Review browsers with access to your account and revoke anything unfamiliar.</p><button id="refreshSessionsButton" class="button-secondary" type="button">Refresh</button></div>
+      <div id="accountSessionsList" class="account-session-list" aria-live="polite"><p>Loading sessions…</p></div>
+    </details>
+
+    <details class="account-security-card settings-details">
+      <summary><span id="activityHeading">Recent account activity</span><small>See important sign-in and account changes</small></summary>
+      <div id="securityEventsList" class="security-event-list" aria-live="polite"><p>Loading activity…</p></div>
+    </details>
+
+    <details class="account-security-card settings-details">
+      <summary><span id="downloadHeading">Your PathForge data</span><small>Download a copy of your information</small></summary>
+      <p>Download a JSON copy of your profile, saved jobs, searches, applications, notifications, and security history.</p>
+      <button id="downloadAccountDataButton" type="button">Download my data</button>
+      <p id="dataDownloadStatus" class="form-message" role="status" aria-live="polite"></p>
+    </details>
+  </div>
+</main>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
+</body>
+</html>

@@ -1,3 +1,5 @@
+"""Adapter for retrieving and normalizing public federal listings from USAJOBS."""
+
 import os
 from urllib.parse import urlencode
 
@@ -36,6 +38,7 @@ def date_only(value):
     return text[:10] if len(text) >= 10 else None
 
 
+# USAJOBS credentials come from the environment and are never stored in source data.
 def fetch_jobs(configuration):
     api_key = os.getenv("USAJOBS_API_KEY")
     user_agent = os.getenv("USAJOBS_USER_AGENT")
@@ -57,27 +60,38 @@ def fetch_jobs(configuration):
     if configuration.get("remote_only"):
         query["RemoteIndicator"] = "true"
 
-    url = (
-        "https://data.usajobs.gov/api/Search?"
-        + urlencode(query)
-    )
-    payload = fetch_json(
-        url,
-        headers={
-            "Authorization-Key": api_key,
-            "User-Agent": user_agent,
-            "Host": "data.usajobs.gov"
-        }
-    )
-    items = (
-        payload.get("SearchResult", {})
-        .get("SearchResultItems", [])
-    )
+    items = []
+    page_count = max(1, min(int(configuration.get("pages", 1)), 10))
+    headers = {
+        "Authorization-Key": api_key,
+        "User-Agent": user_agent,
+        "Host": "data.usajobs.gov"
+    }
+    for page in range(1, page_count + 1):
+        page_query = {**query, "Page": page}
+        payload = fetch_json(
+            "https://data.usajobs.gov/api/Search?" + urlencode(page_query),
+            headers=headers,
+        )
+        page_items = (
+            payload.get("SearchResult", {})
+            .get("SearchResultItems", [])
+        )
+        if not page_items:
+            break
+        items.extend(page_items)
+        if len(page_items) < query["ResultsPerPage"]:
+            break
     source = "USAJOBS"
     records = []
+    seen_position_ids = set()
 
     for item in items:
         descriptor = item.get("MatchedObjectDescriptor") or {}
+        position_id = str(descriptor.get("PositionID") or "").strip()
+        if not position_id or position_id in seen_position_ids:
+            continue
+        seen_position_ids.add(position_id)
         details = (
             descriptor.get("UserArea", {})
             .get("Details", {})
@@ -91,8 +105,10 @@ def fetch_jobs(configuration):
         location = ", ".join(locations) or "Location not listed"
         remote_value = details.get("RemoteIndicator")
         is_remote = (
-            True if remote_value is True
-            or str(remote_value).lower() == "true"
+            True
+            if remote_value is True or str(remote_value).lower() == "true"
+            else False
+            if location != "Location not listed"
             else None
         )
         remuneration = descriptor.get("PositionRemuneration") or []
@@ -129,6 +145,14 @@ def fetch_jobs(configuration):
                 details.get("JobSummary"),
                 fallback
             ),
+            "requirements": (
+                concise_summary(
+                    details.get("QualificationsSummary"),
+                    "",
+                    limit=1800
+                ) or None
+            ),
+            "preferred_qualifications": None,
             "experience": "See official eligibility requirements",
             "category": classify_category(
                 title,
@@ -140,7 +164,7 @@ def fetch_jobs(configuration):
             "salary_max": maximum,
             "salary_period": period,
             "source": source,
-            "external_job_id": str(descriptor["PositionID"]),
+            "external_job_id": position_id,
             "source_url": descriptor["PositionURI"],
             "posted_at": descriptor.get("PublicationStartDate"),
             "expires_at": application_close_date,

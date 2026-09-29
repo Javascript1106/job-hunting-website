@@ -1,13 +1,11 @@
+"""Create time-limited employer registration codes for an authorized administrator."""
+
 import argparse
 from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
-import sqlite3
 
-from database import initialize_database
-
-
-DB_NAME = "jobs.db"
+from database import DB_NAME, get_connection, initialize_database
 
 
 def hash_access_code(code: str):
@@ -18,6 +16,7 @@ def hash_access_code(code: str):
     ).hexdigest()
 
 
+# Store only a hash; the plaintext enrollment code is displayed once to the operator.
 def generate_code():
     random_section = secrets.token_hex(8).upper()
 
@@ -63,7 +62,7 @@ def main():
             + timedelta(days=args.expires_days)
         ).isoformat()
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection(DB_NAME)
     cursor = conn.cursor()
 
     try:

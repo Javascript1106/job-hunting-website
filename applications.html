@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Authenticated job-seeker application tracker and follow-up workspace. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,11 +12,12 @@
   <title>Application Tracker - PathForge</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260922-v100">
 </head>
 
 <body>
 
+<!-- Shared navigation is populated according to the current session and account role. -->
 <nav class="main-nav" aria-label="Primary navigation">
   <a class="nav-brand" href="index.html" aria-label="PathForge home">
     <img class="nav-brand-logo" src="assets/branding/pathforge-logo-dark.svg" alt="" width="189" height="40">
@@ -50,7 +52,7 @@
       id="learningCenterLink"
       href="learning-center.html"
     >
-      Learning Center
+      Resources + AI Assistant
     </a>
 
     <a
@@ -85,6 +87,7 @@
   </div>
 </nav>
 
+<!-- Primary page content begins here; script.js progressively enhances interactive controls. -->
 <main class="applications-container">
 
   <section class="applications-header">
@@ -92,13 +95,34 @@
       Your hiring progress
     </p>
 
-    <h2>Application Tracker</h2>
+    <h1>Application Tracker</h1>
 
     <p>
       Review your applications, update their status,
       record interviews, and keep track of important
       follow-up dates.
     </p>
+  </section>
+
+  <section class="external-application-capture" aria-labelledby="externalCaptureTitle">
+    <div class="external-capture-heading"><div><p class="dashboard-eyebrow">Applied somewhere else?</p><h2 id="externalCaptureTitle">Add an External Application</h2></div><button id="toggleExternalCaptureButton" class="button-secondary" type="button" aria-expanded="false" aria-controls="externalApplicationForm">Add Application</button></div>
+    <p>Keep applications from any employer website in one tracker. This creates a private tracker entry and does not publish a job on PathForge.</p>
+    <form id="externalApplicationForm" class="external-application-form hidden">
+      <label>Job title<input id="externalJobTitle" type="text" maxlength="180" required placeholder="Enter the job title"></label>
+      <label>Company<input id="externalJobCompany" type="text" maxlength="180" required placeholder="Employer name"></label>
+      <label>Location<input id="externalJobLocation" type="text" maxlength="240" placeholder="City, state, ZIP code, or Remote"></label>
+      <label>Application link<input id="externalJobUrl" type="url" maxlength="1000" placeholder="https://company.com/jobs/..."></label>
+      <label>Application date<input id="externalAppliedAt" type="date"></label>
+      <label>Follow-up date<input id="externalFollowUpDate" type="date"></label>
+      <label class="external-capture-wide">Notes<textarea id="externalApplicationNotes" rows="3" maxlength="5000" placeholder="Confirmation number, contact, or next step"></textarea></label>
+      <div class="external-capture-actions"><button type="button" id="cancelExternalCaptureButton" class="button-secondary">Cancel</button><button type="submit">Add to Tracker</button></div>
+      <p id="externalCaptureStatus" class="form-message external-capture-wide" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section class="application-health-section" aria-labelledby="applicationHealthTitle">
+    <div class="application-health-heading"><div><p class="dashboard-eyebrow">Tracker checkup</p><h2 id="applicationHealthTitle">Application Health Check</h2></div><p>Clear, factual reminders based on the information saved in your tracker.</p></div>
+    <div id="applicationHealthSummary" class="application-health-summary" aria-live="polite"><p>Checking your applications...</p></div>
   </section>
 
   <section
@@ -111,7 +135,8 @@
 
 </main>
 
-<script src="script.js?v=20260729-deadlines"></script>
+<script src="pathforge-core.js?v=20260922-v100"></script>
+<script src="script.js?v=20260922-v100"></script>
 
 </body>
 </html>
