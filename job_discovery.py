@@ -191,6 +191,43 @@ def has_accommodation_information(job: dict[str, Any]) -> bool:
     return bool(ACCOMMODATION_PATTERN.search(details))
 
 
+def application_features(job: dict[str, Any]) -> dict[str, bool]:
+    """Return only application attributes explicitly supported by the listing."""
+    details = " ".join(
+        str(job.get(field) or "")
+        for field in (
+            "description", "requirements", "preferred_qualifications",
+        )
+    )
+    no_cover_letter = bool(re.search(
+        r"\b(?:no\s+cover\s+letter\s+(?:is\s+)?required|"
+        r"cover\s+letter\s+(?:is\s+)?(?:not\s+required|optional)|"
+        r"do\s+not\s+(?:include|submit|send)\s+(?:a\s+)?cover\s+letter|"
+        r"resume\s+only)\b",
+        details,
+        re.I,
+    ))
+    accommodation_contact = has_accommodation_information(job) and bool(re.search(
+        r"\b(?:contact|email|call|reach\s+out|notify|let\s+us\s+know)\b",
+        details,
+        re.I,
+    ))
+    additional_steps = bool(re.search(
+        r"\b(?:skills?\s+assessment|written\s+assessment|coding\s+exercise|"
+        r"take[- ]home\s+(?:test|exercise|assignment)|work\s+sample|"
+        r"portfolio\s+(?:is\s+)?required|professional\s+references?\s+required|"
+        r"background\s+check|drug\s+(?:test|screen))\b",
+        details,
+        re.I,
+    ))
+    return {
+        "direct_apply": job.get("application_method") == "pathforge",
+        "no_cover_letter": no_cover_letter,
+        "accommodation_contact": accommodation_contact,
+        "additional_steps": additional_steps,
+    }
+
+
 def _quality_score(job: dict[str, Any]) -> int:
     checks = (
         _has_pay(job),
@@ -336,7 +373,7 @@ def _group_duplicates(jobs: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(groups.values())
 
 
-def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: str = "", location_scope: str = "us", location_mode: str = "nearby", category: str = "all", employment_type: str = "all", remote: str = "all", remote_eligibility: str = "all", experience: str = "all", age_fit: str = "all", date_posted: str = "all", listing_quality: str = "all", minimum_pay: float = 0, exclusions: str = "", exclude_terms: str = "", sort: str = "recommended") -> list[dict[str, Any]]:
+def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: str = "", location_scope: str = "us", location_mode: str = "nearby", category: str = "all", employment_type: str = "all", remote: str = "all", remote_eligibility: str = "all", experience: str = "all", age_fit: str = "all", date_posted: str = "all", listing_quality: str = "all", application_feature: str = "all", minimum_pay: float = 0, exclusions: str = "", exclude_terms: str = "", sort: str = "recommended") -> list[dict[str, Any]]:
     """Apply the public job-search rules and return grouped, ranked results."""
     normalized_location = _text(location)
     cutoff_days = int(date_posted) if date_posted.isdigit() else None
@@ -385,6 +422,9 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
             continue
         if listing_quality == "complete" and quality < 6:
             continue
+        features = application_features(job)
+        if application_feature != "all" and not features.get(application_feature, False):
+            continue
         if minimum_pay > 0 and _minimum_annual_pay(job) < minimum_pay:
             continue
         if _matches_exclusions(job, selected_exclusions, excluded_terms):
@@ -411,6 +451,7 @@ def compact_job(job: dict[str, Any]) -> dict[str, Any]:
     """Trim long card text; full text remains available from /jobs/{id}."""
     compact = dict(job)
     compact["accommodation_info"] = has_accommodation_information(job)
+    compact.update(application_features(job))
     for field in ("description", "requirements", "preferred_qualifications"):
         value = str(compact.get(field) or "")
         if len(value) > 240:

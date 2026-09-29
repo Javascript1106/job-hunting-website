@@ -17,6 +17,7 @@ class RecruiteeSourceTests(unittest.TestCase):
             "department": {"name": "Support"},
             "description": "Requirements<br>- Two years of customer support experience",
             "employment_type_code": "fulltime_permanent",
+            "options_cover_letter": "optional",
             "salary": {
                 "min": "20",
                 "max": "25",
@@ -39,6 +40,7 @@ class RecruiteeSourceTests(unittest.TestCase):
         self.assertTrue(records[0]["is_remote"])
         self.assertEqual(records[0]["employment_type"], "Full-Time")
         self.assertEqual(records[0]["salary_min"], 20.0)
+        self.assertIn("Cover letter is not required", records[0]["description"])
         self.assertIn("Denver", records[0]["location"])
         self.assertIn("customer support experience", records[0]["requirements"])
         self.assertEqual(fetch.call_args.args[0], "https://example.recruitee.com/api/offers")

@@ -126,6 +126,13 @@ def fetch_jobs(configuration):
             f"Official {employer} posting for {title}. "
             "See the employer listing for complete requirements."
         )
+        description = concise_summary(description_source, fallback)
+        cover_letter_option = job.get("options_cover_letter")
+        if (
+            cover_letter_option is False
+            or str(cover_letter_option or "").lower() in {"off", "optional"}
+        ):
+            description = f"{description} Cover letter is not required."
         department = job.get("department")
         if isinstance(department, dict):
             department = department.get("name")
@@ -135,7 +142,7 @@ def fetch_jobs(configuration):
             "title": title,
             "company": employer,
             "location": location,
-            "description": concise_summary(description_source, fallback),
+            "description": description,
             "requirements": extract_qualification_text(
                 job.get("requirements") or description_source
             ),

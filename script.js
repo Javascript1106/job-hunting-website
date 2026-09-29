@@ -1158,6 +1158,17 @@ function hasJobAccommodationInformation(job) {
   return /\b(?:reasonable\s+accommodations?|disability\s+accommodations?|accommodations?\s+(?:during|for|throughout|in)\s+(?:the\s+)?(?:application|interview|hiring|recruit(?:ing|ment)|selection)\s+process|request\s+(?:an?\s+)?accommodations?|need\s+(?:an?\s+)?accommodations?\s+to\s+(?:apply|participate|complete)|alternative\s+(?:method|way)\s+(?:of|to)\s+appl(?:y|ication))\b/i.test(details);
 }
 
+function getJobApplicationFeatures(job) {
+  const details = [job?.description, job?.requirements, job?.preferred_qualifications]
+    .map(value => String(value || "")).join(" ");
+  return {
+    direct_apply: job?.direct_apply === true || job?.application_method === "pathforge",
+    no_cover_letter: job?.no_cover_letter === true || /\b(?:no\s+cover\s+letter\s+(?:is\s+)?required|cover\s+letter\s+(?:is\s+)?(?:not\s+required|optional)|do\s+not\s+(?:include|submit|send)\s+(?:a\s+)?cover\s+letter|resume\s+only)\b/i.test(details),
+    accommodation_contact: job?.accommodation_contact === true || (hasJobAccommodationInformation(job) && /\b(?:contact|email|call|reach\s+out|notify|let\s+us\s+know)\b/i.test(details)),
+    additional_steps: job?.additional_steps === true || /\b(?:skills?\s+assessment|written\s+assessment|coding\s+exercise|take[- ]home\s+(?:test|exercise|assignment)|work\s+sample|portfolio\s+(?:is\s+)?required|professional\s+references?\s+required|background\s+check|drug\s+(?:test|screen))\b/i.test(details)
+  };
+}
+
 function buildJobQualityDetails(job) {
   const quality = buildJobQualityReview(job);
   return `<details class="job-quality-details"><summary><span>Posting quality</span><strong>${quality.confirmed} of ${quality.checks.length} details confirmed · ${quality.label}</strong></summary><ul>${quality.checks.map(([passed, availableLabel, missingLabel]) => `<li class="${passed ? "quality-present" : "quality-missing"}"><span aria-hidden="true">${passed ? "✓" : "–"}</span>${escapeEmployerHtml(passed ? availableLabel : missingLabel)}</li>`).join("")}</ul><p>This reviews the completeness of the posting, not your likelihood of being hired.</p></details>`;
@@ -1328,6 +1339,15 @@ function displayJobs(jobs, append = false) {
             <span class="job-highlight-badge accommodation-info-badge" title="The employer posting mentions application or hiring accommodations.">
               Accommodation Info
             </span>
+          ` : ""}
+          ${getJobApplicationFeatures(job).no_cover_letter ? `
+            <span class="job-highlight-badge no-cover-letter-badge">No Cover Letter Required</span>
+          ` : ""}
+          ${getJobApplicationFeatures(job).accommodation_contact ? `
+            <span class="job-highlight-badge accommodation-contact-badge">Accommodation Contact Mentioned</span>
+          ` : ""}
+          ${getJobApplicationFeatures(job).additional_steps ? `
+            <span class="job-highlight-badge application-steps-badge" title="The posting mentions an assessment, work sample, background check, or similar step.">Additional Steps Mentioned</span>
           ` : ""}
           ${responseDays ? `
             <span class="job-highlight-badge response-time-badge">
@@ -3091,6 +3111,7 @@ function filterJobs(refreshFromServer = true) {
   const ageFitFilter = document.getElementById("ageFitFilter");
   const datePostedFilter = document.getElementById("datePostedFilter");
   const listingQualityFilter = document.getElementById("listingQualityFilter");
+  const applicationFeatureFilter = document.getElementById("applicationFeatureFilter");
   const locationMatchFilter = document.getElementById("locationMatchFilter");
   const remoteEligibilityFilter = document.getElementById("remoteEligibilityFilter");
   const minimumPayFilter = document.getElementById("minimumPayFilter");
@@ -3112,6 +3133,7 @@ function filterJobs(refreshFromServer = true) {
   const selectedAgeFit = ageFitFilter?.value || "all";
   const selectedDatePosted = datePostedFilter?.value || "all";
   const selectedListingQuality = listingQualityFilter?.value || "all";
+  const selectedApplicationFeature = applicationFeatureFilter?.value || "all";
   const selectedLocationMatch = locationMatchFilter?.value || "nearby";
   const selectedRemoteEligibility = remoteEligibilityFilter?.value || "all";
   const minimumPay = Math.max(0, Number(minimumPayFilter?.value) || 0);
@@ -3188,6 +3210,9 @@ function filterJobs(refreshFromServer = true) {
       || (selectedListingQuality === "deadline" && Boolean(job.application_deadline || job.expires_at))
       || (selectedListingQuality === "accommodation" && hasJobAccommodationInformation(job))
       || (selectedListingQuality === "complete" && quality.confirmed >= 6);
+    const applicationFeatures = getJobApplicationFeatures(job);
+    const matchesApplicationFeature = selectedApplicationFeature === "all"
+      || applicationFeatures[selectedApplicationFeature] === true;
     const matchesMinimumPay = !minimumPay || getJobMinimumAnnualPay(job) >= minimumPay;
     const matchesExclusions = jobMatchesStrictExclusions(job, exclusions, excludedTerms);
     return (
@@ -3203,6 +3228,7 @@ function filterJobs(refreshFromServer = true) {
       && matchesAgeFit
       && matchesDatePosted
       && matchesListingQuality
+      && matchesApplicationFeature
       && matchesMinimumPay
       && matchesExclusions
     );
@@ -3222,6 +3248,7 @@ function filterJobs(refreshFromServer = true) {
     { controlId: "ageFitFilter", defaultValue: "all", label: ageFitFilter?.selectedOptions[0]?.textContent || "Age", active: selectedAgeFit !== "all" },
     { controlId: "datePostedFilter", defaultValue: "all", label: datePostedFilter?.selectedOptions[0]?.textContent || "Date posted", active: selectedDatePosted !== "all" },
     { controlId: "listingQualityFilter", defaultValue: "all", label: listingQualityFilter?.selectedOptions[0]?.textContent || "Details", active: selectedListingQuality !== "all" },
+    { controlId: "applicationFeatureFilter", defaultValue: "all", label: applicationFeatureFilter?.selectedOptions[0]?.textContent || "Application", active: selectedApplicationFeature !== "all" },
     { controlId: "locationMatchFilter", defaultValue: "nearby", label: "Exact location only", active: selectedLocationMatch === "exact" },
     { controlId: "remoteEligibilityFilter", defaultValue: "all", label: remoteEligibilityFilter?.selectedOptions[0]?.textContent || "Remote eligibility", active: selectedRemoteEligibility !== "all" },
     { controlId: "minimumPayFilter", defaultValue: "", label: `Minimum pay: $${minimumPay.toLocaleString()}`, active: minimumPay > 0 },
@@ -3254,6 +3281,7 @@ function getServerJobSearchParameters(offset = 0) {
     age_fit: document.getElementById("ageFitFilter")?.value || "all",
     date_posted: document.getElementById("datePostedFilter")?.value || "all",
     listing_quality: document.getElementById("listingQualityFilter")?.value || "all",
+    application_feature: document.getElementById("applicationFeatureFilter")?.value || "all",
     minimum_pay: document.getElementById("minimumPayFilter")?.value || "0",
     exclusions: [...document.querySelectorAll('input[name="jobExclusion"]:checked')].map(input => input.value).join(","),
     exclude_terms: document.getElementById("excludeTermsFilter")?.value || "",

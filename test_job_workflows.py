@@ -189,6 +189,39 @@ class JobWorkflowIntegrationTests(unittest.TestCase):
         self.assertTrue(jobs[0]["accommodation_info"])
         self.assertNotIn(ordinary_id, {job["id"] for job in jobs})
 
+    def test_server_side_search_filters_explicit_application_features(self):
+        no_letter_id = self.create_job("Resume Only Role")
+        contact_id = self.create_job("Accommodation Contact Role")
+        connection = database.get_connection(self.database_path)
+        connection.execute(
+            "UPDATE jobs SET description = ? WHERE id = ?",
+            ("Submit your resume only. No cover letter is required.", no_letter_id),
+        )
+        connection.execute(
+            "UPDATE jobs SET description = ? WHERE id = ?",
+            (
+                "If you need a reasonable accommodation during the application "
+                "process, contact the recruiting team.",
+                contact_id,
+            ),
+        )
+        connection.commit()
+        connection.close()
+
+        no_letter = self.client.get(
+            "/jobs/search",
+            params={"location_scope": "all", "application_feature": "no_cover_letter"},
+        ).json()["jobs"]
+        contact = self.client.get(
+            "/jobs/search",
+            params={"location_scope": "all", "application_feature": "accommodation_contact"},
+        ).json()["jobs"]
+
+        self.assertEqual({job["id"] for job in no_letter}, {no_letter_id})
+        self.assertTrue(no_letter[0]["no_cover_letter"])
+        self.assertEqual({job["id"] for job in contact}, {contact_id})
+        self.assertTrue(contact[0]["accommodation_contact"])
+
     def test_server_side_search_supports_exact_location_and_remote_eligibility(self):
         denver_id = self.create_job("Denver Exact Role")
         worldwide_id = self.create_job("Worldwide Remote Role")

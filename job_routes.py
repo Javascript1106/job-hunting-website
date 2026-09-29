@@ -146,6 +146,10 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
             "all",
             pattern="^(all|pay|deadline|accommodation|complete)$",
         ),
+        application_feature: str = Query(
+            "all",
+            pattern="^(all|direct_apply|no_cover_letter|accommodation_contact)$",
+        ),
         minimum_pay: float = Query(0, ge=0, le=10_000_000),
         exclusions: str = Query("", max_length=100),
         exclude_terms: str = Query("", max_length=200),
@@ -173,6 +177,7 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
                 age_fit=age_fit,
                 date_posted=date_posted,
                 listing_quality=listing_quality,
+                application_feature=application_feature,
                 minimum_pay=minimum_pay,
                 exclusions=exclusions,
                 exclude_terms=exclude_terms,
