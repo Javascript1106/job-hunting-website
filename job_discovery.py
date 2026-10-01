@@ -403,6 +403,29 @@ def _group_duplicates(jobs: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(groups.values())
 
 
+def _diversify_employers(jobs: list[dict[str, Any]], window: int = 30) -> list[dict[str, Any]]:
+    """Limit repeat employers near the top of broad recommended searches."""
+    if len(jobs) < 3:
+        return jobs
+    remaining = list(jobs)
+    diversified = []
+    employer_counts: dict[str, int] = {}
+    target = min(window, len(remaining))
+    while remaining and len(diversified) < target:
+        preferred_index = next(
+            (
+                index for index, job in enumerate(remaining)
+                if employer_counts.get(_text(job.get("company")), 0) < 2
+            ),
+            0,
+        )
+        job = remaining.pop(preferred_index)
+        employer = _text(job.get("company"))
+        employer_counts[employer] = employer_counts.get(employer, 0) + 1
+        diversified.append(job)
+    return diversified + remaining
+
+
 def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: str = "", location_scope: str = "us", location_mode: str = "nearby", category: str = "all", employment_type: str = "all", remote: str = "all", remote_eligibility: str = "all", experience: str = "all", age_fit: str = "all", date_posted: str = "all", listing_quality: str = "all", application_feature: str = "all", minimum_pay: float = 0, exclusions: str = "", exclude_terms: str = "", sort: str = "recommended") -> list[dict[str, Any]]:
     """Apply the public job-search rules and return grouped, ranked results."""
     normalized_location = _text(location)
@@ -474,6 +497,8 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
         grouped.sort(key=lambda job: (_quality_score(job), job["_relevanceScore"]), reverse=True)
     else:
         grouped.sort(key=lambda job: (job["_relevanceScore"], _parse_date(job.get("posted_at") or job.get("created_at")) or datetime.min.replace(tzinfo=timezone.utc)), reverse=True)
+        if not query.strip():
+            grouped = _diversify_employers(grouped)
     return grouped
 
 

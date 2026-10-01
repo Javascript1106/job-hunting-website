@@ -12200,14 +12200,17 @@ async function loadAdminOperations() {
       operationsStaleCount: summary.stale_jobs,
       operationsExpiringCount: summary.expiring_soon,
       operationsChangesCount: summary.changes_24h,
-      operationsPendingCount: summary.pending_reports
+      operationsPendingCount: summary.pending_reports,
+      operationsCategoryCount: summary.uncategorized_jobs,
+      operationsTypeCount: summary.missing_employment_type,
+      operationsPayCount: summary.missing_pay
     };
     Object.entries(values).forEach(([id, value]) => {
       const element = document.getElementById(id);
       if (element) element.textContent = Number(value || 0).toLocaleString();
     });
     const sourceRows = document.getElementById("operationsSourceRows");
-    if (sourceRows) sourceRows.innerHTML = (data.sources || []).map(source => `<tr><th scope="row">${escapeEmployerHtml(source.source)}</th><td>${source.total_jobs}</td><td>${source.active_jobs}</td><td>${source.broken_links}</td><td>${source.stale_jobs}</td><td>${escapeEmployerHtml(formatModerationDate(source.last_verified_at))}</td></tr>`).join("") || `<tr><td colspan="6">No listing sources yet.</td></tr>`;
+    if (sourceRows) sourceRows.innerHTML = (data.sources || []).map(source => `<tr><th scope="row">${escapeEmployerHtml(source.source)}</th><td>${source.total_jobs}</td><td>${source.active_jobs}</td><td>${Number(source.active_share_percent || 0).toLocaleString()}%</td><td>${source.broken_links}</td><td>${source.stale_jobs}</td><td>${escapeEmployerHtml(formatModerationDate(source.last_verified_at))}</td></tr>`).join("") || `<tr><td colspan="7">No listing sources yet.</td></tr>`;
     const issueList = document.getElementById("operationsIssueList");
     if (issueList) issueList.innerHTML = (data.issues || []).map(job => `<article class="moderation-report-card"><div class="moderation-report-heading"><div><h4>${escapeEmployerHtml(job.title)}</h4><p>${escapeEmployerHtml(job.company)} · ${escapeEmployerHtml(job.source || "PathForge employer")}</p></div><span class="moderation-status-badge ${job.link_status === "unavailable" ? "status-submitted" : "status-reviewed"}">${job.link_status === "unavailable" ? "Broken link" : "Verify"}</span></div><p>Last verified: ${escapeEmployerHtml(formatModerationDate(job.last_verified_at))}</p><div class="moderation-listing-actions"><a href="jobs.html?job=${job.id}">Review listing</a></div></article>`).join("") || `<div class="moderation-empty-state"><h3>No immediate catalog issues</h3><p>All tracked listings are within the current health thresholds.</p></div>`;
     status.textContent = `${(data.issues || []).length} listing${(data.issues || []).length === 1 ? "" : "s"} need attention.`;

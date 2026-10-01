@@ -223,7 +223,9 @@ def classify_category(title, departments=None):
         return "Healthcare"
     if title_matches(
         r"\bbarista\b", r"\bcook\b", r"\bchef\b", r"\bkitchen\b",
-        r"\bserver\b", r"\bfood service\b", r"\bdishwasher\b"
+        r"\bserver\b", r"\bfood service\b", r"\bdishwasher\b",
+        r"\bcrew member\b", r"\brestaurant\b", r"\bshift leader\b",
+        r"\bhost(?:ess)?\b", r"\bbusser\b", r"\bfood prepar(?:er|ation)\b"
     ):
         return "Food Service"
     if title_matches(
@@ -233,7 +235,9 @@ def classify_category(title, departments=None):
         return "Sales"
     if title_matches(
         r"\bcashier\b", r"\bretail\b", r"\bstore (?:associate|manager)\b",
-        r"\bmerchandis(?:er|ing)\b", r"\bsales floor\b"
+        r"\bmerchandis(?:er|ing)\b", r"\bsales floor\b",
+        r"\b(?:sales|stock|guest service) associate\b", r"\bteam member\b",
+        r"\bpersonal shopper\b", r"\bgrocery\b", r"\bfront end associate\b"
     ):
         return "Retail"
     if title_matches(
@@ -274,7 +278,7 @@ def classify_category(title, departments=None):
         return "Legal"
     if title_matches(
         r"\badministrative\b", r"\bexecutive assistant\b", r"\boffice manager\b",
-        r"\breceptionist\b", r"\bdata entry\b"
+        r"\breceptionist\b", r"\bdata entry\b", r"\boffice (?:assistant|clerk)\b"
     ):
         return "Administrative"
     if title_matches(
@@ -288,6 +292,36 @@ def classify_category(title, departments=None):
         r"\blogistics (?:associate|coordinator|specialist|manager)\b"
     ):
         return "Operations"
+    if title_matches(
+        r"\bteacher\b", r"\bteaching assistant\b", r"\binstructional\b",
+        r"\btutor\b", r"\bschool counselor\b", r"\bprofessor\b"
+    ):
+        return "Education"
+    if title_matches(
+        r"\bhotel\b", r"\bhousekeep(?:er|ing)\b", r"\bfront desk\b",
+        r"\bguest services?\b", r"\broom attendant\b", r"\bconcierge\b"
+    ):
+        return "Hospitality"
+    if title_matches(
+        r"\belectrician\b", r"\bplumber\b", r"\bwelder\b", r"\bcarpenter\b",
+        r"\bhvac\b", r"\bmaintenance technician\b", r"\bapprentice\b"
+    ):
+        return "Skilled Trades"
+    if title_matches(
+        r"\bdelivery driver\b", r"\btruck driver\b", r"\bcdl\b",
+        r"\bcourier\b", r"\btransportation\b", r"\bbus driver\b"
+    ):
+        return "Transportation"
+    if title_matches(
+        r"\bsecurity (?:officer|guard)\b", r"\bloss prevention\b",
+        r"\basset protection\b"
+    ):
+        return "Security"
+    if title_matches(
+        r"\bproduction (?:associate|worker|operator)\b", r"\bmachine operator\b",
+        r"\bassembler\b", r"\bmanufacturing\b"
+    ):
+        return "Manufacturing"
     return "Other"
 
 
@@ -309,15 +343,33 @@ def normalize_employment_type(value):
     cleaned = str(value or "").strip().rstrip(".")
     normalized = cleaned.lower()
 
-    if normalized in {
-        "part time",
-        "part-time",
-        "12-39 hours per week"
-    }:
+    tokenized = re.sub(r"[^a-z0-9]+", " ", normalized).strip()
+
+    if tokenized in {"", "not listed", "not specified", "unknown", "n a"}:
+        return None
+
+    if (
+        tokenized in {"part time", "parttime", "12 39 hours per week"}
+        or re.search(r"\bpart\s*time\b", tokenized)
+    ):
         return "Part-Time"
 
-    if normalized in {"full time", "full-time"}:
+    if tokenized in {"full time", "fulltime"} or re.search(
+        r"\bfull\s*time\b", tokenized
+    ):
         return "Full-Time"
+
+    if re.search(r"\b(?:intern|internship|co op|student trainee)\b", tokenized):
+        return "Internship"
+
+    if re.search(r"\b(?:seasonal|season|summer|holiday)\b", tokenized):
+        return "Seasonal"
+
+    if re.search(r"\b(?:temporary|temp|fixed term)\b", tokenized):
+        return "Temporary"
+
+    if re.search(r"\b(?:contract|contractor|1099)\b", tokenized):
+        return "Contract"
 
     return cleaned or None
 

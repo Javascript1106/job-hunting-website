@@ -69,6 +69,16 @@
       "employer": "IDT Corporation",
       "site": "idt",
       "max_jobs": 150
+    },
+    {
+      "employer": "Southshore Companies",
+      "site": "southshorecompanies",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Farfetch",
+      "site": "farfetch",
+      "max_jobs": 100
     }
   ],
   "smartrecruiters": [

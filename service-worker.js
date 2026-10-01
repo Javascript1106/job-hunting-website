@@ -40,12 +40,12 @@ self.addEventListener("fetch", event => {
   }
 
   if (["style", "script", "image", "font", "manifest"].includes(request.destination)) {
-    // Static assets are cache-first and populate the active version on demand.
+    // Prefer current assets while retaining an offline fallback.
     event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(response => {
+      fetch(request).then(response => {
         if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
         return response;
-      }))
+      }).catch(() => caches.match(request))
     );
   }
 });

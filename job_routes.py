@@ -419,6 +419,9 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
                     SUM(CASE WHEN link_status = 'unavailable' AND owner_user_id IS NULL THEN 1 ELSE 0 END) AS broken_links,
                     SUM(CASE WHEN owner_user_id IS NULL AND (last_verified_at IS NULL OR datetime(last_verified_at) < datetime('now', '-7 days')) THEN 1 ELSE 0 END) AS stale_jobs,
                     SUM(CASE WHEN status = 'active' AND owner_user_id IS NULL AND COALESCE(application_deadline, expires_at) IS NOT NULL AND date(COALESCE(application_deadline, expires_at)) BETWEEN date('now') AND date('now', '+7 days') THEN 1 ELSE 0 END) AS expiring_soon
+                    ,SUM(CASE WHEN status = 'active' AND owner_user_id IS NULL AND (category IS NULL OR category = '' OR category = 'Other') THEN 1 ELSE 0 END) AS uncategorized_jobs
+                    ,SUM(CASE WHEN status = 'active' AND owner_user_id IS NULL AND (employment_type IS NULL OR employment_type = '') THEN 1 ELSE 0 END) AS missing_employment_type
+                    ,SUM(CASE WHEN status = 'active' AND owner_user_id IS NULL AND salary_min IS NULL THEN 1 ELSE 0 END) AS missing_pay
                     FROM jobs"""
             ).fetchone())
             summary["pending_reports"] = connection.execute(
@@ -438,6 +441,12 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
                     GROUP BY COALESCE(NULLIF(source, ''), 'PathForge employers')
                     ORDER BY broken_links DESC, stale_jobs DESC, total_jobs DESC"""
             ).fetchall()
+            active_total = summary.get("active_jobs") or 0
+            source_rows = [dict(row) for row in sources]
+            for row in source_rows:
+                row["active_share_percent"] = round(
+                    (row["active_jobs"] or 0) * 100 / active_total, 1
+                ) if active_total else 0
             issues = connection.execute(
                 """SELECT id, title, company, source, status, link_status,
                     last_verified_at, application_deadline, expires_at
@@ -453,7 +462,7 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
             ).fetchall()
             return {
                 "summary": {key: value or 0 for key, value in summary.items()},
-                "sources": [dict(row) for row in sources],
+                "sources": source_rows,
                 "issues": [dict(row) for row in issues],
             }
         finally:
