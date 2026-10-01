@@ -2530,6 +2530,20 @@ textarea.required-field-missing {
   min-height: 44px;
   width: 100%;
 }
+.catalog-scope-note {
+  display: grid;
+  gap: .35rem;
+  align-content: center;
+  min-height: 44px;
+  padding: .55rem .7rem;
+  border: 1px solid var(--pf-color-border);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: .78rem;
+  font-weight: 700;
+}
+.catalog-scope-note span { color: var(--pf-color-text); font-size: .9rem; }
 
 .job-exclusion-filters {
   grid-column: 1 / -1;

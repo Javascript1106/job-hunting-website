@@ -170,6 +170,8 @@ def _is_us_location(value: Any) -> bool:
         return False
     if any(marker in location for marker in US_MARKERS):
         return True
+    if any(marker in location for marker in CANADA_MARKERS):
+        return False
     state_codes = "|".join(sorted(US_STATE_CODES))
     return bool(re.search(rf",\s*(?:{state_codes})(?:\b|$)", location)) or any(
         name in location for name in US_STATE_NAMES
@@ -420,7 +422,7 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
                     continue
             elif normalized_location not in job_location:
                 continue
-        if location_scope == "us" and not is_us_or_canada_location(job.get("location")):
+        if location_scope == "us" and not _is_us_location(job.get("location")):
             continue
         if category != "all" and job.get("category") != category:
             continue
