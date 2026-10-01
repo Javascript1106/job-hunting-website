@@ -218,7 +218,9 @@ def classify_category(title, departments=None):
         r"\bphysician\b", r"\bpatient care\b", r"\bphlebotomist\b",
         r"\bmedical (?:assistant|technician|technologist|coder|bill(?:er|ing))\b",
         r"\bdental (?:assistant|hygienist|technician)\b",
-        r"\bclinical (?:specialist|coordinator|technician|researcher)\b"
+        r"\bclinical (?:specialist|coordinator|technician|researcher)\b",
+        r"\bpsychologist\b", r"\bdiagnostic radiologic\b",
+        r"\bmental health\b", r"\bsocial worker\b"
     ):
         return "Healthcare"
     if title_matches(
@@ -253,7 +255,9 @@ def classify_category(title, departments=None):
         r"\bit (?:support|specialist|administrator|manager)\b",
         r"\btechnical support\b", r"\bvoip\b", r"\bfull[ -]?stack\b",
         r"\bfront[ -]?end\b", r"\bback[ -]?end\b",
-        r"\bandroid (?:developer|engineer)\b", r"\bios (?:developer|engineer)\b"
+        r"\bandroid (?:developer|engineer)\b", r"\bios (?:developer|engineer)\b",
+        r"\b(?:security|platform|infrastructure|systems|solutions) engineer\b",
+        r"\bmember of technical staff\b"
     ):
         return "Technology"
     if title_matches(
@@ -277,8 +281,14 @@ def classify_category(title, departments=None):
     ):
         return "Legal"
     if title_matches(
+        r"\byouth program\b", r"\brecreation (?:assistant|aide|specialist)\b",
+        r"\bcommunity (?:services?|outreach)\b", r"\bcase manager\b"
+    ):
+        return "Community & Social Services"
+    if title_matches(
         r"\badministrative\b", r"\bexecutive assistant\b", r"\boffice manager\b",
-        r"\breceptionist\b", r"\bdata entry\b", r"\boffice (?:assistant|clerk)\b"
+        r"\breceptionist\b", r"\bdata entry\b", r"\boffice (?:assistant|clerk)\b",
+        r"\bprogram assistant\b"
     ):
         return "Administrative"
     if title_matches(
@@ -304,7 +314,8 @@ def classify_category(title, departments=None):
         return "Hospitality"
     if title_matches(
         r"\belectrician\b", r"\bplumber\b", r"\bwelder\b", r"\bcarpenter\b",
-        r"\bhvac\b", r"\bmaintenance technician\b", r"\bapprentice\b"
+        r"\bhvac\b", r"\bmaintenance technician\b", r"\bapprentice\b",
+        r"\b(?:aircraft |automotive |diesel )?mechanic\b", r"\bequipment repair\b"
     ):
         return "Skilled Trades"
     if title_matches(
@@ -322,6 +333,27 @@ def classify_category(title, departments=None):
         r"\bassembler\b", r"\bmanufacturing\b"
     ):
         return "Manufacturing"
+    if title_matches(
+        r"\bproduct (?:manager|owner)\b", r"\bproduct operations\b"
+    ):
+        return "Product Management"
+    if title_matches(
+        r"\bproduct designer\b", r"\bux\b", r"\bui designer\b",
+        r"\bgraphic designer\b", r"\bvisual designer\b", r"\bdesign lead\b"
+    ):
+        return "Design"
+    if title_matches(
+        r"\bproject manager\b", r"\bprogram manager\b", r"\bproject coordinator\b",
+        r"\bprogram coordinator\b"
+    ):
+        return "Project & Program Management"
+    if title_matches(
+        r"\bpolice officer\b", r"\bcorrectional officer\b", r"\bfirefighter\b",
+        r"\bemergency dispatcher\b", r"\bpublic safety\b"
+    ):
+        return "Public Safety"
+    if title_matches(r"\bstore worker\b"):
+        return "Retail"
     return "Other"
 
 

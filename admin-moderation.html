@@ -49,9 +49,14 @@
         <div><strong id="operationsCategoryCount">0</strong><span>Need a category</span></div>
         <div><strong id="operationsTypeCount">0</strong><span>Need a job type</span></div>
         <div><strong id="operationsPayCount">0</strong><span>Pay not listed</span></div>
+        <div><strong id="operationsStateCount">0</strong><span>States + DC covered</span></div>
+        <div><strong id="operationsFailedSourceCount">0</strong><span>Failed sources</span></div>
+        <div><strong id="operationsDropCount">0</strong><span>Large source drops</span></div>
       </section>
       <p id="operationsStatus" class="form-message" role="status" aria-live="polite"></p>
       <div class="table-scroll"><table class="operations-table"><caption>Health by listing source</caption><thead><tr><th>Source</th><th>Total</th><th>Active</th><th>Catalog share</th><th>Broken</th><th>Stale</th><th>Last verified</th></tr></thead><tbody id="operationsSourceRows"></tbody></table></div>
+      <div><h3>Geographic gaps</h3><p id="operationsGeography">Coverage has not been calculated yet.</p></div>
+      <div><h3>Latest source failures</h3><div id="operationsSourceFailures" class="moderation-report-list"></div></div>
       <div><h3>Listings needing attention</h3><div id="operationsIssueList" class="moderation-report-list"></div></div>
     </section>
     <section class="moderation-queue" aria-labelledby="moderationQueueTitle">

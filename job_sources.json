@@ -79,6 +79,16 @@
       "employer": "Farfetch",
       "site": "farfetch",
       "max_jobs": 100
+    },
+    {
+      "employer": "B.F. Saul Company Hospitality Group",
+      "site": "bfsaulhotels",
+      "max_jobs": 200
+    },
+    {
+      "employer": "Summit Management Corporation",
+      "site": "summitmgmt-corp",
+      "max_jobs": 100
     }
   ],
   "smartrecruiters": [
@@ -121,6 +131,14 @@
       "scan_limit": 500,
       "detail_scan_limit": 100,
       "detail_workers": 8
+    },
+    {
+      "employer": "Boyd Gaming",
+      "company_id": "BoydGaming",
+      "max_jobs": 50,
+      "scan_limit": 1200,
+      "detail_scan_limit": 400,
+      "detail_workers": 16
     }
   ],
   "ashby": [

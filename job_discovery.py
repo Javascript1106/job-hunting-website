@@ -46,6 +46,21 @@ US_STATE_NAMES = {
     "south dakota", "tennessee", "texas", "utah", "vermont", "virginia",
     "washington", "west virginia", "wisconsin", "wyoming", "district of columbia",
 }
+US_STATE_NAME_TO_CODE = {
+    "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR",
+    "california": "CA", "colorado": "CO", "connecticut": "CT", "delaware": "DE",
+    "florida": "FL", "georgia": "GA", "hawaii": "HI", "idaho": "ID",
+    "illinois": "IL", "indiana": "IN", "iowa": "IA", "kansas": "KS",
+    "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
+    "massachusetts": "MA", "michigan": "MI", "minnesota": "MN", "mississippi": "MS",
+    "missouri": "MO", "montana": "MT", "nebraska": "NE", "nevada": "NV",
+    "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+    "north carolina": "NC", "north dakota": "ND", "ohio": "OH", "oklahoma": "OK",
+    "oregon": "OR", "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC",
+    "south dakota": "SD", "tennessee": "TN", "texas": "TX", "utah": "UT",
+    "vermont": "VT", "virginia": "VA", "washington": "WA", "west virginia": "WV",
+    "wisconsin": "WI", "wyoming": "WY", "district of columbia": "DC",
+}
 CANADA_MARKERS = ("canada", "canadian", "remote - ca", "remote, ca")
 CANADA_PROVINCE_CODES = {
     "ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe",
@@ -176,6 +191,30 @@ def _is_us_location(value: Any) -> bool:
     return bool(re.search(rf",\s*(?:{state_codes})(?:\b|$)", location)) or any(
         name in location for name in US_STATE_NAMES
     )
+
+
+def us_state_codes(value: Any) -> set[str]:
+    """Extract explicit U.S. state or District of Columbia locations."""
+    location = _text(value)
+    found = {
+        code.upper()
+        for code in re.findall(
+            rf"(?:^|[,;/]\s*)({'|'.join(sorted(US_STATE_CODES))})(?:\b|$)",
+            location,
+        )
+    }
+    district_location = bool(re.search(
+        r"\b(?:washington,?\s*d\.?c\.?|district of columbia)\b",
+        location,
+    ))
+    if district_location:
+        found.add("DC")
+    for name, code in US_STATE_NAME_TO_CODE.items():
+        if name == "washington" and district_location:
+            continue
+        if re.search(rf"\b{re.escape(name)}\b", location):
+            found.add(code)
+    return found
 
 
 def _is_canada_location(value: Any) -> bool:

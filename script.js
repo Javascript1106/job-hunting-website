@@ -3258,8 +3258,19 @@ function filterJobs(refreshFromServer = true) {
   });
 
   filteredJobs = groupDuplicateJobs(filteredJobs);
-  filteredJobs = sortJobResults(filteredJobs, selectedSort, jobSearch, locationSearch);
-  if (selectedSort === "recommended" && !jobSearch) filteredJobs = balanceStarterAndExperiencedJobs(filteredJobs, selectedExperience, selectedAgeFit);
+  // The server already returns the complete catalog in the requested order,
+  // including employer diversity. Only sort the temporary in-memory preview
+  // while a fresh server search is being requested.
+  if (refreshFromServer) {
+    filteredJobs = sortJobResults(filteredJobs, selectedSort, jobSearch, locationSearch);
+    if (selectedSort === "recommended" && !jobSearch) {
+      filteredJobs = balanceStarterAndExperiencedJobs(
+        filteredJobs,
+        selectedExperience,
+        selectedAgeFit
+      );
+    }
+  }
 
   renderActiveJobFilters([
     { controlId: "jobSearchInput", defaultValue: "", label: `Search: ${jobSearchInput.value.trim()}`, active: Boolean(jobSearchInput.value.trim()) },
@@ -12203,7 +12214,10 @@ async function loadAdminOperations() {
       operationsPendingCount: summary.pending_reports,
       operationsCategoryCount: summary.uncategorized_jobs,
       operationsTypeCount: summary.missing_employment_type,
-      operationsPayCount: summary.missing_pay
+      operationsPayCount: summary.missing_pay,
+      operationsStateCount: summary.covered_states,
+      operationsFailedSourceCount: summary.failed_sources,
+      operationsDropCount: summary.source_drop_alerts
     };
     Object.entries(values).forEach(([id, value]) => {
       const element = document.getElementById(id);
@@ -12211,6 +12225,18 @@ async function loadAdminOperations() {
     });
     const sourceRows = document.getElementById("operationsSourceRows");
     if (sourceRows) sourceRows.innerHTML = (data.sources || []).map(source => `<tr><th scope="row">${escapeEmployerHtml(source.source)}</th><td>${source.total_jobs}</td><td>${source.active_jobs}</td><td>${Number(source.active_share_percent || 0).toLocaleString()}%</td><td>${source.broken_links}</td><td>${source.stale_jobs}</td><td>${escapeEmployerHtml(formatModerationDate(source.last_verified_at))}</td></tr>`).join("") || `<tr><td colspan="7">No listing sources yet.</td></tr>`;
+    const geography = document.getElementById("operationsGeography");
+    if (geography) {
+      const missing = data.geography?.missing_states || [];
+      geography.textContent = missing.length
+        ? `No state-specific listings currently detected for: ${missing.join(", ")}. Nationwide and remote listings are tracked separately.`
+        : "Every state and the District of Columbia has at least one state-specific listing.";
+    }
+    const failures = document.getElementById("operationsSourceFailures");
+    if (failures) {
+      const failedSources = (data.sync_sources || []).filter(source => source.status === "failed" || (source.previous_imported >= 10 && source.imported < source.previous_imported * 0.5));
+      failures.innerHTML = failedSources.map(source => `<article class="moderation-report-card"><h4>${escapeEmployerHtml(source.employer)}</h4><p>${escapeEmployerHtml(source.source)} · Last attempted ${escapeEmployerHtml(formatModerationDate(source.last_attempt_at))}</p><p>${source.status === "failed" ? escapeEmployerHtml(source.error || "The source did not complete successfully.") : `Imported listings fell from ${Number(source.previous_imported).toLocaleString()} to ${Number(source.imported).toLocaleString()}. Verify the employer board before the next refresh.`}</p></article>`).join("") || `<div class="moderation-empty-state"><h3>No source alerts</h3><p>Every source completed without a large listing-count drop.</p></div>`;
+    }
     const issueList = document.getElementById("operationsIssueList");
     if (issueList) issueList.innerHTML = (data.issues || []).map(job => `<article class="moderation-report-card"><div class="moderation-report-heading"><div><h4>${escapeEmployerHtml(job.title)}</h4><p>${escapeEmployerHtml(job.company)} · ${escapeEmployerHtml(job.source || "PathForge employer")}</p></div><span class="moderation-status-badge ${job.link_status === "unavailable" ? "status-submitted" : "status-reviewed"}">${job.link_status === "unavailable" ? "Broken link" : "Verify"}</span></div><p>Last verified: ${escapeEmployerHtml(formatModerationDate(job.last_verified_at))}</p><div class="moderation-listing-actions"><a href="jobs.html?job=${job.id}">Review listing</a></div></article>`).join("") || `<div class="moderation-empty-state"><h3>No immediate catalog issues</h3><p>All tracked listings are within the current health thresholds.</p></div>`;
     status.textContent = `${(data.issues || []).length} listing${(data.issues || []).length === 1 ? "" : "s"} need attention.`;

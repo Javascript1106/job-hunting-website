@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 
-from database import DB_NAME, initialize_database
+from database import DB_NAME, get_connection, initialize_database
 from job_sources import (
     ashby,
     greenhouse,
@@ -48,6 +48,41 @@ def filter_catalog_countries(records, countries, verified_countries=None):
         elif "CA" in allowed and _is_canada_location(location):
             filtered.append(record)
     return filtered
+
+
+def record_source_health(database_path, source_results):
+    """Persist source failures and counts so administrators can act on them."""
+    connection = get_connection(database_path)
+    try:
+        connection.executemany(
+            """INSERT INTO catalog_sync_status
+               (source, employer, status, fetched, imported,
+                excluded_by_country, error, last_attempt_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(source, employer) DO UPDATE SET
+                 status = excluded.status,
+                 fetched = excluded.fetched,
+                 imported = excluded.imported,
+                 previous_imported = catalog_sync_status.imported,
+                 excluded_by_country = excluded.excluded_by_country,
+                 error = excluded.error,
+                 last_attempt_at = CURRENT_TIMESTAMP""",
+            [
+                (
+                    result.get("source", "Unknown"),
+                    result.get("employer", "Unknown employer"),
+                    result.get("status", "failed"),
+                    result.get("fetched", 0),
+                    result.get("imported", 0),
+                    result.get("excluded_by_country", 0),
+                    result.get("error"),
+                )
+                for result in source_results
+            ],
+        )
+        connection.commit()
+    finally:
+        connection.close()
 
 
 # Each enabled adapter returns normalized records; the shared synchronizer owns writes.
@@ -138,6 +173,7 @@ def sync_all(mark_stale=False):
         completed_sources,
         mark_stale=mark_stale
     )
+    record_source_health(BASE_DIR / DB_NAME, source_results)
     summary["sources"] = source_results
     return summary
 

@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 import auth as auth_service
 from database import get_connection
-from job_discovery import compact_job, discover_jobs
+from job_discovery import US_STATE_CODES, compact_job, discover_jobs, us_state_codes
 
 
 # Keep discovery and new-bookmark eligibility aligned so hidden, expired, or
@@ -447,6 +447,37 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
                 row["active_share_percent"] = round(
                     (row["active_jobs"] or 0) * 100 / active_total, 1
                 ) if active_total else 0
+            state_counts = {code.upper(): 0 for code in US_STATE_CODES}
+            locations = connection.execute(
+                """SELECT location FROM jobs
+                   WHERE status = 'active' AND owner_user_id IS NULL"""
+            ).fetchall()
+            for row in locations:
+                for code in us_state_codes(row["location"]):
+                    state_counts[code] += 1
+            covered_states = sorted(
+                code for code, count in state_counts.items() if count
+            )
+            missing_states = sorted(
+                code for code, count in state_counts.items() if not count
+            )
+            sync_sources = [dict(row) for row in connection.execute(
+                """SELECT source, employer, status, fetched, imported, previous_imported,
+                          excluded_by_country, error, last_attempt_at
+                   FROM catalog_sync_status
+                   ORDER BY CASE status WHEN 'failed' THEN 0 ELSE 1 END,
+                            last_attempt_at DESC, employer"""
+            ).fetchall()]
+            summary["failed_sources"] = sum(
+                row["status"] == "failed" for row in sync_sources
+            )
+            summary["source_drop_alerts"] = sum(
+                row["previous_imported"] is not None
+                and row["previous_imported"] >= 10
+                and row["imported"] < row["previous_imported"] * 0.5
+                for row in sync_sources
+            )
+            summary["covered_states"] = len(covered_states)
             issues = connection.execute(
                 """SELECT id, title, company, source, status, link_status,
                     last_verified_at, application_deadline, expires_at
@@ -463,6 +494,12 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
             return {
                 "summary": {key: value or 0 for key, value in summary.items()},
                 "sources": source_rows,
+                "sync_sources": sync_sources,
+                "geography": {
+                    "covered_states": covered_states,
+                    "missing_states": missing_states,
+                    "state_counts": state_counts,
+                },
                 "issues": [dict(row) for row in issues],
             }
         finally:

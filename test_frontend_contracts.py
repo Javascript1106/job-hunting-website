@@ -185,6 +185,13 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn('"excludeTermsFilter"', select_block.group(1))
         self.assertNotIn('"minimumPayFilter"', select_block.group(1))
 
+    def test_server_job_order_is_not_resorted_in_the_browser(self):
+        self.assertIn("if (refreshFromServer) {", self.script)
+        self.assertIn(
+            "filteredJobs = sortJobResults(filteredJobs, selectedSort, jobSearch, locationSearch);",
+            self.script,
+        )
+
     def test_job_bookmark_is_icon_only_and_keeps_accessible_state(self):
         bookmark_markup = re.search(
             r'<button\s+type="button"\s+class="save-job-button.*?</button>',

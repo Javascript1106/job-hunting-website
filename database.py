@@ -1365,6 +1365,48 @@ def add_saved_search_application_feature(db_name=DB_NAME):
         conn.close()
 
 
+def add_catalog_sync_status(db_name=DB_NAME):
+    """Track the most recent result for every configured catalog source."""
+    conn = get_connection(db_name)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS catalog_sync_status (
+                source TEXT NOT NULL,
+                employer TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('ok', 'failed')),
+                fetched INTEGER NOT NULL DEFAULT 0,
+                imported INTEGER NOT NULL DEFAULT 0,
+                excluded_by_country INTEGER NOT NULL DEFAULT 0,
+                error TEXT,
+                last_attempt_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (source, employer)
+            )
+        """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_catalog_sync_status_health
+            ON catalog_sync_status(status, last_attempt_at DESC)
+        """)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def add_catalog_sync_comparison(db_name=DB_NAME):
+    """Retain prior imported counts so sharp source drops are visible."""
+    conn = get_connection(db_name)
+    try:
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(catalog_sync_status)")
+        }
+        if "previous_imported" not in columns:
+            conn.execute(
+                "ALTER TABLE catalog_sync_status ADD COLUMN previous_imported INTEGER"
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Each migration has an immutable version and descriptive name. New schema
 # changes belong in a new function and tuple entry instead of being silently
 # added to application startup forever.
@@ -1374,6 +1416,8 @@ SCHEMA_MIGRATIONS = (
     (3, "saved_search_parity_and_job_history", add_saved_search_parity_and_job_history),
     (4, "repair_application_history_integrity", repair_application_history_integrity),
     (5, "saved_search_application_feature", add_saved_search_application_feature),
+    (6, "catalog_sync_status", add_catalog_sync_status),
+    (7, "catalog_sync_comparison", add_catalog_sync_comparison),
 )
 
 
