@@ -1325,7 +1325,10 @@ function displayJobs(jobs, append = false) {
         </div>
 
         <div class="job-card-heading-controls">
-          ${isTeenFriendlyJob(job) ? `<span class="job-highlight-badge teen-friendly-badge" title="The posting appears suitable for many applicants under 18. Confirm the employer's minimum age before applying.">Teen-Friendly</span>` : ""}
+          ${(() => {
+            const eligibility = getTeenEligibilityBadge(job);
+            return eligibility ? `<span class="job-highlight-badge teen-friendly-badge" title="${escapeEmployerHtml(eligibility.title)}">${escapeEmployerHtml(eligibility.label)}</span>` : "";
+          })()}
           ${viewState.changed ? `<span class="job-highlight-badge changed-job-badge">Changed since viewed</span>` : viewState.viewed ? `<span class="job-highlight-badge viewed-job-badge">Viewed</span>` : ""}
           ${jobWasRecentlyPosted(job) ? `
             <span class="job-highlight-badge new-job-badge">New</span>
@@ -2870,6 +2873,21 @@ function getJobMinimumAge(job) {
   return Math.min(...matches.map(match => Number(match[1])));
 }
 
+function getTeenEligibilityBadge(job) {
+  const minimumAge = getJobMinimumAge(job);
+  if (minimumAge <= 17) {
+    return {
+      label: `Minimum age ${minimumAge}+`,
+      title: `The employer posting states a minimum age of ${minimumAge}. Confirm current requirements before applying.`
+    };
+  }
+  if (!isTeenFriendlyJob(job)) return null;
+  return {
+    label: "Teen-Friendly",
+    title: "This appears to be a starter role, but the posting does not state a minimum age. Confirm eligibility with the employer."
+  };
+}
+
 function jobMatchesApplicantAge(job, selectedAge) {
   if (selectedAge === "all" || selectedAge === "age-18-plus") return true;
   const statedMinimumAge = getJobMinimumAge(job);
@@ -3142,6 +3160,7 @@ function filterJobs(refreshFromServer = true) {
   const selectedSort = jobSortSelect?.value || "recommended";
   const teenGuidance = document.getElementById("teenJobFilterGuidance");
   if (teenGuidance) teenGuidance.hidden = !["age-14", "age-15", "age-16-17"].includes(selectedAgeFit);
+  updateQuickJobPresetStates();
   scheduleJobSearchHistory({
     query: jobSearchInput.value.trim(),
     location: locationSearchInput.value.trim(),
@@ -3263,8 +3282,39 @@ function filterJobs(refreshFromServer = true) {
       : "Restore Hidden Jobs";
   }
 
+  if (refreshFromServer) jobCatalogLoading = true;
   displayJobs(filteredJobs);
   if (refreshFromServer) scheduleServerJobSearch();
+}
+
+function updateQuickJobPresetStates() {
+  const activePresets = {
+    teen: document.getElementById("ageFitFilter")?.value === "age-16-17",
+    "first-job": document.getElementById("experienceFilter")?.value === "entry-level",
+    "part-time": document.getElementById("employmentTypeFilter")?.value === "part-time",
+    "pay-listed": document.getElementById("listingQualityFilter")?.value === "pay"
+  };
+  document.querySelectorAll("[data-job-preset]").forEach(button => {
+    button.setAttribute(
+      "aria-pressed",
+      String(Boolean(activePresets[button.dataset.jobPreset]))
+    );
+  });
+}
+
+function applyQuickJobPreset(preset) {
+  const mappings = {
+    teen: ["ageFitFilter", "age-16-17"],
+    "first-job": ["experienceFilter", "entry-level"],
+    "part-time": ["employmentTypeFilter", "part-time"],
+    "pay-listed": ["listingQualityFilter", "pay"]
+  };
+  const mapping = mappings[preset];
+  if (!mapping) return;
+  const control = document.getElementById(mapping[0]);
+  if (!control) return;
+  control.value = control.value === mapping[1] ? "all" : mapping[1];
+  filterJobs();
 }
 
 function getServerJobSearchParameters(offset = 0) {
@@ -4028,6 +4078,13 @@ window.onload = function() {
   const naturalSearchButton = document.getElementById("naturalJobSearchButton");
   const naturalSearchInput = document.getElementById("naturalJobSearchInput");
   const comparisonDialog = document.getElementById("jobComparisonDialog");
+
+  document.querySelectorAll("[data-job-preset]").forEach(button => {
+    button.addEventListener(
+      "click",
+      () => applyQuickJobPreset(button.dataset.jobPreset)
+    );
+  });
 
   if (categoryFilter) {
     categoryFilter.addEventListener("change", filterJobs);

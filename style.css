@@ -2580,6 +2580,45 @@ textarea.required-field-missing {
   color: #334155;
   line-height: 1.5;
 }
+.job-quick-paths {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: .85rem 0;
+  padding: .8rem .9rem;
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.job-quick-paths > div:first-child { display: grid; gap: .15rem; }
+.job-quick-paths span { color: #64748b; font-size: .84rem; }
+.job-quick-path-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .45rem;
+}
+.job-quick-path-buttons button {
+  min-height: 38px;
+  padding: .45rem .75rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e40af;
+  font-size: .84rem;
+  font-weight: 800;
+  transform: none !important;
+}
+.job-quick-path-buttons button:hover,
+.job-quick-path-buttons button[aria-pressed="true"] {
+  border-color: #2563eb;
+  background: #dbeafe;
+}
+@media (max-width: 720px) {
+  .job-quick-paths { align-items: stretch; flex-direction: column; }
+  .job-quick-path-buttons { justify-content: flex-start; }
+}
 .active-job-filters {
   display: flex;
   flex-wrap: wrap;
