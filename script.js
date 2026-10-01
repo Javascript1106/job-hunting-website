@@ -2585,6 +2585,14 @@ const US_STATE_CODE_TO_NAME = {
   DC: "district of columbia"
 };
 
+const CANADA_PROVINCE_CODE_TO_NAME = {
+  AB: "alberta", BC: "british columbia", MB: "manitoba",
+  NB: "new brunswick", NL: "newfoundland and labrador",
+  NS: "nova scotia", NT: "northwest territories", NU: "nunavut",
+  ON: "ontario", PE: "prince edward island", QC: "quebec",
+  SK: "saskatchewan", YT: "yukon"
+};
+
 const NON_US_LOCATION_MARKERS = [
   "australia", "austria", "belgium", "brazil", "canada", "colombia",
   "denmark", "finland", "france", "germany", "india", "ireland",
@@ -2849,6 +2857,28 @@ function isUnitedStatesJobLocation(location) {
   return stateNames.some(stateName =>
     normalizedLocation.includes(stateName)
   );
+}
+
+function isCanadaJobLocation(location) {
+  const normalizedLocation = String(location || "").trim().toLowerCase();
+  if (!normalizedLocation) return false;
+  if (/\b(?:canada|canadian)\b|\bremote\s*[-,]\s*ca\b/i.test(normalizedLocation)) {
+    return true;
+  }
+  const provinceCodes = Object.keys(CANADA_PROVINCE_CODE_TO_NAME);
+  const provinceCodePattern = new RegExp(
+    `(?:^|[,;/]\\s*)(${provinceCodes.join("|")})`
+    + `(?=\\s+[a-z]\\d[a-z][ -]?\\d[a-z]\\d\\b|\\s*(?:$|[,;/]))`,
+    "i"
+  );
+  if (provinceCodePattern.test(String(location || ""))) return true;
+  return Object.values(CANADA_PROVINCE_CODE_TO_NAME).some(provinceName =>
+    normalizedLocation.includes(provinceName)
+  );
+}
+
+function isSupportedCatalogLocation(location) {
+  return isUnitedStatesJobLocation(location) || isCanadaJobLocation(location);
 }
 
 function isTeenFriendlyJob(job) {
@@ -3201,7 +3231,7 @@ function filterJobs(refreshFromServer = true) {
     }
     const matchesLocationScope =
       selectedLocationScope === "all"
-      || isUnitedStatesJobLocation(job.location);
+      || isSupportedCatalogLocation(job.location);
 
     const matchesCategory =
       selectedCategory === "all" || job.category === selectedCategory;
@@ -3558,19 +3588,15 @@ function resetJobFilters() {
   const selectFilters = [
     "locationScopeFilter",
     "locationMatchFilter",
-    "locationMatchFilter",
     "categoryFilter",
     "employmentTypeFilter",
     "remoteFilter",
-    "remoteEligibilityFilter",
     "remoteEligibilityFilter",
     "experienceFilter",
     "ageFitFilter",
     "datePostedFilter",
     "listingQualityFilter",
     "applicationFeatureFilter",
-    "minimumPayFilter",
-    "excludeTermsFilter",
     "jobSortSelect"
   ];
 
@@ -5687,7 +5713,7 @@ async function loadSavedJobs() {
     savedJobsContainer.innerHTML = `
       <div class="empty-state">
         <h3>Saved jobs could not be loaded</h3>
-        <p>${error.message}</p>
+        <p>${escapeEmployerHtml(error.message)}</p>
         <button type="button" data-action="reload-saved-jobs">Try Again</button>
       </div>
     `;
@@ -5773,12 +5799,12 @@ function displaySavedJobs(jobs) {
 
         <p>
           <strong>Schedule:</strong>
-          ${job.schedule}
+          ${escapeEmployerHtml(job.schedule)}
         </p>
 
         <p>
           <strong>Experience:</strong>
-          ${job.experience}
+          ${escapeEmployerHtml(job.experience)}
         </p>
       </div>
 

@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261001-v101"
+ASSET_VERSION = "20261001-v102"
 
 
 class MarkupInspector(HTMLParser):
@@ -163,6 +163,25 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("buildJobEvidenceDetails", self.script)
         self.assertIn("getTeenEligibilityBadge", self.script)
         self.assertIn("applyQuickJobPreset", self.script)
+        self.assertIn("function isCanadaJobLocation", self.script)
+        self.assertIn("isSupportedCatalogLocation(job.location)", self.script)
+
+    def test_reset_job_filters_does_not_reapply_text_filters(self):
+        reset_function = re.search(
+            r"function resetJobFilters\(\) \{(.*?)\n\}",
+            self.script,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(reset_function)
+        body = reset_function.group(1)
+        select_block = re.search(
+            r"const selectFilters = \[(.*?)\];",
+            body,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(select_block)
+        self.assertNotIn('"excludeTermsFilter"', select_block.group(1))
+        self.assertNotIn('"minimumPayFilter"', select_block.group(1))
 
     def test_job_bookmark_is_icon_only_and_keeps_accessible_state(self):
         bookmark_markup = re.search(
@@ -175,6 +194,13 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("<span>", bookmark_markup.group(0))
         self.assertIn('aria-pressed="${isSaved}"', bookmark_markup.group(0))
         self.assertIn('aria-label="${isSaved ? "Remove saved job" : "Save job"}"', bookmark_markup.group(0))
+
+    def test_saved_job_server_fields_are_html_escaped(self):
+        self.assertIn("${escapeEmployerHtml(job.schedule)}", self.script)
+        self.assertIn("${escapeEmployerHtml(job.experience)}", self.script)
+        self.assertIn("${escapeEmployerHtml(error.message)}", self.script)
+        self.assertNotIn("${job.schedule}", self.script)
+        self.assertNotIn("${job.experience}", self.script)
 
     def test_resume_job_action_is_a_suitability_review(self):
         resume = (PROJECT_ROOT / "resume.html").read_text(encoding="utf-8")
