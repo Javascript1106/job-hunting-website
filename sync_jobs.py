@@ -14,6 +14,7 @@ from job_sources import (
     smartrecruiters,
     usajobs,
     workable,
+    workday,
 )
 from job_sources.common import synchronize_records
 from job_discovery import _is_canada_location, _is_us_location
@@ -71,6 +72,7 @@ def sync_all(mark_stale=False):
         ("ashby", ashby.fetch_jobs),
         ("recruitee", recruitee.fetch_jobs),
         ("workable", workable.fetch_jobs),
+        ("workday", workday.fetch_jobs),
     )
 
     for source_type, adapter in adapters:
@@ -145,7 +147,7 @@ if __name__ == "__main__":
         description=(
             "Synchronize authorized Greenhouse, Lever, "
             "SmartRecruiters, Ashby, Recruitee, Workable, "
-            "and USAJOBS listings "
+            "Workday, and USAJOBS listings "
             "into PathForge."
         )
     )

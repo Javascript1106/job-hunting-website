@@ -494,6 +494,19 @@
     }
   ],
   "workable": [],
+  "workday": [
+    {
+      "employer": "Panera Bread",
+      "host": "panerabread.wd5",
+      "tenant": "panerabread",
+      "site": "Panera_Careers",
+      "title_patterns": ["team member", "restaurant associate", "cashier"],
+      "scan_limit": 800,
+      "detail_scan_limit": 500,
+      "detail_workers": 16,
+      "max_jobs": 300
+    }
+  ],
   "usajobs": {
     "enabled": true,
     "keyword": "",
