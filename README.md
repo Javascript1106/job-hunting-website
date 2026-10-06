@@ -213,6 +213,28 @@ python migrate_database.py
 All application and maintenance-tool connections share the same foreign-key
 enforcement and lock-timeout settings.
 
+## Maintain the Job Catalog
+
+Refresh official sources and expire jobs that disappeared from a source that
+completed successfully:
+
+```powershell
+python sync_jobs.py --mark-stale
+```
+
+The command prints live source-by-source progress, followed by JSON containing
+the active, closed, stale, empty-source, failed-source, and large-drop health
+summary. Use `--quiet` when another program needs JSON-only standard output.
+
+Stale links from manually imported employer pages can be checked separately.
+The default command is read-only; add `--apply` to create a verified backup,
+close only definitive dead pages, and refresh jobs whose title is confirmed:
+
+```powershell
+python verify_job_links.py --stale-days 7
+python verify_job_links.py --stale-days 7 --apply
+```
+
 Open a terminal inside the project folder and run:
 
 python -m uvicorn main:app --reload

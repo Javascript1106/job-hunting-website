@@ -8,10 +8,15 @@ from pathlib import Path
 import database
 from job_discovery import discover_jobs, us_state_codes
 from job_sources.common import classify_category, normalize_employment_type
-from sync_jobs import record_source_health
+from sync_jobs import catalog_health, record_source_health
+from verify_job_links import plain_page_text
 
 
 class CatalogQualityTests(unittest.TestCase):
+    def test_link_verifier_extracts_visible_page_text(self):
+        payload = b"<style>hidden</style><h1>Cashier &amp; Store Support</h1>"
+        self.assertEqual(plain_page_text(payload), "cashier & store support")
+
     def test_frontline_and_underserved_categories(self):
         cases = {
             "Restaurant Crew Member": "Food Service",
@@ -87,6 +92,48 @@ class CatalogQualityTests(unittest.TestCase):
             ).fetchone()
             connection.close()
             self.assertEqual(row, (4, 20))
+
+    def test_catalog_health_reports_empty_failed_and_dropped_sources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "catalog-health.db"
+            database.initialize_database(path)
+            previous = [{
+                "source": "Lever:test",
+                "employer": "Dropped Employer",
+                "status": "ok",
+                "fetched": 20,
+                "imported": 20,
+                "excluded_by_country": 0,
+            }]
+            current = [
+                {**previous[0], "fetched": 4, "imported": 4},
+                {
+                    "source": "Ashby:empty",
+                    "employer": "Empty Employer",
+                    "status": "ok",
+                    "fetched": 0,
+                    "imported": 0,
+                    "excluded_by_country": 0,
+                },
+                {
+                    "source": "Greenhouse:failed",
+                    "employer": "Failed Employer",
+                    "status": "failed",
+                    "fetched": 0,
+                    "error": "HTTP 404",
+                },
+            ]
+            record_source_health(path, previous)
+            record_source_health(path, current)
+
+            health = catalog_health(path, current)
+
+            self.assertEqual(health["empty_sources"], ["Empty Employer"])
+            self.assertEqual(health["failed_sources"], ["Failed Employer"])
+            self.assertEqual(
+                health["large_source_drops"],
+                [{"employer": "Dropped Employer", "previous": 20, "current": 4}],
+            )
 
 
 if __name__ == "__main__":

@@ -106,7 +106,9 @@
       "max_jobs": 25,
       "scan_limit": 1000,
       "detail_scan_limit": 100,
-      "detail_workers": 8
+      "detail_workers": 8,
+      "enabled": false,
+      "disabled_reason": "No current U.S. roles state an eligible minimum age of 17 or younger."
     },
     {
       "employer": "Aspen Skiing Company",
@@ -175,7 +177,9 @@
     {
       "employer": "Datum",
       "board_name": "datum",
-      "max_jobs": 100
+      "max_jobs": 100,
+      "enabled": false,
+      "disabled_reason": "Official board currently returns no U.S. listings."
     },
     {
       "employer": "Polymarket",
@@ -341,7 +345,8 @@
       "employer": "Common Room",
       "board_name": "commonroom",
       "max_jobs": 100,
-      "enabled": false
+      "enabled": false,
+      "disabled_reason": "Official Ashby board was removed and returns HTTP 404."
     },
     {
       "employer": "Headway",
@@ -441,7 +446,9 @@
     {
       "employer": "MeritFirst",
       "board_name": "meritfirst",
-      "max_jobs": 100
+      "max_jobs": 100,
+      "enabled": false,
+      "disabled_reason": "Official Ashby board was removed and returns HTTP 404."
     },
     {
       "employer": "MoeGo",

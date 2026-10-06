@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -89,6 +90,74 @@ def record_source_health(database_path, source_results):
         connection.commit()
     finally:
         connection.close()
+
+
+def catalog_health(database_path, source_results):
+    """Return a compact post-sync health report for people operating the site."""
+    connection = get_connection(database_path)
+    connection.row_factory = sqlite3.Row
+    try:
+        counts = connection.execute(
+            """SELECT
+                 SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active,
+                 SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS closed,
+                 SUM(CASE WHEN status = 'active' AND
+                    (last_verified_at IS NULL OR
+                     last_verified_at < datetime('now', '-7 days'))
+                     THEN 1 ELSE 0 END) AS stale,
+                 SUM(CASE WHEN status = 'active' AND owner_user_id IS NULL
+                    AND application_url IS NULL AND source_url IS NULL
+                     THEN 1 ELSE 0 END) AS missing_application_link
+               FROM jobs"""
+        ).fetchone()
+        current_keys = {
+            (result.get("source"), result.get("employer"))
+            for result in source_results
+        }
+        history = {
+            (row["source"], row["employer"]): row
+            for row in connection.execute(
+                """SELECT source, employer, imported, previous_imported
+                   FROM catalog_sync_status"""
+            ).fetchall()
+            if (row["source"], row["employer"]) in current_keys
+        }
+    finally:
+        connection.close()
+
+    failed_sources = [
+        result["employer"]
+        for result in source_results
+        if result.get("status") == "failed"
+    ]
+    empty_sources = [
+        result["employer"]
+        for result in source_results
+        if result.get("status") == "ok" and result.get("imported", 0) == 0
+    ]
+    large_drops = []
+    for result in source_results:
+        row = history.get((result.get("source"), result.get("employer")))
+        if row is None or row["previous_imported"] is None:
+            continue
+        previous = row["previous_imported"]
+        current = row["imported"]
+        if previous >= 10 and current <= previous * 0.5:
+            large_drops.append({
+                "employer": result["employer"],
+                "previous": previous,
+                "current": current,
+            })
+
+    return {
+        "active_jobs": counts["active"] or 0,
+        "closed_jobs": counts["closed"] or 0,
+        "stale_active_jobs": counts["stale"] or 0,
+        "missing_application_links": counts["missing_application_link"] or 0,
+        "failed_sources": failed_sources,
+        "empty_sources": empty_sources,
+        "large_source_drops": large_drops,
+    }
 
 
 # Each enabled adapter returns normalized records; the shared synchronizer owns writes.
@@ -217,12 +286,25 @@ def sync_all(mark_stale=False, progress=None):
     )
     record_source_health(BASE_DIR / DB_NAME, source_results)
     summary["sources"] = source_results
+    summary["catalog_health"] = catalog_health(
+        BASE_DIR / DB_NAME, source_results
+    )
+    health = summary["catalog_health"]
     report(
         "Catalog update complete: "
         f"{summary.get('inserted', 0)} inserted, "
         f"{summary.get('updated', 0)} updated, "
         f"{summary.get('expired', 0)} expired, "
         f"{summary.get('failed', 0)} failed."
+    )
+    report(
+        "Catalog health: "
+        f"{health['active_jobs']} active, "
+        f"{health['closed_jobs']} closed, "
+        f"{health['stale_active_jobs']} stale, "
+        f"{len(health['failed_sources'])} failed sources, "
+        f"{len(health['empty_sources'])} empty sources, "
+        f"{len(health['large_source_drops'])} large drops."
     )
     return summary
 

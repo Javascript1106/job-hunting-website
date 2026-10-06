@@ -1249,6 +1249,21 @@ def close_bundled_sample_jobs(db_name=DB_NAME):
         conn.close()
 
 
+def close_jobs_from_removed_sources(db_name=DB_NAME):
+    """Close listings whose official provider board no longer exists."""
+    conn = get_connection(db_name)
+    try:
+        conn.execute(
+            """UPDATE jobs
+               SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+               WHERE status = 'active'
+                 AND source IN ('Ashby:commonroom', 'Ashby:meritfirst')"""
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def add_saved_search_parity_and_job_history(db_name=DB_NAME):
     """Preserve old alerts while expanding them to the full discovery filter set."""
     conn = get_connection(db_name)
@@ -1449,6 +1464,7 @@ SCHEMA_MIGRATIONS = (
     (6, "catalog_sync_status", add_catalog_sync_status),
     (7, "catalog_sync_comparison", add_catalog_sync_comparison),
     (8, "close_bundled_sample_jobs", close_bundled_sample_jobs),
+    (9, "close_jobs_from_removed_sources", close_jobs_from_removed_sources),
 )
 
 

@@ -33,7 +33,7 @@ class DatabaseMigrationTests(unittest.TestCase):
         ).fetchall()
         connection.close()
 
-        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertIn("users", tables)
         self.assertIn("jobs", tables)
         self.assertIn("auth_attempts", tables)
@@ -48,6 +48,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                 (6, "catalog_sync_status"),
                 (7, "catalog_sync_comparison"),
                 (8, "close_bundled_sample_jobs"),
+                (9, "close_jobs_from_removed_sources"),
             ],
         )
 
@@ -76,6 +77,35 @@ class DatabaseMigrationTests(unittest.TestCase):
         status = connection.execute(
             """SELECT status FROM jobs
                WHERE title = 'Crew Member' AND company = 'Taco Bell'"""
+        ).fetchone()[0]
+        connection.close()
+
+        self.assertEqual(status, "closed")
+
+    def test_jobs_from_removed_boards_are_closed(self):
+        database.initialize_database(self.database_path)
+        connection = sqlite3.connect(self.database_path)
+        try:
+            connection.execute(
+                """INSERT INTO jobs
+                   (title, company, location, pay, description, schedule,
+                    experience, category, application_method, status, source)
+                   VALUES ('Account Executive', 'Common Room', 'Remote - US',
+                           'See listing', 'Official listing', 'Full-Time',
+                           'See qualifications', 'Sales', 'employer_website',
+                           'active', 'Ashby:commonroom')"""
+            )
+            connection.execute(
+                "DELETE FROM schema_migrations WHERE version = 9"
+            )
+            connection.commit()
+        finally:
+            connection.close()
+
+        database.initialize_database(self.database_path)
+        connection = sqlite3.connect(self.database_path)
+        status = connection.execute(
+            "SELECT status FROM jobs WHERE source = 'Ashby:commonroom'"
         ).fetchone()[0]
         connection.close()
 
