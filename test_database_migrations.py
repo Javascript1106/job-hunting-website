@@ -33,7 +33,7 @@ class DatabaseMigrationTests(unittest.TestCase):
         ).fetchall()
         connection.close()
 
-        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8])
         self.assertIn("users", tables)
         self.assertIn("jobs", tables)
         self.assertIn("auth_attempts", tables)
@@ -47,8 +47,39 @@ class DatabaseMigrationTests(unittest.TestCase):
                 (5, "saved_search_application_feature"),
                 (6, "catalog_sync_status"),
                 (7, "catalog_sync_comparison"),
+                (8, "close_bundled_sample_jobs"),
             ],
         )
+
+    def test_bundled_sample_jobs_are_not_public(self):
+        database.initialize_database(self.database_path)
+        connection = sqlite3.connect(self.database_path)
+        try:
+            connection.execute(
+                """INSERT INTO jobs
+                   (title, company, location, pay, description, schedule,
+                    experience, category, application_method, status)
+                   VALUES ('Crew Member', 'Taco Bell', 'Saratoga Springs, UT',
+                           '$12-$15/hr', 'Sample listing', 'Part-Time',
+                           'No experience required', 'Food Service',
+                           'pathforge', 'active')"""
+            )
+            connection.execute(
+                "DELETE FROM schema_migrations WHERE version = 8"
+            )
+            connection.commit()
+        finally:
+            connection.close()
+
+        database.initialize_database(self.database_path)
+        connection = sqlite3.connect(self.database_path)
+        status = connection.execute(
+            """SELECT status FROM jobs
+               WHERE title = 'Crew Member' AND company = 'Taco Bell'"""
+        ).fetchone()[0]
+        connection.close()
+
+        self.assertEqual(status, "closed")
 
     def test_completed_migration_is_not_reapplied(self):
         database.initialize_database(self.database_path)

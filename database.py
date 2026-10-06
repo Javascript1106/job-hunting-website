@@ -1171,9 +1171,10 @@ def populate_jobs(db_name=DB_NAME):
                     experience,
                     category,
                     application_method,
-                    application_url
+                    application_url,
+                    status
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 job["title"],
                 job["company"],
@@ -1187,7 +1188,10 @@ def populate_jobs(db_name=DB_NAME):
                     "application_method",
                     "pathforge"
                 ),
-                job.get("application_url")
+                job.get("application_url"),
+                # Bundled records demonstrate the UI, but are not verified
+                # vacancies and must never appear in the public catalog.
+                "closed"
             ))
 
         print("Jobs inserted successfully.")
@@ -1214,6 +1218,32 @@ def create_public_job_indexes(db_name=DB_NAME):
             CREATE INDEX IF NOT EXISTS idx_jobs_company_public
             ON jobs(company COLLATE NOCASE, status, owner_user_id)
         """)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def close_bundled_sample_jobs(db_name=DB_NAME):
+    """Keep UI-only seed records out of the public vacancy catalog."""
+    sample_jobs = (
+        ("Crew Member", "Taco Bell", "Saratoga Springs, UT"),
+        ("Team Member", "Chick-fil-A", "Lehi, UT"),
+        ("Cashier", "Target", "American Fork, UT"),
+        ("Warehouse Associate", "Amazon", "Lehi, UT"),
+    )
+    conn = get_connection(db_name)
+    try:
+        conn.executemany(
+            """UPDATE jobs
+               SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+               WHERE title = ? AND company = ? AND location = ?
+                 AND status = 'active'
+                 AND owner_user_id IS NULL
+                 AND source IS NULL
+                 AND source_url IS NULL
+                 AND application_url IS NULL""",
+            sample_jobs,
+        )
         conn.commit()
     finally:
         conn.close()
@@ -1418,6 +1448,7 @@ SCHEMA_MIGRATIONS = (
     (5, "saved_search_application_feature", add_saved_search_application_feature),
     (6, "catalog_sync_status", add_catalog_sync_status),
     (7, "catalog_sync_comparison", add_catalog_sync_comparison),
+    (8, "close_bundled_sample_jobs", close_bundled_sample_jobs),
 )
 
 

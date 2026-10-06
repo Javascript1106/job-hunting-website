@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 from database import DB_NAME, get_connection, initialize_database
@@ -27,6 +28,11 @@ CONFIG_PATH = BASE_DIR / "job_sources.json"
 
 def enabled(configuration):
     return configuration.get("enabled", True)
+
+
+def print_progress(message):
+    """Write progress immediately while keeping the JSON report on stdout."""
+    print(message, file=sys.stderr, flush=True)
 
 
 def filter_catalog_countries(records, countries, verified_countries=None):
@@ -86,7 +92,12 @@ def record_source_health(database_path, source_results):
 
 
 # Each enabled adapter returns normalized records; the shared synchronizer owns writes.
-def sync_all(mark_stale=False):
+def sync_all(mark_stale=False, progress=None):
+    """Synchronize enabled sources and optionally report human-readable progress."""
+    def report(message):
+        if progress is not None:
+            progress(message)
+
     os.chdir(BASE_DIR)
     load_local_environment(BASE_DIR / ".env")
     initialize_database()
@@ -110,11 +121,27 @@ def sync_all(mark_stale=False):
         ("workday", workday.fetch_jobs),
     )
 
+    enabled_sources = sum(
+        1
+        for source_type, _adapter in adapters
+        for source_config in configuration.get(source_type, [])
+        if enabled(source_config)
+    )
+    usajobs_config = configuration.get("usajobs", {})
+    if enabled(usajobs_config):
+        enabled_sources += 1
+    current_source = 0
+
     for source_type, adapter in adapters:
         for source_config in configuration.get(source_type, []):
             if not enabled(source_config):
                 continue
+            current_source += 1
             employer = source_config.get("employer", "Unknown employer")
+            report(
+                f"[{current_source}/{enabled_sources}] Checking {employer} "
+                f"({source_type})..."
+            )
             try:
                 source, fetched = adapter(source_config)
                 imported = filter_catalog_countries(
@@ -132,6 +159,10 @@ def sync_all(mark_stale=False):
                     "excluded_by_country": len(fetched) - len(imported),
                     "status": "ok"
                 })
+                report(
+                    f"  Imported {len(imported)} U.S. jobs "
+                    f"from {len(fetched)} fetched."
+                )
             except (KeyError, OSError, RuntimeError, ValueError) as error:
                 source_results.append({
                     "source": source_type,
@@ -140,9 +171,14 @@ def sync_all(mark_stale=False):
                     "status": "failed",
                     "error": str(error)
                 })
+                report(f"  Source failed: {error}")
 
-    usajobs_config = configuration.get("usajobs", {})
     if enabled(usajobs_config):
+        current_source += 1
+        report(
+            f"[{current_source}/{enabled_sources}] Checking federal agencies "
+            "(USAJOBS)..."
+        )
         try:
             source, fetched = usajobs.fetch_jobs(usajobs_config)
             imported = filter_catalog_countries(
@@ -158,6 +194,10 @@ def sync_all(mark_stale=False):
                 "excluded_by_country": len(fetched) - len(imported),
                 "status": "ok"
             })
+            report(
+                f"  Imported {len(imported)} U.S. jobs "
+                f"from {len(fetched)} fetched."
+            )
         except (KeyError, OSError, RuntimeError, ValueError) as error:
             source_results.append({
                 "source": "USAJOBS",
@@ -166,7 +206,9 @@ def sync_all(mark_stale=False):
                 "status": "failed",
                 "error": str(error)
             })
+            report(f"  Source failed: {error}")
 
+    report("Updating the PathForge catalog...")
     summary = synchronize_records(
         BASE_DIR / DB_NAME,
         records,
@@ -175,6 +217,13 @@ def sync_all(mark_stale=False):
     )
     record_source_health(BASE_DIR / DB_NAME, source_results)
     summary["sources"] = source_results
+    report(
+        "Catalog update complete: "
+        f"{summary.get('inserted', 0)} inserted, "
+        f"{summary.get('updated', 0)} updated, "
+        f"{summary.get('expired', 0)} expired, "
+        f"{summary.get('failed', 0)} failed."
+    )
     return summary
 
 
@@ -195,8 +244,17 @@ if __name__ == "__main__":
             "completed successfully during this run."
         )
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress live progress and print only the final JSON report."
+    )
     arguments = parser.parse_args()
+    progress_callback = None if arguments.quiet else print_progress
     print(json.dumps(
-        sync_all(mark_stale=arguments.mark_stale),
+        sync_all(
+            mark_stale=arguments.mark_stale,
+            progress=progress_callback,
+        ),
         indent=2
     ))
