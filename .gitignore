@@ -225,3 +225,5 @@ jobs.db-journal
 jobs.db-shm
 jobs.db-wal
 backups/
+automation-logs/
+.catalog-maintenance.lock

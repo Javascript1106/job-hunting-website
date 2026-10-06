@@ -1,0 +1,76 @@
+"""Tests for scheduler-safe catalog maintenance."""
+
+import tempfile
+import unittest
+from pathlib import Path
+
+from catalog_maintenance import run_maintenance
+
+
+class CatalogMaintenanceTests(unittest.TestCase):
+    def test_successful_run_backs_up_syncs_and_writes_report(self):
+        calls = []
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def backup():
+                calls.append("backup")
+                return root / "backup.db"
+
+            def sync(*, mark_stale, progress):
+                calls.append(("sync", mark_stale))
+                return {
+                    "inserted": 2,
+                    "catalog_health": {
+                        "failed_sources": [],
+                        "large_source_drops": [],
+                    },
+                }
+
+            report = run_maintenance(
+                log_directory=root / "logs",
+                lock_path=root / "sync.lock",
+                backup_func=backup,
+                sync_func=sync,
+                progress=lambda _message: None,
+            )
+
+            self.assertEqual(calls, ["backup", ("sync", True)])
+            self.assertEqual(report["status"], "success")
+            self.assertTrue(Path(report["report_path"]).is_file())
+            self.assertFalse((root / "sync.lock").exists())
+
+    def test_source_failure_requires_attention(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = run_maintenance(
+                log_directory=root / "logs",
+                lock_path=root / "sync.lock",
+                backup_func=lambda: root / "backup.db",
+                sync_func=lambda **_kwargs: {
+                    "catalog_health": {
+                        "failed_sources": ["Example Employer"],
+                        "large_source_drops": [],
+                    }
+                },
+                progress=lambda _message: None,
+            )
+            self.assertEqual(report["status"], "attention_required")
+
+    def test_existing_lock_prevents_overlapping_syncs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = root / "sync.lock"
+            lock.write_text("already running", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "already running"):
+                run_maintenance(
+                    log_directory=root / "logs",
+                    lock_path=lock,
+                    backup_func=lambda: root / "backup.db",
+                    sync_func=lambda **_kwargs: {},
+                    progress=lambda _message: None,
+                )
+
+
+if __name__ == "__main__":
+    unittest.main()

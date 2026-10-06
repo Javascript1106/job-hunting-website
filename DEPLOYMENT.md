@@ -42,6 +42,10 @@ administrator moderation page through the deployed HTTPS site.
 - Store the database on a single persistent volume. Do not run multiple
   write-capable application instances against a network-mounted SQLite file.
 - Run `sync_jobs.py` on a controlled schedule and alert when a source fails.
+- Prefer `python catalog_maintenance.py` for scheduled catalog work. It creates
+  a verified backup first, prevents overlapping syncs, expires missing jobs only
+  after successful source checks, writes a timestamped JSON report, and exits
+  non-zero when a source failure or large source drop needs attention.
 - Monitor application errors, response latency, disk space, database size, and
   the public `/health/email` availability signal.
 - Keep API documentation disabled in production by retaining
