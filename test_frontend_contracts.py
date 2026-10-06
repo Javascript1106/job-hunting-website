@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261001-v103"
+ASSET_VERSION = "20261006-v104"
 
 
 class MarkupInspector(HTMLParser):
@@ -162,6 +162,10 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('name="jobExclusion"', self.jobs)
         self.assertIn("buildJobEvidenceDetails", self.script)
         self.assertIn("getTeenEligibilityBadge", self.script)
+        self.assertIn("Possible teen fit · Age not stated", self.script)
+        self.assertIn("age-confirmed-badge", self.styles)
+        self.assertIn("age-estimated-badge", self.styles)
+        self.assertIn("age-adult-badge", self.styles)
         self.assertIn("applyQuickJobPreset", self.script)
         self.assertNotIn("function isCanadaJobLocation", self.script)
         self.assertIn("isUnitedStatesJobLocation(job.location)", self.script)

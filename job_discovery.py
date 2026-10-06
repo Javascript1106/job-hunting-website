@@ -154,6 +154,37 @@ def _minimum_age(job: dict[str, Any]) -> int | None:
     return min(map(int, matches)) if matches else None
 
 
+def age_eligibility(job: dict[str, Any]) -> dict[str, Any]:
+    """Describe age evidence without presenting a title-based guess as fact."""
+    minimum = _minimum_age(job)
+    if minimum is not None:
+        if minimum <= 15:
+            category = "confirmed_14_15"
+        elif minimum <= 17:
+            category = "confirmed_16_17"
+        else:
+            category = "confirmed_18_plus"
+        return {
+            "minimum_age": minimum,
+            "age_eligibility": category,
+            "age_label": f"Minimum age {minimum}+ · Confirmed",
+            "age_evidence": "Employer posting",
+        }
+    if _teen_friendly(job):
+        return {
+            "minimum_age": None,
+            "age_eligibility": "possible_teen_fit",
+            "age_label": "Possible teen fit · Age not stated",
+            "age_evidence": "Role characteristics only",
+        }
+    return {
+        "minimum_age": None,
+        "age_eligibility": "unknown",
+        "age_label": None,
+        "age_evidence": "No minimum age found",
+    }
+
+
 def _teen_friendly(job: dict[str, Any]) -> bool:
     title = _text(job.get("title"))
     details = " ".join(_text(job.get(field)) for field in ("title", "description", "requirements", "experience"))

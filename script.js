@@ -1327,7 +1327,7 @@ function displayJobs(jobs, append = false) {
         <div class="job-card-heading-controls">
           ${(() => {
             const eligibility = getTeenEligibilityBadge(job);
-            return eligibility ? `<span class="job-highlight-badge teen-friendly-badge" title="${escapeEmployerHtml(eligibility.title)}">${escapeEmployerHtml(eligibility.label)}</span>` : "";
+            return eligibility ? `<span class="job-highlight-badge teen-friendly-badge ${escapeEmployerHtml(eligibility.className || "")}" title="${escapeEmployerHtml(eligibility.title)}">${escapeEmployerHtml(eligibility.label)}</span>` : "";
           })()}
           ${viewState.changed ? `<span class="job-highlight-badge changed-job-badge">Changed since viewed</span>` : viewState.viewed ? `<span class="job-highlight-badge viewed-job-badge">Viewed</span>` : ""}
           ${jobWasRecentlyPosted(job) ? `
@@ -2878,16 +2878,33 @@ function getJobMinimumAge(job) {
 }
 
 function getTeenEligibilityBadge(job) {
+  if (job.age_label) {
+    const confirmed = String(job.age_eligibility || "").startsWith("confirmed_");
+    const adultOnly = job.age_eligibility === "confirmed_18_plus";
+    return {
+      label: job.age_label,
+      className: adultOnly
+        ? "age-adult-badge"
+        : confirmed ? "age-confirmed-badge" : "age-estimated-badge",
+      title: adultOnly
+        ? "The official employer posting states that applicants must be at least 18."
+        : confirmed
+          ? "The official employer posting states this minimum age. Local work-hour and permit rules may still apply."
+        : "The role appears suitable for a first job, but the employer did not state a minimum age. Confirm eligibility before applying."
+    };
+  }
   const minimumAge = getJobMinimumAge(job);
   if (minimumAge <= 17) {
     return {
       label: `Minimum age ${minimumAge}+`,
+      className: "age-confirmed-badge",
       title: `The employer posting states a minimum age of ${minimumAge}. Confirm current requirements before applying.`
     };
   }
   if (!isTeenFriendlyJob(job)) return null;
   return {
-    label: "Teen-Friendly",
+    label: "Possible teen fit · Age not stated",
+    className: "age-estimated-badge",
     title: "This appears to be a starter role, but the posting does not state a minimum age. Confirm eligibility with the employer."
   };
 }

@@ -22,7 +22,7 @@ import auth as auth_service
 from app_config import apply_security_headers, configure_http_middleware
 from auth_routes import create_auth_router
 from database import DB_NAME, get_connection, initialize_database
-from job_discovery import discover_jobs
+from job_discovery import age_eligibility, discover_jobs
 from job_history import record_job_changes
 from job_sources.common import classify_category
 from job_routes import PUBLIC_JOB_ELIGIBILITY_SQL, create_job_router
@@ -387,6 +387,7 @@ def detect_job_safety_signals(job):
 def enrich_job_trust_data(job):
     enriched_job = dict(job)
     enriched_job.update(build_job_trust_information(enriched_job))
+    enriched_job.update(age_eligibility(enriched_job))
     enriched_job["safety_signals"] = detect_job_safety_signals(enriched_job)
     return enriched_job
 

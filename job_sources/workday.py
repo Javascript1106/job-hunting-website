@@ -89,6 +89,10 @@ def fetch_jobs(configuration):
     page_size = 20
     scan_limit = max(page_size, int(configuration.get("scan_limit", 500)))
     maximum = int(configuration.get("max_jobs", 200))
+    allowed_countries = {
+        str(country).strip().upper()
+        for country in configuration.get("country_codes", ["US"])
+    }
     patterns = [
         re.compile(pattern, re.IGNORECASE)
         for pattern in configuration.get("title_patterns", [])
@@ -138,7 +142,7 @@ def fetch_jobs(configuration):
             .get("country", {})
             .get("alpha2Code")
         )
-        if str(country or "").upper() not in {"US", "CA"}:
+        if str(country or "").upper() not in allowed_countries:
             continue
         title = plain_text(info.get("title"))
         location = plain_text(info.get("location")) or "Location not listed"

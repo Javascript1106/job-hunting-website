@@ -535,11 +535,36 @@
       "host": "panerabread.wd5",
       "tenant": "panerabread",
       "site": "Panera_Careers",
+      "country_codes": ["US"],
       "title_patterns": ["team member", "restaurant associate", "cashier"],
       "scan_limit": 800,
       "detail_scan_limit": 500,
       "detail_workers": 16,
       "max_jobs": 300
+    },
+    {
+      "employer": "Goodwill of Central and Northern Arizona",
+      "host": "goodwillaz.wd1",
+      "tenant": "goodwillaz",
+      "site": "GoodwillAZ",
+      "country_codes": ["US"],
+      "title_patterns": ["cashier", "retail sales associate", "donation attendant", "store associate"],
+      "scan_limit": 500,
+      "detail_scan_limit": 250,
+      "detail_workers": 16,
+      "max_jobs": 150
+    },
+    {
+      "employer": "Adventureland and Palace Entertainment",
+      "host": "hfecorp.wd503",
+      "tenant": "hfecorp",
+      "site": "palace_jobs",
+      "country_codes": ["US"],
+      "title_patterns": ["food", "ride operator", "retail", "admissions", "games", "park services"],
+      "scan_limit": 500,
+      "detail_scan_limit": 300,
+      "detail_workers": 16,
+      "max_jobs": 200
     }
   ],
   "usajobs": {

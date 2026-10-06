@@ -79,6 +79,38 @@ class WorkdaySourceTests(unittest.TestCase):
             })
         self.assertEqual(records, [])
 
+    def test_rejects_countries_outside_the_configured_catalog(self):
+        listing = {
+            "total": 1,
+            "jobPostings": [{
+                "title": "Cashier",
+                "externalPath": "/job/cashier_JR3",
+            }],
+        }
+        detail = {"jobPostingInfo": {
+            "id": "internal-3",
+            "title": "Cashier",
+            "jobDescription": "Applicants must be at least 16.",
+            "location": "Toronto, Ontario",
+            "externalUrl": "https://example.myworkdayjobs.com/job/JR3",
+            "jobRequisitionLocation": {
+                "country": {"alpha2Code": "CA"}
+            },
+        }}
+        with patch("job_sources.workday._post_json", return_value=listing), patch(
+            "job_sources.workday.fetch_json", return_value=detail
+        ):
+            _, records = workday.fetch_jobs({
+                "employer": "Example",
+                "host": "example.wd5",
+                "tenant": "example",
+                "site": "Careers",
+                "title_patterns": ["cashier"],
+                "country_codes": ["US"],
+                "scan_limit": 20,
+            })
+        self.assertEqual(records, [])
+
 
 if __name__ == "__main__":
     unittest.main()

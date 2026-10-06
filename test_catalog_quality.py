@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 import database
-from job_discovery import discover_jobs, us_state_codes
+from job_discovery import age_eligibility, discover_jobs, us_state_codes
 from job_sources.common import classify_category, normalize_employment_type
 from sync_jobs import catalog_health, record_source_health
 from verify_job_links import plain_page_text
@@ -16,6 +16,26 @@ class CatalogQualityTests(unittest.TestCase):
     def test_link_verifier_extracts_visible_page_text(self):
         payload = b"<style>hidden</style><h1>Cashier &amp; Store Support</h1>"
         self.assertEqual(plain_page_text(payload), "cashier & store support")
+
+    def test_age_eligibility_separates_confirmed_and_estimated_fit(self):
+        confirmed = age_eligibility({
+            "title": "Cashier",
+            "requirements": "Minimum age stated by employer: 16.",
+        })
+        estimated = age_eligibility({
+            "title": "Crew Member",
+            "experience": "Entry level / no experience required",
+        })
+        adult = age_eligibility({
+            "title": "Warehouse Associate",
+            "requirements": "Applicants must be 18 years old.",
+        })
+
+        self.assertEqual(confirmed["age_eligibility"], "confirmed_16_17")
+        self.assertEqual(confirmed["minimum_age"], 16)
+        self.assertEqual(estimated["age_eligibility"], "possible_teen_fit")
+        self.assertIsNone(estimated["minimum_age"])
+        self.assertEqual(adult["age_eligibility"], "confirmed_18_plus")
 
     def test_frontline_and_underserved_categories(self):
         cases = {
