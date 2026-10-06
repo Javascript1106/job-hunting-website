@@ -95,10 +95,10 @@
     {
       "employer": "Domino's",
       "company_id": "Dominos",
-      "max_jobs": 400,
+      "max_jobs": 750,
       "scan_limit": 5000,
-      "detail_scan_limit": 1200,
-      "detail_workers": 12
+      "detail_scan_limit": 5000,
+      "detail_workers": 16
     },
     {
       "employer": "Wynn Resorts",

@@ -1,5 +1,6 @@
 """Focused tests for catalog normalization, classification, and diversity."""
 
+import json
 import unittest
 import sqlite3
 import tempfile
@@ -8,6 +9,7 @@ from pathlib import Path
 import database
 from job_discovery import age_eligibility, discover_jobs, us_state_codes
 from job_sources.common import classify_category, normalize_employment_type
+from job_sources.smartrecruiters import _nationwide_order
 from sync_jobs import catalog_health, record_source_health
 from verify_job_links import plain_page_text
 
@@ -89,6 +91,30 @@ class CatalogQualityTests(unittest.TestCase):
         self.assertLessEqual(
             sum(job["company"] == "Large Employer" for job in results[:4]),
             2,
+        )
+
+    def test_teen_source_scans_full_board_and_balances_states(self):
+        configuration = json.loads(
+            (Path(__file__).resolve().parent / "job_sources.json")
+            .read_text(encoding="utf-8")
+        )
+        dominos = next(
+            source for source in configuration["smartrecruiters"]
+            if source["employer"] == "Domino's"
+        )
+        self.assertGreaterEqual(dominos["detail_scan_limit"], 5000)
+        self.assertGreaterEqual(dominos["max_jobs"], 750)
+
+        postings = [
+            {"id": "co-1", "location": {"region": "CO"}},
+            {"id": "co-2", "location": {"region": "CO"}},
+            {"id": "ut-1", "location": {"region": "UT"}},
+            {"id": "az-1", "location": {"region": "AZ"}},
+        ]
+        ordered = _nationwide_order(postings)
+        self.assertEqual(
+            [posting["location"]["region"] for posting in ordered[:3]],
+            ["AZ", "CO", "UT"],
         )
 
     def test_source_health_retains_the_previous_import_count(self):
