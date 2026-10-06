@@ -1404,7 +1404,7 @@ function displayJobs(jobs, append = false) {
         return `<div class="job-qualification-preview">
           <strong>Key qualifications</strong>
           <ul>${qualificationPreview.items.map(item => `<li>${escapeEmployerHtml(item)}</li>`).join("")}</ul>
-          ${qualificationPreview.hasMore ? `<p>More qualifications are available in Full Details and the official listing.</p>` : ""}
+          ${qualificationPreview.hasMore ? `<p>Additional requirements are in the full details.</p>` : ""}
         </div>`;
       })()}
 
@@ -1433,13 +1433,6 @@ function displayJobs(jobs, append = false) {
           ${escapeEmployerHtml(
             formatApplicationDeadline(applicationDeadline)
           )}
-        </p>
-      ` : ""}
-
-      ${job.last_verified_at ? `
-        <p class="job-verification-date">
-          Source last checked ${formatJobCardDate(job.last_verified_at)}.
-          Confirm availability and details before applying.
         </p>
       ` : ""}
 
@@ -1474,6 +1467,7 @@ function displayJobs(jobs, append = false) {
           <p><strong>Category:</strong> ${escapeEmployerHtml(job.category)}</p>
           <p><strong>Application:</strong> ${getJobApplicationMethod(job)}</p>
           <p><strong>Posted:</strong> ${formatJobCardDate(job.posted_at || job.created_at)}</p>
+          ${job.last_verified_at ? `<p class="job-verification-date"><strong>Source checked:</strong> ${formatJobCardDate(job.last_verified_at)}. Confirm availability before applying.</p>` : ""}
         </div>
 
         ${job.application_method === "employer_website" && officialListingUrl ? `
@@ -1489,20 +1483,6 @@ function displayJobs(jobs, append = false) {
       </div>
 
       <div class="job-card-actions">
-        <label class="compare-job-control"><input type="checkbox" data-action="compare-job" data-job-id="${job.id}" ${comparedJobIds.has(Number(job.id)) ? "checked" : ""}><span>Compare</span></label>
-        <a class="tailor-resume-button" href="resume.html?job=${job.id}">
-          Review Résumé for This Job
-        </a>
-        <button
-          type="button"
-          class="job-details-button"
-          data-action="toggle-job-details"
-          aria-expanded="false"
-          aria-controls="${detailsId}"
-        >
-          View Details
-        </button>
-
         <button
           type="button"
           class="apply-job-button ${isTracked ? "tracked" : ""}"
@@ -1521,9 +1501,21 @@ function displayJobs(jobs, append = false) {
           }
         </button>
 
+        <button
+          type="button"
+          class="job-details-button"
+          data-action="toggle-job-details"
+          aria-expanded="false"
+          aria-controls="${detailsId}"
+        >
+          View Details
+        </button>
+
         <details class="job-secondary-actions">
-          <summary>More actions</summary>
-          <div>
+          <summary aria-label="More actions for ${escapeEmployerHtml(job.title)}">More</summary>
+          <div class="job-secondary-actions-menu">
+            <label class="compare-job-control"><input type="checkbox" data-action="compare-job" data-job-id="${job.id}" ${comparedJobIds.has(Number(job.id)) ? "checked" : ""}><span>Compare job</span></label>
+            <a class="tailor-resume-button" href="resume.html?job=${job.id}">Review résumé</a>
             <button
               type="button"
               class="report-job-button ${isReported ? "reported" : ""}"

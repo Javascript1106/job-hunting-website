@@ -10025,3 +10025,69 @@ textarea.required-field-missing {
 .operations-table caption { text-align: left; font-weight: 700; margin-bottom: .65rem; }
 .operations-table th, .operations-table td { padding: .75rem; border-bottom: 1px solid var(--border-color, #d7dde5); text-align: left; white-space: nowrap; }
 .operations-table tbody th { white-space: normal; }
+
+/* Final job-discovery overrides: keep these after shared responsive rules. */
+.jobs-header,
+.jobs-layout { width: min(calc(100% - 2rem), 1040px); margin-left: auto; margin-right: auto; }
+.jobs-header { margin-top: clamp(1.5rem, 4vw, 3rem); margin-bottom: 1rem; }
+.jobs-layout { margin-top: 1rem; margin-bottom: 3rem; gap: 1rem; }
+.job-results-toolbar { margin: 1rem 0 0; padding-top: .85rem; border-top: 1px solid #e4e9ef; }
+.job-card { padding: 1.25rem 1.35rem; border-color: #e1e7ed; box-shadow: 0 8px 22px rgba(15, 40, 61, .055); transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+.job-card-heading { gap: .75rem; margin-bottom: .85rem; }
+.job-card-controls { gap: .35rem; }
+.job-card-controls .job-source-badge,
+.job-card-controls .job-status-badge,
+.job-card-controls .job-age-badge,
+.job-card-controls .job-quality-badge,
+.job-card-controls .job-accessibility-badge { padding: .22rem .48rem; font-size: .7rem; line-height: 1.2; }
+.job-card-controls .external-job-badge { color: #536779; background: #f8fafc; border-color: #dce4eb; }
+.job-card-metadata { gap: .55rem .85rem; margin-bottom: .85rem; }
+.job-qualification-preview { margin: .7rem 0; padding: .7rem .85rem; }
+.job-qualification-preview ul { margin-top: .35rem; margin-bottom: 0; }
+.job-qualification-preview p { margin: .4rem 0 0; font-size: .78rem; color: #65788a; }
+.job-understanding-details { margin: .7rem 0; }
+.job-card-actions { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(8rem, auto) auto; align-items: stretch; gap: .6rem; margin-top: 1rem; }
+.job-card-actions .apply-job-button,
+.job-card-actions .job-details-button,
+.job-secondary-actions > summary { min-height: 2.65rem; display: inline-flex; align-items: center; justify-content: center; margin: 0; }
+.job-card-actions .apply-job-button { color: #fff; background: #0e6b56; border-color: #0e6b56; box-shadow: 0 5px 13px rgba(14, 107, 86, .18); }
+.job-card-actions .apply-job-button:hover,
+.job-card-actions .apply-job-button:focus-visible { background: #0a5948; border-color: #0a5948; }
+.job-card-actions .job-details-button { color: #173f57; background: #fff; border-color: #cbd7df; }
+.job-secondary-actions { align-self: stretch; }
+.job-secondary-actions > summary { height: 100%; padding: .65rem .9rem; white-space: nowrap; }
+.job-secondary-actions-menu { right: 0; bottom: calc(100% + .45rem); min-width: 210px; padding: .45rem; }
+.job-secondary-actions-menu .compare-job-control,
+.job-secondary-actions-menu .tailor-resume-button,
+.job-secondary-actions-menu button { width: 100%; min-height: 2.35rem; justify-content: flex-start; margin: 0; border: 0; border-radius: .5rem; box-shadow: none; background: transparent; color: #294b60; font-size: .88rem; font-weight: 650; text-align: left; }
+.job-secondary-actions-menu .compare-job-control,
+.job-secondary-actions-menu .tailor-resume-button { display: flex; align-items: center; gap: .55rem; padding: .55rem .65rem; text-decoration: none; }
+.job-secondary-actions-menu .compare-job-control:hover,
+.job-secondary-actions-menu .tailor-resume-button:hover,
+.job-secondary-actions-menu button:hover { background: #f1f6f8; }
+.job-card-skeleton { min-height: 190px; height: auto; }
+
+@media (hover: hover) and (pointer: fine) {
+  .job-card:hover { transform: translateY(-2px); border-color: #c9d7df; box-shadow: 0 13px 30px rgba(15, 40, 61, .09); }
+}
+
+@media (max-width: 760px) {
+  .jobs-header,
+  .jobs-layout { width: min(calc(100% - 1.25rem), 1040px); }
+  .job-card { padding: 1.05rem; }
+  .job-card-actions { grid-template-columns: minmax(0, 1fr) auto; }
+  .job-card-actions .apply-job-button { grid-column: 1 / -1; }
+  .job-card-actions .job-details-button,
+  .job-secondary-actions,
+  .job-secondary-actions > summary { width: auto; }
+  .job-card-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 420px) {
+  .job-card-metadata { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .job-card { transition: none; }
+  .job-card:hover { transform: none; }
+}

@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261006-v104"
+ASSET_VERSION = "20261006-v105"
 
 
 class MarkupInspector(HTMLParser):
@@ -148,6 +148,21 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('id="jobSearchForm"', self.jobs)
         self.assertIn('role="search"', self.jobs)
         self.assertIn('id="jobSearchButton"', self.jobs)
+
+    def test_job_cards_keep_primary_actions_clear_and_secondary_actions_grouped(self):
+        card_actions = self.script.index('<div class="job-card-actions">')
+        apply_action = self.script.index('class="apply-job-button', card_actions)
+        details_action = self.script.index('class="job-details-button"', card_actions)
+        more_actions = self.script.index('class="job-secondary-actions"', card_actions)
+        compare_action = self.script.index('data-action="compare-job"', more_actions)
+        resume_action = self.script.index('class="tailor-resume-button"', more_actions)
+        self.assertLess(apply_action, details_action)
+        self.assertLess(details_action, more_actions)
+        self.assertLess(more_actions, compare_action)
+        self.assertLess(compare_action, resume_action)
+        self.assertIn('aria-label="More actions for ${escapeEmployerHtml(job.title)}"', self.script)
+        self.assertIn("Final job-discovery overrides", self.styles)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", self.styles)
         self.assertIn('id="advancedFilterCount"', self.jobs)
         self.assertIn('class="job-loading-state"', self.jobs)
         self.assertIn("buildContentLoadingState", self.script)
