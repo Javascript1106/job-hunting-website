@@ -17,7 +17,7 @@ let activeReportJobId = null;
 let activeReportTrigger = null;
 let filteredJobs = [];
 let displayedJobCount = 0;
-const JOB_PAGE_SIZE = 8;
+const JOB_PAGE_SIZE = 12;
 let jobChatAuthenticated = false;
 let opportunityFitProfile = null;
 let sharedJobLocation = null;
@@ -1552,12 +1552,14 @@ function displayJobs(jobs, append = false) {
   if (loadMoreButton) {
     const reachedEnd = displayedJobCount >= jobs.length && !jobSearchHasMore;
     const remainingCount = Math.max(0, jobSearchTotal - displayedJobCount);
+    const nextBatchCount = Math.min(JOB_PAGE_SIZE, remainingCount);
     loadMoreButton.classList.remove("hidden");
     loadMoreButton.classList.toggle("results-complete", reachedEnd);
     loadMoreButton.disabled = reachedEnd;
+    loadMoreButton.removeAttribute("aria-busy");
     loadMoreButton.textContent = reachedEnd
       ? `No more listings — all ${jobSearchTotal} shown`
-      : `Load more jobs (${remainingCount} remaining)`;
+      : `Load ${nextBatchCount} more job${nextBatchCount === 1 ? "" : "s"} (${remainingCount} remaining)`;
     if (endMessage) {
       endMessage.classList.add("hidden");
     }
@@ -3366,7 +3368,7 @@ function getServerJobSearchParameters(offset = 0) {
   return parameters;
 }
 
-async function runJobSearch(offset = 0) {
+async function runJobSearch(offset = 0, requestedDisplayCount = null) {
   const requestId = ++jobSearchRequestId;
   const previouslyDisplayed = displayedJobCount;
   jobCatalogLoading = true;
@@ -3387,7 +3389,10 @@ async function runJobSearch(offset = 0) {
     jobCatalogLoading = false;
     filterJobs(false);
     if (offset) {
-      const target = Math.min(previouslyDisplayed + JOB_PAGE_SIZE, filteredJobs.length);
+      const target = Math.min(
+        requestedDisplayCount ?? previouslyDisplayed + JOB_PAGE_SIZE,
+        filteredJobs.length
+      );
       while (displayedJobCount < target) displayJobs(filteredJobs, true);
     }
   } catch (error) {
@@ -3396,6 +3401,12 @@ async function runJobSearch(offset = 0) {
     console.error("Job search failed:", error);
     const resultCount = document.getElementById("jobResultCount");
     if (resultCount) resultCount.textContent = "Job search could not be refreshed. Try again.";
+    const loadMoreButton = document.getElementById("loadMoreJobsButton");
+    if (offset && loadMoreButton) {
+      loadMoreButton.disabled = false;
+      loadMoreButton.removeAttribute("aria-busy");
+      loadMoreButton.textContent = "Try loading more jobs";
+    }
   }
 }
 
@@ -3405,12 +3416,24 @@ function scheduleServerJobSearch() {
 }
 
 async function loadMoreJobResults() {
+  if (jobCatalogLoading) return;
+  const loadMoreButton = document.getElementById("loadMoreJobsButton");
+  const requestedDisplayCount = Math.min(
+    displayedJobCount + JOB_PAGE_SIZE,
+    jobSearchTotal
+  );
+
   if (displayedJobCount < filteredJobs.length) {
     displayJobs(filteredJobs, true);
-    return;
   }
-  if (!jobSearchHasMore || jobCatalogLoading) return;
-  await runJobSearch(allJobs.length);
+
+  if (displayedJobCount >= requestedDisplayCount || !jobSearchHasMore) return;
+  if (loadMoreButton) {
+    loadMoreButton.disabled = true;
+    loadMoreButton.setAttribute("aria-busy", "true");
+    loadMoreButton.textContent = "Loading more jobs…";
+  }
+  await runJobSearch(allJobs.length, requestedDisplayCount);
 }
 
 function applyNaturalJobSearch() {
