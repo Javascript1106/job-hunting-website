@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Jobs - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261013-v108">
+  <link rel="stylesheet" href="style.css?v=20261013-v109">
 </head>
 
 <body>
@@ -148,7 +148,6 @@
         <label class="job-filter-field" for="excludeTermsFilter"><span>Exclude words</span><input id="excludeTermsFilter" type="text" maxlength="200" placeholder="Example: travel, weekends"></label>
         <fieldset class="job-exclusion-filters"><legend>Never show</legend><label><input type="checkbox" name="jobExclusion" value="senior"> Senior or management roles</label><label><input type="checkbox" name="jobExclusion" value="staffing"> Staffing-agency listings</label><label><input type="checkbox" name="jobExclusion" value="commission"> Commission-only or 1099 work</label><label><input type="checkbox" name="jobExclusion" value="clearance"> Security-clearance roles</label><label><input type="checkbox" name="jobExclusion" value="unpaid"> Unpaid roles</label></fieldset>
         <button id="restoreHiddenJobsButton" class="restore-hidden-jobs-button" type="button">Restore Hidden Jobs</button>
-        <button id="resetJobFiltersButton" class="reset-job-filters" type="button">Clear Search and Filters</button>
       </div>
       <p id="teenJobFilterGuidance" class="teen-job-filter-guidance" hidden><strong>For applicants under 18:</strong> PathForge uses age requirements stated in the posting when available. Always confirm the employer’s minimum age and your local work-permit rules before applying.</p>
     </details>
@@ -177,14 +176,17 @@
 
     <div class="job-results-toolbar">
       <p id="jobResultCount" class="job-result-count" aria-live="polite"></p>
-      <label for="jobSortSelect">Sort by
-        <select id="jobSortSelect">
-          <option value="recommended">Best Match</option>
-          <option value="newest">Newest</option>
-          <option value="pay-high">Highest Pay</option>
-          <option value="verified">Most Complete</option>
-        </select>
-      </label>
+      <div class="job-results-toolbar-actions">
+        <button id="resetJobFiltersButton" class="reset-job-filters" type="button" disabled>Reset filters</button>
+        <label for="jobSortSelect">Sort by
+          <select id="jobSortSelect">
+            <option value="recommended">Best Match</option>
+            <option value="newest">Newest</option>
+            <option value="pay-high">Highest Pay</option>
+            <option value="verified">Most Complete</option>
+          </select>
+        </label>
+      </div>
     </div>
 
   </section>
@@ -406,8 +408,8 @@
   </div>
 </section>
 
-  <script src="pathforge-core.js?v=20261013-v108"></script>
-<script src="script.js?v=20261013-v108"></script>
+  <script src="pathforge-core.js?v=20261013-v109"></script>
+<script src="script.js?v=20261013-v109"></script>
 <footer class="home-footer">
   <div class="home-footer-brand">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">

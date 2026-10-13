@@ -3068,6 +3068,8 @@ function renderActiveJobFilters(filters) {
   if (!container) return;
   const activeFilters = filters.filter(filter => filter.active);
   container.replaceChildren();
+  const resetButton = document.getElementById("resetJobFiltersButton");
+  if (resetButton) resetButton.disabled = activeFilters.length === 0;
   activeFilters.forEach(filter => {
     const button = document.createElement("button");
     button.type = "button";

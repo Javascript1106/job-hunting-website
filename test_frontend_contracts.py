@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261013-v108"
+ASSET_VERSION = "20261013-v109"
 
 
 class MarkupInspector(HTMLParser):
@@ -195,6 +195,8 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("Country: Any", self.jobs)
 
     def test_reset_job_filters_does_not_reapply_text_filters(self):
+        self.assertEqual(self.jobs.count('id="resetJobFiltersButton"'), 1)
+        self.assertIn('id="resetJobFiltersButton" class="reset-job-filters"', self.jobs)
         reset_function = re.search(
             r"function resetJobFilters\(\) \{(.*?)\n\}",
             self.script,

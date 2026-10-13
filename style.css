@@ -2698,6 +2698,16 @@ textarea.required-field-missing {
   margin: .5rem 0 0;
 }
 .job-results-toolbar .job-result-count { margin: 0; }
+.job-results-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.job-results-toolbar .reset-job-filters {
+  min-height: 40px;
+  padding: .5rem .8rem;
+  white-space: nowrap;
+}
 .job-results-toolbar label {
   display: flex;
   align-items: center;
@@ -2713,6 +2723,7 @@ textarea.required-field-missing {
 }
 @media (max-width: 600px) {
   .job-results-toolbar { align-items: stretch; flex-direction: column; }
+  .job-results-toolbar-actions { align-items: stretch; justify-content: space-between; }
   .job-results-toolbar label { justify-content: space-between; }
   .job-results-toolbar select { flex: 1; }
 }
