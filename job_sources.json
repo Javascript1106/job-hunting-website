@@ -47,6 +47,41 @@
       "employer": "Dropbox",
       "board_token": "dropbox",
       "max_jobs": 500
+    },
+    {
+      "employer": "Stripe",
+      "board_token": "stripe",
+      "max_jobs": 1000
+    },
+    {
+      "employer": "Pinterest",
+      "board_token": "pinterest",
+      "max_jobs": 500
+    },
+    {
+      "employer": "MongoDB",
+      "board_token": "mongodb",
+      "max_jobs": 500
+    },
+    {
+      "employer": "Samsara",
+      "board_token": "samsara",
+      "max_jobs": 500
+    },
+    {
+      "employer": "Toast",
+      "board_token": "toast",
+      "max_jobs": 500
+    },
+    {
+      "employer": "Coinbase",
+      "board_token": "coinbase",
+      "max_jobs": 500
+    },
+    {
+      "employer": "Duolingo",
+      "board_token": "duolingo",
+      "max_jobs": 250
     }
   ],
   "lever": [
@@ -180,6 +215,33 @@
       "max_jobs": 50,
       "scan_limit": 1200,
       "detail_scan_limit": 400,
+      "detail_workers": 16
+    },
+    {
+      "employer": "H&M Group",
+      "company_id": "HMGroup",
+      "confirmed_teen_only": false,
+      "max_jobs": 500,
+      "scan_limit": 3000,
+      "detail_scan_limit": 1000,
+      "detail_workers": 16
+    },
+    {
+      "employer": "Abercrombie & Fitch Co.",
+      "company_id": "abercrombieandfitchco",
+      "confirmed_teen_only": false,
+      "max_jobs": 100,
+      "scan_limit": 500,
+      "detail_scan_limit": 200,
+      "detail_workers": 12
+    },
+    {
+      "employer": "Bosch",
+      "company_id": "BoschGroup",
+      "confirmed_teen_only": false,
+      "max_jobs": 100,
+      "scan_limit": 5000,
+      "detail_scan_limit": 300,
       "detail_workers": 16
     }
   ],
@@ -672,6 +734,31 @@
       "detail_scan_limit": 300,
       "detail_workers": 16,
       "max_jobs": 200
+    },
+    {
+      "employer": "Target",
+      "host": "target.wd5",
+      "tenant": "target",
+      "site": "targetcareers",
+      "country_codes": ["US"],
+      "confirmed_teen_only": false,
+      "search_queries": [
+        "guest advocate",
+        "fulfillment expert",
+        "starbucks barista"
+      ],
+      "title_patterns": [
+        "guest advocate",
+        "fulfillment expert",
+        "inbound expert",
+        "starbucks barista",
+        "style consultant",
+        "general merchandise expert"
+      ],
+      "scan_limit": 40,
+      "detail_scan_limit": 150,
+      "detail_workers": 16,
+      "max_jobs": 100
     }
   ],
   "usajobs": {

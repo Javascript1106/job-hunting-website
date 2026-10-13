@@ -89,6 +89,7 @@ def fetch_jobs(configuration):
     page_size = 20
     scan_limit = max(page_size, int(configuration.get("scan_limit", 500)))
     maximum = int(configuration.get("max_jobs", 200))
+    confirmed_teen_only = configuration.get("confirmed_teen_only", True) is not False
     allowed_countries = {
         str(country).strip().upper()
         for country in configuration.get("country_codes", ["US"])
@@ -97,27 +98,37 @@ def fetch_jobs(configuration):
         re.compile(pattern, re.IGNORECASE)
         for pattern in configuration.get("title_patterns", [])
     ]
+    search_queries = configuration.get("search_queries") or [""]
+    search_queries = [plain_text(query)[:100] for query in search_queries]
     candidates = []
-    for offset in range(0, scan_limit, page_size):
-        payload = _post_json(
-            base + "/jobs",
-            {
-                "appliedFacets": {},
-                "limit": page_size,
-                "offset": offset,
-                "searchText": "",
-            },
-        )
-        postings = payload.get("jobPostings", [])
-        if not postings:
-            break
-        for posting in postings:
-            title = plain_text(posting.get("title"))
-            if patterns and not any(pattern.search(title) for pattern in patterns):
-                continue
-            candidates.append(posting)
-        if offset + len(postings) >= int(payload.get("total") or 0):
-            break
+    seen_paths = set()
+    for search_query in search_queries:
+        for offset in range(0, scan_limit, page_size):
+            payload = _post_json(
+                base + "/jobs",
+                {
+                    "appliedFacets": {},
+                    "limit": page_size,
+                    "offset": offset,
+                    "searchText": search_query,
+                },
+            )
+            postings = payload.get("jobPostings", [])
+            if not postings:
+                break
+            for posting in postings:
+                title = plain_text(posting.get("title"))
+                path = posting.get("externalPath")
+                if (
+                    not path
+                    or path in seen_paths
+                    or (patterns and not any(pattern.search(title) for pattern in patterns))
+                ):
+                    continue
+                seen_paths.add(path)
+                candidates.append(posting)
+            if offset + len(postings) >= int(payload.get("total") or 0):
+                break
 
     details_to_scan = candidates[:int(
         configuration.get("detail_scan_limit", maximum * 3)
@@ -135,7 +146,7 @@ def fetch_jobs(configuration):
         description_html = info.get("jobDescription")
         description_text = plain_text(description_html)
         minimum_age = _minimum_age(description_text)
-        if minimum_age is None or minimum_age > 17:
+        if confirmed_teen_only and (minimum_age is None or minimum_age > 17):
             continue
         country = (
             (info.get("jobRequisitionLocation") or {})
@@ -148,8 +159,11 @@ def fetch_jobs(configuration):
         location = plain_text(info.get("location")) or "Location not listed"
         minimum, maximum_pay, period = _pay_fields(description_text)
         requirements = extract_qualification_text(description_html)
-        age_text = f"Minimum age stated by employer: {minimum_age}."
-        requirements = f"{age_text} {requirements or ''}".strip()
+        age_text = (
+            f"Minimum age stated by employer: {minimum_age}."
+            if minimum_age is not None else ""
+        )
+        requirements = f"{age_text} {requirements or ''}".strip() or None
         records.append({
             "title": title,
             "company": employer,
@@ -160,7 +174,11 @@ def fetch_jobs(configuration):
             ),
             "requirements": requirements,
             "preferred_qualifications": None,
-            "experience": "Entry level / student-friendly",
+            "experience": (
+                "Entry level / confirmed teen-friendly"
+                if minimum_age is not None and minimum_age <= 17
+                else "Entry level / check employer age requirements"
+            ),
             "category": classify_category(title, ["Retail", "Food Service"]),
             "employment_type": info.get("timeType"),
             "is_remote": False,

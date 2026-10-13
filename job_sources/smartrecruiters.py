@@ -19,7 +19,7 @@ STARTER_TITLE = re.compile(
     r"\b(?:customer service rep(?:resentative)?|pizza maker|crew member|"
     r"team member|cashier|counter (?:person|staff|associate)|insider|"
     r"sales associate|retail associate|brand associate|brand representative|"
-    r"store associate|shop associate|cast member|lifeguard|pool attendant|"
+    r"sales advisor|store associate|shop associate|cast member|lifeguard|pool attendant|"
     r"recreation attendant|food (?:and|&) beverage attendant|"
     r"concession(?:s)? attendant|host|hostess|busser|dishwasher)\b",
     re.IGNORECASE,
@@ -89,6 +89,7 @@ def fetch_jobs(configuration):
     page_size = min(int(configuration.get("page_size", 100)), 100)
     scan_limit = int(configuration.get("scan_limit", 1200))
     maximum = int(configuration.get("max_jobs", 150))
+    confirmed_teen_only = configuration.get("confirmed_teen_only", True) is not False
     candidates = []
 
     for offset in range(0, scan_limit, page_size):
@@ -135,18 +136,21 @@ def fetch_jobs(configuration):
             break
         full_text = _section_text(detail)
         minimum_age = _minimum_age(full_text)
-        if minimum_age is None or minimum_age > 17:
+        if confirmed_teen_only and (minimum_age is None or minimum_age > 17):
             continue
         location = detail.get("location") or {}
         title = plain_text(detail.get("name"))
         employment = (detail.get("typeOfEmployment") or {}).get("label")
         qualification_text = _qualification_text(detail)
-        age_text = f"Minimum age stated by employer: {minimum_age}."
+        age_text = (
+            f"Minimum age stated by employer: {minimum_age}."
+            if minimum_age is not None else ""
+        )
         qualification_age = _minimum_age(qualification_text)
         requirements = (
-            f"{age_text} {qualification_text}"
+            f"{age_text} {qualification_text}".strip()
             if qualification_text and qualification_age is None
-            else qualification_text or age_text
+            else qualification_text or age_text or None
         )
         records.append({
             "title": title,
@@ -158,7 +162,11 @@ def fetch_jobs(configuration):
             ),
             "requirements": requirements,
             "preferred_qualifications": None,
-            "experience": "Entry level / student-friendly",
+            "experience": (
+                "Entry level / confirmed teen-friendly"
+                if minimum_age is not None and minimum_age <= 17
+                else "Entry level / check employer age requirements"
+            ),
             "category": classify_category(title, ["Restaurants", "Customer Service"]),
             "employment_type": employment,
             "is_remote": False,
