@@ -83,7 +83,9 @@ configure_http_middleware(
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
-    return await apply_security_headers(request, call_next, IS_PRODUCTION)
+    return await apply_security_headers(
+        request, call_next, IS_PRODUCTION, configured_origins
+    )
 
 # Apply idempotent schema setup before any request handler opens the database.
 initialize_database()

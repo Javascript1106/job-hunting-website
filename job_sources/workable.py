@@ -51,7 +51,7 @@ def fetch_jobs(configuration):
         "https://www.workable.com/api/accounts/"
         f"{quote(account, safe='')}?details=true"
     )
-    records = []
+    records_by_id = {}
 
     for job in _jobs(payload):
         if not isinstance(job, dict):
@@ -91,7 +91,7 @@ def fetch_jobs(configuration):
         if isinstance(department, dict):
             department = department.get("name")
 
-        records.append({
+        record = {
             "title": title,
             "company": employer,
             "location": location,
@@ -116,7 +116,15 @@ def fetch_jobs(configuration):
             "expires_at": job.get("expires_at"),
             "application_deadline": job.get("application_deadline"),
             "last_verified_at": utc_now(),
-        })
+        }
+        record_key = str(external_id)
+        existing = records_by_id.get(record_key)
+        if existing:
+            existing_locations = existing["location"].split("; ")
+            if location not in existing_locations:
+                existing["location"] = "; ".join(existing_locations + [location])
+            continue
+        records_by_id[record_key] = record
 
     maximum = int(configuration.get("max_jobs", 250))
-    return source, records[:maximum]
+    return source, list(records_by_id.values())[:maximum]

@@ -4,7 +4,7 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from backup_database import backup_database
@@ -14,6 +14,7 @@ from sync_jobs import print_progress, sync_all
 PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_LOG_DIRECTORY = PROJECT_ROOT / "automation-logs"
 DEFAULT_LOCK_PATH = PROJECT_ROOT / ".catalog-maintenance.lock"
+MAX_LOCK_AGE = timedelta(hours=4)
 
 
 def _utc_timestamp():
@@ -34,6 +35,44 @@ def _write_report(report, log_directory):
     return destination
 
 
+def _lock_is_abandoned(lock_path):
+    """Return True only when a lock is old or its recorded process is gone."""
+    lock = Path(lock_path)
+    try:
+        age = datetime.now(timezone.utc) - datetime.fromtimestamp(
+            lock.stat().st_mtime, timezone.utc
+        )
+        contents = lock.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    if age > MAX_LOCK_AGE:
+        return True
+    match = next(
+        (line.partition("=")[2] for line in contents.splitlines()
+         if line.startswith("pid=")),
+        "",
+    )
+    if not match.isdigit():
+        return False
+    try:
+        os.kill(int(match), 0)
+    except ProcessLookupError:
+        return True
+    except (OSError, PermissionError):
+        return False
+    return False
+
+
+def _create_lock(lock):
+    try:
+        return os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        if not _lock_is_abandoned(lock):
+            raise
+        lock.unlink(missing_ok=True)
+        return os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+
+
 def run_maintenance(
     *,
     log_directory=DEFAULT_LOG_DIRECTORY,
@@ -46,7 +85,7 @@ def run_maintenance(
     lock = Path(lock_path)
     lock.parent.mkdir(parents=True, exist_ok=True)
     try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        descriptor = _create_lock(lock)
     except FileExistsError as error:
         raise RuntimeError(
             "Catalog maintenance is already running. If no sync is active, "
@@ -65,8 +104,13 @@ def run_maintenance(
         health = summary.get("catalog_health", {})
         failed_sources = health.get("failed_sources", [])
         large_drops = health.get("large_source_drops", [])
+        failed_records = int(summary.get("failed", 0) or 0)
         report = {
-            "status": "attention_required" if failed_sources or large_drops else "success",
+            "status": (
+                "attention_required"
+                if failed_sources or large_drops or failed_records
+                else "success"
+            ),
             "started_at": started_at,
             "finished_at": _utc_timestamp(),
             "backup_path": str(backup_path),

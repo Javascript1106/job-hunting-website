@@ -1,8 +1,11 @@
 """Tests for scheduler-safe catalog maintenance."""
 
+import os
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from catalog_maintenance import run_maintenance
 
@@ -57,6 +60,24 @@ class CatalogMaintenanceTests(unittest.TestCase):
             )
             self.assertEqual(report["status"], "attention_required")
 
+    def test_record_failure_requires_attention(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = run_maintenance(
+                log_directory=root / "logs",
+                lock_path=root / "sync.lock",
+                backup_func=lambda: root / "backup.db",
+                sync_func=lambda **_kwargs: {
+                    "failed": 1,
+                    "catalog_health": {
+                        "failed_sources": [],
+                        "large_source_drops": [],
+                    },
+                },
+                progress=lambda _message: None,
+            )
+            self.assertEqual(report["status"], "attention_required")
+
     def test_existing_lock_prevents_overlapping_syncs(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -70,6 +91,50 @@ class CatalogMaintenanceTests(unittest.TestCase):
                     sync_func=lambda **_kwargs: {},
                     progress=lambda _message: None,
                 )
+
+    def test_abandoned_process_lock_is_recovered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = root / "sync.lock"
+            lock.write_text("pid=99999999\n", encoding="utf-8")
+            with patch("catalog_maintenance.os.kill", side_effect=ProcessLookupError):
+                report = run_maintenance(
+                    log_directory=root / "logs",
+                    lock_path=lock,
+                    backup_func=lambda: root / "backup.db",
+                    sync_func=lambda **_kwargs: {
+                        "catalog_health": {
+                            "failed_sources": [],
+                            "large_source_drops": [],
+                        }
+                    },
+                    progress=lambda _message: None,
+                )
+            self.assertEqual(report["status"], "success")
+            self.assertFalse(lock.exists())
+
+    def test_old_lock_without_pid_is_recovered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = root / "sync.lock"
+            lock.write_text("incomplete", encoding="utf-8")
+            old_time = (
+                datetime.now(timezone.utc) - timedelta(hours=5)
+            ).timestamp()
+            os.utime(lock, (old_time, old_time))
+            report = run_maintenance(
+                log_directory=root / "logs",
+                lock_path=lock,
+                backup_func=lambda: root / "backup.db",
+                sync_func=lambda **_kwargs: {
+                    "catalog_health": {
+                        "failed_sources": [],
+                        "large_source_drops": [],
+                    }
+                },
+                progress=lambda _message: None,
+            )
+            self.assertEqual(report["status"], "success")
 
 
 if __name__ == "__main__":

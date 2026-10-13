@@ -9,13 +9,16 @@ from starlette.requests import Request
 import main
 
 
-def build_request(path="/"):
+def build_request(path="/", method="GET", headers=None):
     return Request({
         "type": "http",
-        "method": "GET",
+        "method": method,
         "path": path,
         "raw_path": path.encode("ascii"),
-        "headers": [],
+        "headers": [
+            (key.lower().encode("ascii"), value.encode("ascii"))
+            for key, value in (headers or {}).items()
+        ],
         "client": ("127.0.0.1", 50000),
         "server": ("testserver", 80),
         "scheme": "http",
@@ -34,6 +37,47 @@ class SecurityHeaderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.headers["x-frame-options"], "DENY")
         self.assertIn("frame-ancestors 'none'", response.headers["content-security-policy"])
         self.assertIn("camera=()", response.headers["permissions-policy"])
+        self.assertEqual(response.headers["cross-origin-opener-policy"], "same-origin")
+
+    async def test_production_rejects_cross_origin_authenticated_writes(self):
+        async def call_next(_request):
+            return JSONResponse({"ok": True})
+
+        response = await main.apply_security_headers(
+            build_request(
+                "/profile",
+                method="PATCH",
+                headers={
+                    "Host": "pathforge.example",
+                    "Origin": "https://attacker.example",
+                    "Cookie": "pathforge_session=secret",
+                },
+            ),
+            call_next,
+            True,
+            ["https://pathforge.example"],
+        )
+        self.assertEqual(response.status_code, 403)
+
+    async def test_production_allows_configured_origin_authenticated_writes(self):
+        async def call_next(_request):
+            return JSONResponse({"ok": True})
+
+        response = await main.apply_security_headers(
+            build_request(
+                "/profile",
+                method="PATCH",
+                headers={
+                    "Host": "pathforge.example",
+                    "Origin": "https://pathforge.example",
+                    "Cookie": "pathforge_session=secret",
+                },
+            ),
+            call_next,
+            True,
+            ["https://pathforge.example"],
+        )
+        self.assertEqual(response.status_code, 200)
 
     async def test_private_responses_are_not_cached(self):
         async def call_next(_request):

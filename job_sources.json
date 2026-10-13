@@ -528,7 +528,44 @@
       "max_jobs": 50
     }
   ],
-  "workable": [],
+  "workable": [
+    {
+      "employer": "Reebok",
+      "account_subdomain": "reebok",
+      "country_codes": ["US"],
+      "max_jobs": 100
+    },
+    {
+      "employer": "The Normal Brand",
+      "account_subdomain": "the-normal-brand",
+      "country_codes": ["US"],
+      "max_jobs": 100
+    },
+    {
+      "employer": "Blufox Mobile",
+      "account_subdomain": "blufox-mobile",
+      "country_codes": ["US"],
+      "max_jobs": 500
+    },
+    {
+      "employer": "Stio",
+      "account_subdomain": "stio",
+      "country_codes": ["US"],
+      "max_jobs": 100
+    },
+    {
+      "employer": "REEDS Jewelers",
+      "account_subdomain": "reeds",
+      "country_codes": ["US"],
+      "max_jobs": 250
+    },
+    {
+      "employer": "Fooda",
+      "account_subdomain": "fooda-careers",
+      "country_codes": ["US"],
+      "max_jobs": 250
+    }
+  ],
   "workday": [
     {
       "employer": "Panera Bread",

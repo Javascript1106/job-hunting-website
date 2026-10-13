@@ -1,5 +1,6 @@
 """Shared HTTP middleware configuration for the PathForge API."""
 
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
@@ -25,12 +26,33 @@ def configure_http_middleware(app, is_production, configured_origins, developmen
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
-async def apply_security_headers(request, call_next, is_production):
+async def apply_security_headers(
+    request, call_next, is_production, configured_origins=()
+):
     """Apply browser security and private-response cache headers."""
+    unsafe_method = request.method.upper() in {"POST", "PUT", "PATCH", "DELETE"}
+    has_session = bool(request.cookies.get("pathforge_session"))
+    if is_production and unsafe_method and has_session:
+        request_origin = request.headers.get("origin", "").rstrip("/")
+        host = request.headers.get("host", request.url.netloc)
+        allowed_origins = {
+            str(origin).rstrip("/")
+            for origin in configured_origins
+            if str(origin).strip()
+        }
+        allowed_origins.add(f"{request.url.scheme}://{host}".rstrip("/"))
+        if not request_origin or request_origin not in allowed_origins:
+            return JSONResponse(
+                {"detail": "Request origin could not be verified."},
+                status_code=403,
+            )
+
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
     response.headers["Permissions-Policy"] = (
         "camera=(), microphone=(), geolocation=(self), payment=(), usb=()"
     )

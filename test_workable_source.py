@@ -46,6 +46,28 @@ class WorkableSourceTests(unittest.TestCase):
                     "account_subdomain": "example",
                 })
 
+    def test_duplicate_job_locations_are_merged(self):
+        payload = {"jobs": [{
+            "shortcode": "MULTI",
+            "title": "Sales Associate",
+            "location": "Denver, Colorado, United States",
+            "url": "https://apply.workable.com/example/j/MULTI/",
+        }, {
+            "shortcode": "MULTI",
+            "title": "Sales Associate",
+            "location": "Boulder, Colorado, United States",
+            "url": "https://apply.workable.com/example/j/MULTI/",
+        }]}
+        with patch("job_sources.workable.fetch_json", return_value=payload):
+            _source, records = workable.fetch_jobs({
+                "employer": "Example",
+                "account_subdomain": "example",
+            })
+
+        self.assertEqual(len(records), 1)
+        self.assertIn("Denver", records[0]["location"])
+        self.assertIn("Boulder", records[0]["location"])
+
 
 if __name__ == "__main__":
     unittest.main()
