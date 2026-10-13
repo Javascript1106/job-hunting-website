@@ -2494,8 +2494,8 @@ textarea.required-field-missing {
 }
 .advanced-job-filter-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .65rem;
+  grid-template-columns: 1fr;
+  gap: .9rem;
   margin-top: .85rem;
 }
 .advanced-job-filter-grid > * {
@@ -2517,6 +2517,35 @@ textarea.required-field-missing {
 .advanced-job-filter-grid select:focus {
   transform: none !important;
 }
+
+.advanced-filter-intro,
+.job-filter-group > p,
+.job-exclusion-filters > p {
+  margin: 0;
+  color: #526174;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.job-filter-group {
+  margin: 0;
+  padding: .9rem;
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+}
+.job-filter-group legend {
+  padding: 0 .35rem;
+  color: #17365d;
+  font-weight: 850;
+}
+.job-filter-group-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .7rem;
+  margin-top: .75rem;
+}
+.job-filter-group-grid > * { min-width: 0; }
+.job-filter-field small { color: #64748b; font-weight: 500; line-height: 1.35; }
+.advanced-filter-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
 
 .job-filter-field {
   display: grid;
@@ -2555,6 +2584,7 @@ textarea.required-field-missing {
   border: 1px solid var(--pf-color-border);
   border-radius: 12px;
 }
+.job-exclusion-filters > p { flex-basis: 100%; }
 
 .job-exclusion-filters legend {
   padding: 0 0.35rem;
@@ -2628,6 +2658,15 @@ textarea.required-field-missing {
 .job-quick-path-buttons button[aria-pressed="true"] {
   border-color: #2563eb;
   background: #dbeafe;
+}
+.job-quick-path-buttons .quick-path-reset {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+.job-quick-path-buttons .quick-path-reset:disabled {
+  border-color: #e2e8f0;
+  background: #f1f5f9;
+  color: #94a3b8;
 }
 @media (max-width: 720px) {
   .job-quick-paths { align-items: stretch; flex-direction: column; }
@@ -2872,7 +2911,8 @@ textarea.required-field-missing {
   .external-application-form { grid-template-columns: 1fr; }
   .external-capture-wide,
   .external-capture-actions { grid-column: 1; }
-  .advanced-job-filter-grid { grid-template-columns: 1fr; }
+  .advanced-job-filter-grid,
+  .job-filter-group-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {

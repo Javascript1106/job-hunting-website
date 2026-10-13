@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Jobs - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261013-v109">
+  <link rel="stylesheet" href="style.css?v=20261013-v110">
 </head>
 
 <body>
@@ -124,6 +124,7 @@
         <button type="button" data-job-preset="first-job" aria-pressed="false">First job</button>
         <button type="button" data-job-preset="part-time" aria-pressed="false">Part-time</button>
         <button type="button" data-job-preset="pay-listed" aria-pressed="false">Pay listed</button>
+        <button id="resetQuickJobPresetsButton" class="quick-path-reset" type="button" disabled>Clear quick paths</button>
       </div>
     </section>
 
@@ -133,21 +134,40 @@
         <span id="advancedFilterCount" class="advanced-filter-count" hidden></span>
       </summary>
       <div class="advanced-job-filter-grid">
-        <label class="catalog-scope-note">Catalog area<input id="locationScopeFilter" type="hidden" value="us"><span>United States only</span></label>
-        <select id="locationMatchFilter" aria-label="Location matching"><option value="nearby">Location: Include Matching Areas</option><option value="exact">Location: Exact Only</option></select>
-        <select id="categoryFilter" aria-label="Job field"><option value="all">All Job Fields</option></select>
-        <select id="employmentTypeFilter" aria-label="Full-time or part-time jobs"><option value="all">Any Schedule</option><option value="full-time">Full-Time</option><option value="part-time">Part-Time</option></select>
-        <select id="remoteFilter" aria-label="Work setting"><option value="all">Any Work Setting</option><option value="onsite">On-Site</option><option value="hybrid">Hybrid</option><option value="remote">Remote</option></select>
-        <select id="remoteEligibilityFilter" aria-label="Remote work eligibility"><option value="all">Remote Eligibility: Any</option><option value="us">Can Work From the U.S.</option><option value="anywhere">Can Work From Anywhere</option></select>
-        <select id="experienceFilter" aria-label="Experience level"><option value="all">Any Experience Level</option><option value="entry-level">Entry Level or No Experience</option><option value="experienced">Experienced</option></select>
-        <select id="ageFitFilter" aria-label="Applicant age"><option value="all">Any Applicant Age</option><option value="age-14">Age 14</option><option value="age-15">Age 15</option><option value="age-16-17">Age 16–17</option><option value="age-18-plus">Age 18 or Older</option></select>
-        <select id="datePostedFilter" aria-label="Date posted"><option value="all">Posted: Any Time</option><option value="1">Posted: Past 24 Hours</option><option value="7">Posted: Past 7 Days</option><option value="30">Posted: Past 30 Days</option></select>
-        <select id="listingQualityFilter" aria-label="Listing details"><option value="all">Any Listing Details</option><option value="pay">Pay Information Listed</option><option value="deadline">Application Deadline Listed</option><option value="accommodation">Application Accommodation Information</option><option value="complete">Well-Documented Listings</option></select>
-        <select id="applicationFeatureFilter" aria-label="Application convenience"><option value="all">Application: Any Process</option><option value="direct_apply">Apply Directly in PathForge</option><option value="no_cover_letter">No Cover Letter Required</option><option value="accommodation_contact">Accommodation Contact Mentioned</option></select>
-        <label class="job-filter-field" for="minimumPayFilter"><span>Minimum annual pay</span><input id="minimumPayFilter" type="number" min="0" max="10000000" step="1000" inputmode="numeric" placeholder="Example: 50000"></label>
-        <label class="job-filter-field" for="excludeTermsFilter"><span>Exclude words</span><input id="excludeTermsFilter" type="text" maxlength="200" placeholder="Example: travel, weekends"></label>
-        <fieldset class="job-exclusion-filters"><legend>Never show</legend><label><input type="checkbox" name="jobExclusion" value="senior"> Senior or management roles</label><label><input type="checkbox" name="jobExclusion" value="staffing"> Staffing-agency listings</label><label><input type="checkbox" name="jobExclusion" value="commission"> Commission-only or 1099 work</label><label><input type="checkbox" name="jobExclusion" value="clearance"> Security-clearance roles</label><label><input type="checkbox" name="jobExclusion" value="unpaid"> Unpaid roles</label></fieldset>
-        <button id="restoreHiddenJobsButton" class="restore-hidden-jobs-button" type="button">Restore Hidden Jobs</button>
+        <p class="advanced-filter-intro">Choose only what matters to you. Every filter is optional, and active choices appear above the results.</p>
+        <fieldset class="job-filter-group">
+          <legend>Location and schedule</legend>
+          <p>Choose where and when you can work.</p>
+          <div class="job-filter-group-grid">
+            <label class="catalog-scope-note">Catalog area<input id="locationScopeFilter" type="hidden" value="us"><span>United States only</span></label>
+            <label class="job-filter-field" for="locationMatchFilter"><span>Location distance</span><select id="locationMatchFilter"><option value="nearby">Include nearby areas</option><option value="exact">Exact city or ZIP only</option></select></label>
+            <label class="job-filter-field" for="employmentTypeFilter"><span>Schedule</span><select id="employmentTypeFilter"><option value="all">Any schedule</option><option value="full-time">Full-time</option><option value="part-time">Part-time</option></select></label>
+            <label class="job-filter-field" for="remoteFilter"><span>Work setting</span><select id="remoteFilter"><option value="all">Any work setting</option><option value="onsite">On-site</option><option value="hybrid">Hybrid</option><option value="remote">Remote</option></select></label>
+            <label class="job-filter-field" for="remoteEligibilityFilter"><span>Where remote work is allowed</span><select id="remoteEligibilityFilter"><option value="all">Any stated area</option><option value="us">United States</option><option value="anywhere">Anywhere</option></select></label>
+          </div>
+        </fieldset>
+        <fieldset class="job-filter-group">
+          <legend>Role fit</legend>
+          <p>Narrow results by field, experience, or the applicant age stated by the employer.</p>
+          <div class="job-filter-group-grid">
+            <label class="job-filter-field" for="categoryFilter"><span>Job field</span><select id="categoryFilter"><option value="all">All job fields</option></select></label>
+            <label class="job-filter-field" for="experienceFilter"><span>Experience</span><select id="experienceFilter"><option value="all">Any experience level</option><option value="entry-level">Entry level or no experience</option><option value="experienced">Experienced</option></select></label>
+            <label class="job-filter-field" for="ageFitFilter"><span>Applicant age</span><select id="ageFitFilter"><option value="all">Any applicant age</option><option value="age-14">Age 14</option><option value="age-15">Age 15</option><option value="age-16-17">Ages 16–17</option><option value="age-18-plus">Age 18 or older</option></select></label>
+          </div>
+        </fieldset>
+        <fieldset class="job-filter-group">
+          <legend>Listing details</legend>
+          <p>Focus on newer or better-documented opportunities.</p>
+          <div class="job-filter-group-grid">
+            <label class="job-filter-field" for="datePostedFilter"><span>Date posted</span><select id="datePostedFilter"><option value="all">Any time</option><option value="1">Past 24 hours</option><option value="7">Past 7 days</option><option value="30">Past 30 days</option></select></label>
+            <label class="job-filter-field" for="listingQualityFilter"><span>Information included</span><select id="listingQualityFilter"><option value="all">Any listing details</option><option value="pay">Pay information</option><option value="deadline">Application deadline</option><option value="accommodation">Accommodation information</option><option value="complete">More complete listings</option></select></label>
+            <label class="job-filter-field" for="applicationFeatureFilter"><span>Application process</span><select id="applicationFeatureFilter"><option value="all">Any application process</option><option value="direct_apply">Apply in PathForge</option><option value="no_cover_letter">No cover letter required</option><option value="accommodation_contact">Accommodation contact included</option></select></label>
+            <label class="job-filter-field" for="minimumPayFilter"><span>Minimum annual pay</span><input id="minimumPayFilter" type="number" min="0" max="10000000" step="1000" inputmode="numeric" placeholder="Example: 50000"></label>
+            <label class="job-filter-field" for="excludeTermsFilter"><span>Words to leave out</span><input id="excludeTermsFilter" type="text" maxlength="200" placeholder="Example: travel, weekends" aria-describedby="excludeTermsHelp"><small id="excludeTermsHelp">Separate multiple words with commas.</small></label>
+          </div>
+        </fieldset>
+        <fieldset class="job-exclusion-filters"><legend>Job types to hide</legend><p>These choices stay active until you clear them.</p><label><input type="checkbox" name="jobExclusion" value="senior"> Senior or management roles</label><label><input type="checkbox" name="jobExclusion" value="staffing"> Staffing-agency listings</label><label><input type="checkbox" name="jobExclusion" value="commission"> Commission-only or 1099 work</label><label><input type="checkbox" name="jobExclusion" value="clearance"> Security-clearance roles</label><label><input type="checkbox" name="jobExclusion" value="unpaid"> Unpaid roles</label></fieldset>
+        <div class="advanced-filter-actions"><button id="restoreHiddenJobsButton" class="restore-hidden-jobs-button" type="button">Restore Hidden Jobs</button><button class="reset-job-filters" type="button" data-action="reset-job-filters">Reset all filters</button></div>
       </div>
       <p id="teenJobFilterGuidance" class="teen-job-filter-guidance" hidden><strong>For applicants under 18:</strong> PathForge uses age requirements stated in the posting when available. Always confirm the employer’s minimum age and your local work-permit rules before applying.</p>
     </details>
@@ -408,8 +428,8 @@
   </div>
 </section>
 
-  <script src="pathforge-core.js?v=20261013-v109"></script>
-<script src="script.js?v=20261013-v109"></script>
+  <script src="pathforge-core.js?v=20261013-v110"></script>
+<script src="script.js?v=20261013-v110"></script>
 <footer class="home-footer">
   <div class="home-footer-brand">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">

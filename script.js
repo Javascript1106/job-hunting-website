@@ -3330,6 +3330,23 @@ function updateQuickJobPresetStates() {
       String(Boolean(activePresets[button.dataset.jobPreset]))
     );
   });
+  const resetButton = document.getElementById("resetQuickJobPresetsButton");
+  if (resetButton) resetButton.disabled = !Object.values(activePresets).some(Boolean);
+}
+
+function resetQuickJobPresets() {
+  const quickPathControls = [
+    "ageFitFilter",
+    "experienceFilter",
+    "employmentTypeFilter",
+    "listingQualityFilter"
+  ];
+  quickPathControls.forEach(controlId => {
+    const control = document.getElementById(controlId);
+    if (control) control.value = "all";
+  });
+  filterJobs();
+  document.querySelector("[data-job-preset]")?.focus();
 }
 
 function applyQuickJobPreset(preset) {
@@ -4118,6 +4135,8 @@ window.onload = function() {
   const loadMoreButton = document.getElementById("loadMoreJobsButton");
   const resetFiltersButton =
     document.getElementById("resetJobFiltersButton");
+  const resetQuickPresetsButton =
+    document.getElementById("resetQuickJobPresetsButton");
   const restoreHiddenJobsButton =
     document.getElementById("restoreHiddenJobsButton");
   const chatInput = document.getElementById("chatInput");
@@ -4140,6 +4159,7 @@ window.onload = function() {
       () => applyQuickJobPreset(button.dataset.jobPreset)
     );
   });
+  resetQuickPresetsButton?.addEventListener("click", resetQuickJobPresets);
 
   if (categoryFilter) {
     categoryFilter.addEventListener("change", filterJobs);
