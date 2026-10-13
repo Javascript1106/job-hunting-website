@@ -30,17 +30,30 @@ def _jobs(payload):
     raise ValueError("unexpected Workable response format")
 
 
-def _location(job):
-    location = job.get("location")
+def _format_location(location):
     if isinstance(location, str):
         return plain_text(location)
     if not isinstance(location, dict):
-        return "Location not listed"
+        return ""
     return ", ".join(
         plain_text(location.get(key))
         for key in ("city", "region", "country")
         if location.get(key)
-    ) or plain_text(location.get("location_str")) or "Location not listed"
+    ) or plain_text(location.get("location_str"))
+
+
+def _location(job):
+    locations = []
+    primary = _format_location(job.get("location"))
+    if primary:
+        locations.append(primary)
+    for location in job.get("locations") or []:
+        if isinstance(location, dict) and location.get("hidden") is True:
+            continue
+        formatted = _format_location(location)
+        if formatted and formatted not in locations:
+            locations.append(formatted)
+    return "; ".join(locations) or "Location not listed"
 
 
 def fetch_jobs(configuration):

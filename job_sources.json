@@ -89,6 +89,46 @@
       "employer": "Summit Management Corporation",
       "site": "summitmgmt-corp",
       "max_jobs": 100
+    },
+    {
+      "employer": "Gopuff",
+      "site": "gopuff",
+      "max_jobs": 1000
+    },
+    {
+      "employer": "The Black Tux",
+      "site": "theblacktux",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Buck Mason",
+      "site": "buckmason",
+      "max_jobs": 500
+    },
+    {
+      "employer": "Josh's Toys & Games",
+      "site": "joshstoysandgames",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Sandbox VR",
+      "site": "sandboxvr",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Culture Kings",
+      "site": "culturekings",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Lucas Museum of Narrative Art",
+      "site": "lucasmuseum",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Hot Topic & BoxLunch",
+      "site": "hottopic",
+      "max_jobs": 100
     }
   ],
   "smartrecruiters": [
@@ -564,6 +604,36 @@
       "account_subdomain": "fooda-careers",
       "country_codes": ["US"],
       "max_jobs": 250
+    },
+    {
+      "employer": "Alphatec Spine",
+      "account_subdomain": "atec-spine",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Fortify Companies",
+      "account_subdomain": "fortifycompanies",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Phillips Corporation",
+      "account_subdomain": "phillips-corporation",
+      "max_jobs": 100
+    },
+    {
+      "employer": "Atria Health",
+      "account_subdomain": "atria-health",
+      "max_jobs": 250
+    },
+    {
+      "employer": "Ten Group",
+      "account_subdomain": "ten-group",
+      "max_jobs": 150
+    },
+    {
+      "employer": "Booksy",
+      "account_subdomain": "booksy-1",
+      "max_jobs": 100
     }
   ],
   "workday": [

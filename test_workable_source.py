@@ -68,6 +68,34 @@ class WorkableSourceTests(unittest.TestCase):
         self.assertIn("Denver", records[0]["location"])
         self.assertIn("Boulder", records[0]["location"])
 
+    def test_locations_array_is_normalized(self):
+        payload = {"jobs": [{
+            "shortcode": "MULTI-ARRAY",
+            "title": "Store Associate",
+            "locations": [{
+                "city": "Portland",
+                "region": "Maine",
+                "country": "United States",
+                "countryCode": "US",
+                "hidden": False,
+            }, {
+                "city": "Portsmouth",
+                "region": "New Hampshire",
+                "country": "United States",
+                "countryCode": "US",
+                "hidden": False,
+            }],
+            "url": "https://apply.workable.com/example/j/MULTI-ARRAY/",
+        }]}
+        with patch("job_sources.workable.fetch_json", return_value=payload):
+            _source, records = workable.fetch_jobs({
+                "employer": "Example",
+                "account_subdomain": "example",
+            })
+
+        self.assertIn("Portland, Maine, United States", records[0]["location"])
+        self.assertIn("Portsmouth, New Hampshire, United States", records[0]["location"])
+
 
 if __name__ == "__main__":
     unittest.main()
