@@ -63,22 +63,24 @@ def verify_listing(job, timeout=15):
     return {"id": job["id"], "result": result, "http_status": status}
 
 
-def stale_jobs(database_path, stale_days):
+def stale_jobs(database_path, stale_days, limit=None):
     connection = get_connection(database_path)
     connection.row_factory = sqlite3.Row
     try:
-        return [
-            dict(row)
-            for row in connection.execute(
-                """SELECT id, title, company, source_url, application_url
+        query = """SELECT id, title, company, source_url, application_url
                    FROM jobs
                    WHERE status = 'active' AND owner_user_id IS NULL
                      AND COALESCE(application_url, source_url) IS NOT NULL
                      AND (last_verified_at IS NULL OR
                           last_verified_at < datetime('now', ?))
-                   ORDER BY company, title""",
-                (f"-{stale_days} days",),
-            ).fetchall()
+                   ORDER BY COALESCE(last_verified_at, ''), company, title"""
+        parameters = [f"-{stale_days} days"]
+        if limit is not None:
+            query += " LIMIT ?"
+            parameters.append(max(0, int(limit)))
+        return [
+            dict(row)
+            for row in connection.execute(query, parameters).fetchall()
         ]
     finally:
         connection.close()
@@ -105,9 +107,11 @@ def apply_results(database_path, results):
         connection.close()
 
 
-def verify_stale_links(database_path=DB_NAME, stale_days=7, workers=8, apply=False):
+def verify_stale_links(
+    database_path=DB_NAME, stale_days=7, workers=8, apply=False, limit=None
+):
     initialize_database(database_path)
-    jobs = stale_jobs(database_path, stale_days)
+    jobs = stale_jobs(database_path, stale_days, limit=limit)
     with ThreadPoolExecutor(max_workers=max(1, min(workers, 16))) as executor:
         results = list(executor.map(verify_listing, jobs))
     backup = None
@@ -134,6 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--database", default=DB_NAME)
     parser.add_argument("--stale-days", type=int, default=7)
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--limit", type=int)
     parser.add_argument(
         "--apply",
         action="store_true",
@@ -145,4 +150,5 @@ if __name__ == "__main__":
         stale_days=arguments.stale_days,
         workers=arguments.workers,
         apply=arguments.apply,
+        limit=arguments.limit,
     ), indent=2))

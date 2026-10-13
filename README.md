@@ -226,12 +226,25 @@ The command prints live source-by-source progress, followed by JSON containing
 the active, closed, stale, empty-source, failed-source, and large-drop health
 summary. Use `--quiet` when another program needs JSON-only standard output.
 
+For the scheduler-safe workflow, run `python catalog_maintenance.py`. It creates
+a database backup, refreshes every configured source, produces JSON and Markdown
+coverage reports in `automation-logs`, and read-only checks up to 50 stale
+official links. The latest coverage reports are:
+
+- `automation-logs/catalog-insights-latest.json`
+- `automation-logs/catalog-insights-latest.md`
+
+They summarize state coverage, confirmed and possible teen-job coverage,
+employer and category balance, and missing listing details. A closed-link result
+marks the run as needing attention; scheduled maintenance does not close that
+listing automatically.
+
 Stale links from manually imported employer pages can be checked separately.
 The default command is read-only; add `--apply` to create a verified backup,
 close only definitive dead pages, and refresh jobs whose title is confirmed:
 
 ```powershell
-python verify_job_links.py --stale-days 7
+python verify_job_links.py --stale-days 7 --limit 50
 python verify_job_links.py --stale-days 7 --apply
 ```
 

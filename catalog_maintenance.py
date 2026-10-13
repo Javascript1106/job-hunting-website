@@ -79,6 +79,8 @@ def run_maintenance(
     lock_path=DEFAULT_LOCK_PATH,
     backup_func=backup_database,
     sync_func=sync_all,
+    insights_func=None,
+    link_check_func=None,
     progress=print_progress,
 ):
     """Back up, synchronize, log health, and reject overlapping executions."""
@@ -105,16 +107,21 @@ def run_maintenance(
         failed_sources = health.get("failed_sources", [])
         large_drops = health.get("large_source_drops", [])
         failed_records = int(summary.get("failed", 0) or 0)
+        insights = insights_func() if insights_func else None
+        link_check = link_check_func() if link_check_func else None
+        closed_links = int((link_check or {}).get("closed", 0) or 0)
         report = {
             "status": (
                 "attention_required"
-                if failed_sources or large_drops or failed_records
+                if failed_sources or large_drops or failed_records or closed_links
                 else "success"
             ),
             "started_at": started_at,
             "finished_at": _utc_timestamp(),
             "backup_path": str(backup_path),
             "summary": summary,
+            "catalog_insights": insights,
+            "stale_link_check": link_check,
         }
         report_path = _write_report(report, log_directory)
         report["report_path"] = str(report_path)
@@ -145,7 +152,23 @@ def main():
     )
     arguments = parser.parse_args()
     try:
-        report = run_maintenance(log_directory=arguments.log_directory)
+        from catalog_insights import write_catalog_insights
+        from database import DB_NAME
+        from verify_job_links import verify_stale_links
+
+        report = run_maintenance(
+            log_directory=arguments.log_directory,
+            insights_func=lambda: write_catalog_insights(
+                DB_NAME, arguments.log_directory
+            ),
+            link_check_func=lambda: verify_stale_links(
+                database_path=DB_NAME,
+                stale_days=7,
+                workers=6,
+                apply=False,
+                limit=50,
+            ),
+        )
     except RuntimeError as error:
         print(error, file=sys.stderr)
         return 1

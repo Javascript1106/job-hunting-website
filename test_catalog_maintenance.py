@@ -78,6 +78,26 @@ class CatalogMaintenanceTests(unittest.TestCase):
             )
             self.assertEqual(report["status"], "attention_required")
 
+    def test_post_sync_automations_are_included_in_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = run_maintenance(
+                log_directory=root / "logs",
+                lock_path=root / "sync.lock",
+                backup_func=lambda: root / "backup.db",
+                sync_func=lambda **_kwargs: {
+                    "catalog_health": {
+                        "failed_sources": [],
+                        "large_source_drops": [],
+                    }
+                },
+                insights_func=lambda: {"active_jobs": 25},
+                link_check_func=lambda: {"checked": 4, "closed": 0},
+                progress=lambda _message: None,
+            )
+            self.assertEqual(report["catalog_insights"]["active_jobs"], 25)
+            self.assertEqual(report["stale_link_check"]["checked"], 4)
+
     def test_existing_lock_prevents_overlapping_syncs(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
