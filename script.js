@@ -3315,6 +3315,8 @@ function filterJobs(refreshFromServer = true) {
 
 function updateQuickJobPresetStates() {
   const activePresets = {
+    "age-14": document.getElementById("ageFitFilter")?.value === "age-14",
+    "age-15": document.getElementById("ageFitFilter")?.value === "age-15",
     teen: document.getElementById("ageFitFilter")?.value === "age-16-17",
     "first-job": document.getElementById("experienceFilter")?.value === "entry-level",
     "part-time": document.getElementById("employmentTypeFilter")?.value === "part-time",
@@ -3330,6 +3332,8 @@ function updateQuickJobPresetStates() {
 
 function applyQuickJobPreset(preset) {
   const mappings = {
+    "age-14": ["ageFitFilter", "age-14"],
+    "age-15": ["ageFitFilter", "age-15"],
     teen: ["ageFitFilter", "age-16-17"],
     "first-job": ["experienceFilter", "entry-level"],
     "part-time": ["employmentTypeFilter", "part-time"],
@@ -3461,7 +3465,13 @@ function applyNaturalJobSearch() {
   if (/\b(remote|work from home|work at home)\b/.test(text)) { remote.value = "remote"; applied.push("remote"); }
   else if (/\bhybrid\b/.test(text)) { remote.value = "hybrid"; applied.push("hybrid"); }
   else if (/\b(on[ -]?site|in person)\b/.test(text)) { remote.value = "onsite"; applied.push("on-site"); }
-  if (/\b(teen|teenager|high school student|under 18|first job)\b/.test(text) && ageFit) {
+  if (/\b(age[ -]?14|14[ -]?year[ -]?old|14yo)\b/.test(text) && ageFit) {
+    ageFit.value = "age-14";
+    applied.push("jobs for age 14");
+  } else if (/\b(age[ -]?15|15[ -]?year[ -]?old|15yo)\b/.test(text) && ageFit) {
+    ageFit.value = "age-15";
+    applied.push("jobs for age 15");
+  } else if (/\b(age[ -]?(16|17)|(16|17)[ -]?year[ -]?old|(16|17)yo|teen|teenager|high school student|under 18|first job)\b/.test(text) && ageFit) {
     ageFit.value = "age-16-17";
     applied.push("jobs for ages 16–17");
   }
@@ -3487,7 +3497,7 @@ function applyNaturalJobSearch() {
   if (locationMatch) { location.value = locationMatch[1].trim(); applied.push(`location: ${location.value}`); }
   const cleanedQuery = original
     .replace(/\b(?:full|part)[ -]?time\b/gi, "").replace(/\b(remote|work from home|work at home|hybrid|on[ -]?site|in person)\b/gi, "")
-    .replace(/\b(teen|teenager|high school student|under 18)\b/gi, "")
+    .replace(/\b(?:for\s+(?:an?\s+)?)?(?:age[ -]?(?:14|15|16|17)|(?:14|15|16|17)[ -]?year[ -]?old|(?:14|15|16|17)yo|teen|teenager|high school student|under 18)\b/gi, "")
     .replace(/\b(?:jobs?|work|roles?|positions?)\b/gi, "").replace(/\b(?:in|near)\s+([^,.;]+?)(?=\s+(?:with|that|paying|and|for)\b|[,.;]|$)/gi, "")
     .replace(/\b(with|that|paying|at least|no experience|entry level|first job)\b.*$/gi, "").replace(/\s+/g, " ").trim();
   query.value = matchedCategory ? "" : cleanedQuery;
