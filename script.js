@@ -4442,13 +4442,11 @@ function initializePasswordReadiness() {
 document.addEventListener("DOMContentLoaded", initializePasswordReadiness);
 
 function initializeAuthAccountChoice() {
-    const form = document.getElementById("loginForm") || document.getElementById("registerForm");
+    const form = document.getElementById("registerForm");
     const choices = [...document.querySelectorAll("[data-auth-account]")];
     if (!form || !choices.length) return;
 
-    const isLogin = form.id === "loginForm";
-    const parameterName = isLogin ? "mode" : "account";
-    const requested = new URLSearchParams(window.location.search).get(parameterName);
+    const requested = new URLSearchParams(window.location.search).get("account");
     const initialType = requested === "employer" ? "employer" : "job_seeker";
 
     const selectAccountType = accountType => {
@@ -4458,25 +4456,14 @@ function initializeAuthAccountChoice() {
             choice.setAttribute("aria-pressed", String(choice.dataset.authAccount === form.dataset.accountType));
         });
 
-        if (isLogin) {
-            const guidance = document.getElementById("loginAccountGuidance");
-            const submit = document.getElementById("loginSubmitButton");
-            const createLink = document.getElementById("loginCreateAccountLink");
-            if (guidance) guidance.textContent = employer
-                ? "Open your employer workspace, or continue secure employer setup if this is your first time."
-                : "Access saved jobs, applications, career resources, and your profile.";
-            if (submit) submit.textContent = employer ? "Log in as an employer" : "Log in as a job seeker";
-            if (createLink) createLink.href = `register.html?account=${form.dataset.accountType}`;
-        } else {
-            const guidance = document.getElementById("registerAccountGuidance");
-            const submit = document.getElementById("registerSubmitButton");
-            const loginLink = document.getElementById("registerLoginLink");
-            if (guidance) guidance.textContent = employer
-                ? "Create a secure login first. After email verification, you can set up your organization and employer workspace."
-                : "Create an account to save jobs, track applications, and use career resources.";
-            if (submit) submit.textContent = employer ? "Create an employer account" : "Create a job-seeker account";
-            if (loginLink) loginLink.href = `login.html?mode=${form.dataset.accountType}`;
-        }
+        const guidance = document.getElementById("registerAccountGuidance");
+        const submit = document.getElementById("registerSubmitButton");
+        const loginLink = document.getElementById("registerLoginLink");
+        if (guidance) guidance.textContent = employer
+            ? "Create a secure login first. After email verification, you can set up your organization and employer workspace."
+            : "Create an account to save jobs, track applications, and use career resources.";
+        if (submit) submit.textContent = employer ? "Create an employer account" : "Create a job-seeker account";
+        if (loginLink) loginLink.href = "login.html";
     };
 
     choices.forEach(choice => {
@@ -4527,8 +4514,8 @@ if (registerForm) {
               : "Account created successfully. Continue to sign in.";
             registerForm.reset();
             window.location.href = accountType === "employer"
-              ? "login.html?mode=employer&next=employer-access.html"
-              : "login.html?mode=job_seeker";
+              ? "login.html?next=employer-access.html"
+              : "login.html";
 
         } catch (error) {
             message.classList.remove("success-message");
@@ -4539,17 +4526,17 @@ if (registerForm) {
 
 const loginForm = document.getElementById("loginForm");
 
-function getSafeLoginDestination(accountType = "job_seeker", authenticatedRole = "job_seeker") {
+function getSafeLoginDestination(authenticatedRole = "job_seeker") {
     const requestedPage = new URLSearchParams(window.location.search).get("next");
     const allowedPages = new Set([
         "dashboard.html", "profile.html", "saved-jobs.html",
         "applications.html", "employer-access.html", "employer.html",
-        "account-security.html", "messages.html", "analytics.html"
+        "account-security.html", "messages.html", "analytics.html",
+        "admin-moderation.html"
     ]);
     if (allowedPages.has(requestedPage)) return requestedPage;
-    if (accountType === "employer") {
-        return authenticatedRole === "employer" ? "employer.html" : "employer-access.html";
-    }
+    if (authenticatedRole === "admin") return "admin-moderation.html";
+    if (authenticatedRole === "employer") return "employer.html";
     return "index.html";
 }
 
@@ -4586,7 +4573,6 @@ if (loginForm) {
             message.textContent =
               "Login successful. Redirecting...";
             window.location.href = getSafeLoginDestination(
-              loginForm.dataset.accountType || "job_seeker",
               data.user?.role || "job_seeker"
             );
 

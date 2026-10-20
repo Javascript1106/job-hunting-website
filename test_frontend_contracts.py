@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v121"
+ASSET_VERSION = "20261020-v122"
 
 
 class MarkupInspector(HTMLParser):
@@ -211,18 +211,19 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('role="search"', self.jobs)
         self.assertIn('id="jobSearchButton"', self.jobs)
 
-    def test_auth_pages_offer_job_seeker_and_employer_paths(self):
+    def test_registration_offers_paths_and_login_uses_authenticated_role(self):
         login = (PROJECT_ROOT / "login.html").read_text(encoding="utf-8")
         register = (PROJECT_ROOT / "register.html").read_text(encoding="utf-8")
-        for markup in (login, register):
-            self.assertIn('data-auth-account="job_seeker"', markup)
-            self.assertIn('data-auth-account="employer"', markup)
-            self.assertIn('role="group"', markup)
+        self.assertNotIn('data-auth-account=', login)
+        self.assertIn('data-auth-account="job_seeker"', register)
+        self.assertIn('data-auth-account="employer"', register)
+        self.assertIn('role="group"', register)
         self.assertIn('id="loginSubmitButton"', login)
         self.assertIn('id="registerSubmitButton"', register)
         self.assertIn("function initializeAuthAccountChoice()", self.script)
-        self.assertIn('authenticatedRole === "employer" ? "employer.html" : "employer-access.html"', self.script)
-        self.assertIn('"login.html?mode=employer&next=employer-access.html"', self.script)
+        self.assertIn('if (authenticatedRole === "admin") return "admin-moderation.html";', self.script)
+        self.assertIn('if (authenticatedRole === "employer") return "employer.html";', self.script)
+        self.assertIn('"login.html?next=employer-access.html"', self.script)
         registration_handler = re.search(
             r'fetch\(apiUrl\("/register"\).*?body: JSON\.stringify\(\{(.*?)\}\)',
             self.script,
