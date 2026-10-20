@@ -2622,28 +2622,30 @@ textarea.required-field-missing {
   overflow: hidden;
 }
 
-.job-evidence-details summary {
+.job-evidence-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
   min-height: 44px;
   padding: 0.75rem 0.9rem;
+  border: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+  background: transparent;
   color: #1e3a8a;
   cursor: pointer;
+  font: inherit;
   font-weight: 800;
-  list-style: none;
+  text-align: left;
 }
 
-.job-evidence-details summary::-webkit-details-marker {
-  display: none;
-}
-
-.job-evidence-details summary:hover {
+.job-evidence-toggle:hover {
   background: #eff6ff;
 }
 
-.job-evidence-details summary:focus-visible {
+.job-evidence-toggle:focus-visible {
   outline: 3px solid #93c5fd;
   outline-offset: -3px;
 }
@@ -2655,8 +2657,12 @@ textarea.required-field-missing {
   white-space: nowrap;
 }
 
-.job-evidence-details[open] .job-evidence-disclosure-state::after {
+.job-evidence-toggle[aria-expanded="true"] .job-evidence-disclosure-state::after {
   content: "Hide details −";
+}
+
+.job-evidence-content.hidden {
+  display: none;
 }
 
 .job-evidence-details dl {
@@ -2674,17 +2680,17 @@ textarea.required-field-missing {
 
 .job-evidence-details dt { font-weight: 800; }
 .job-evidence-details dd { margin: 0; }
-.job-evidence-details > a,
-.job-evidence-details > p {
+.job-evidence-content > a,
+.job-evidence-content > p {
   margin-right: 0.9rem;
   margin-left: 0.9rem;
 }
-.job-evidence-details > a {
+.job-evidence-content > a {
   display: inline-flex;
   margin-top: 0.8rem;
   font-weight: 800;
 }
-.job-evidence-details > p {
+.job-evidence-content > p {
   margin-top: 0.7rem;
   margin-bottom: 0.9rem;
   color: #475569;
@@ -2692,7 +2698,7 @@ textarea.required-field-missing {
   line-height: 1.5;
 }
 @media (max-width: 560px) {
-  .job-evidence-details summary {
+  .job-evidence-toggle {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.3rem;

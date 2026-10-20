@@ -1101,6 +1101,7 @@ function buildJobTrustDetails(job) {
 function buildJobEvidenceDetails(job) {
   const sourceName = job.source || (job.application_method === "pathforge" ? "PathForge employer posting" : "Employer website");
   const sourceUrl = job.source_url || job.application_url;
+  const contentId = `job-evidence-${job.id}`;
   const evidence = [
     ["Listing source", sourceName],
     ["Source status", job.verification_status === "verified" ? "Verified source" : "Not independently verified"],
@@ -1109,7 +1110,16 @@ function buildJobEvidenceDetails(job) {
     ["Official link", sourceUrl ? "Available" : "Not provided"],
     ["Job details", job.details_truncated ? "Preview shown; full details load on request" : "Complete PathForge record shown"]
   ];
-  return `<details class="job-evidence-details"><summary><span>Listing source &amp; verification</span><span class="job-evidence-disclosure-state" aria-hidden="true"></span></summary><dl>${evidence.map(([label, value]) => `<div><dt>${escapeEmployerHtml(label)}</dt><dd>${escapeEmployerHtml(value || "Not listed")}</dd></div>`).join("")}</dl>${sourceUrl ? `<a href="${escapeEmployerHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Open the official source listing</a>` : ""}<p>PathForge separates information supplied by the listing from its own verification and completeness checks.</p></details>`;
+  return `<section class="job-evidence-details"><button type="button" class="job-evidence-toggle" data-action="toggle-job-evidence" aria-expanded="false" aria-controls="${contentId}"><span>Listing source &amp; verification</span><span class="job-evidence-disclosure-state" aria-hidden="true"></span></button><div id="${contentId}" class="job-evidence-content hidden"><dl>${evidence.map(([label, value]) => `<div><dt>${escapeEmployerHtml(label)}</dt><dd>${escapeEmployerHtml(value || "Not listed")}</dd></div>`).join("")}</dl>${sourceUrl ? `<a href="${escapeEmployerHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Open the official source listing</a>` : ""}<p>PathForge separates information supplied by the listing from its own verification and completeness checks.</p></div></section>`;
+}
+
+function toggleJobEvidence(control) {
+  const contentId = control.getAttribute("aria-controls");
+  const content = contentId ? document.getElementById(contentId) : null;
+  if (!content) return;
+  const expanded = control.getAttribute("aria-expanded") === "true";
+  control.setAttribute("aria-expanded", String(!expanded));
+  content.classList.toggle("hidden", expanded);
 }
 
 function normalizeJobIdentity(value) {
@@ -14597,6 +14607,7 @@ function handleDelegatedActionClick(event) {
     "reset-job-filters": () => resetJobFilters(),
     "save-job": () => saveJob(jobId, control),
     "toggle-job-details": () => toggleDetails(control),
+    "toggle-job-evidence": () => toggleJobEvidence(control),
     "begin-application": () => ApplicationService.begin(jobId),
     "report-job": () => openJobReportDialog(jobId, control),
     "hide-job": () => hideJobFromResults(jobId),

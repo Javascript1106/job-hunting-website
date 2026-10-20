@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v119"
+ASSET_VERSION = "20261020-v120"
 
 
 class MarkupInspector(HTMLParser):
@@ -227,7 +227,11 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("@media (prefers-reduced-motion: reduce)", self.styles)
         self.assertIn("Listing source &amp; verification", self.script)
         self.assertIn('class="job-evidence-disclosure-state" aria-hidden="true"', self.script)
-        self.assertIn(".job-evidence-details summary::-webkit-details-marker", self.styles)
+        self.assertIn('data-action="toggle-job-evidence"', self.script)
+        self.assertIn('function toggleJobEvidence(control)', self.script)
+        self.assertIn('"toggle-job-evidence": () => toggleJobEvidence(control)', self.script)
+        self.assertIn('.job-evidence-toggle[aria-expanded="true"]', self.styles)
+        self.assertIn(".job-evidence-content.hidden", self.styles)
         self.assertIn('content: "View details +"', self.styles)
         self.assertIn('content: "Hide details −"', self.styles)
         self.assertIn('id="advancedFilterCount"', self.jobs)
