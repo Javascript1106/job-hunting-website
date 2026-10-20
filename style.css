@@ -2614,10 +2614,56 @@ textarea.required-field-missing {
   font-size: 0.88rem;
 }
 
+.job-evidence-details {
+  margin: 0.8rem 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.job-evidence-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  padding: 0.75rem 0.9rem;
+  color: #1e3a8a;
+  cursor: pointer;
+  font-weight: 800;
+  list-style: none;
+}
+
+.job-evidence-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.job-evidence-details summary:hover {
+  background: #eff6ff;
+}
+
+.job-evidence-details summary:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: -3px;
+}
+
+.job-evidence-disclosure-state::after {
+  content: "View details +";
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.job-evidence-details[open] .job-evidence-disclosure-state::after {
+  content: "Hide details −";
+}
+
 .job-evidence-details dl {
   display: grid;
   gap: 0.45rem;
-  margin: 0.8rem 0;
+  margin: 0;
+  padding: 0.8rem 0.9rem 0;
 }
 
 .job-evidence-details dl > div {
@@ -2628,6 +2674,34 @@ textarea.required-field-missing {
 
 .job-evidence-details dt { font-weight: 800; }
 .job-evidence-details dd { margin: 0; }
+.job-evidence-details > a,
+.job-evidence-details > p {
+  margin-right: 0.9rem;
+  margin-left: 0.9rem;
+}
+.job-evidence-details > a {
+  display: inline-flex;
+  margin-top: 0.8rem;
+  font-weight: 800;
+}
+.job-evidence-details > p {
+  margin-top: 0.7rem;
+  margin-bottom: 0.9rem;
+  color: #475569;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+@media (max-width: 560px) {
+  .job-evidence-details summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .job-evidence-details dl > div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}
 .advanced-job-filters[open] {
   overflow: visible;
 }
