@@ -1551,15 +1551,19 @@ function displayJobs(jobs, append = false) {
   }
   if (loadMoreButton) {
     const reachedEnd = displayedJobCount >= jobs.length && !jobSearchHasMore;
-    const remainingCount = Math.max(0, jobSearchTotal - displayedJobCount);
-    const nextBatchCount = Math.min(JOB_PAGE_SIZE, remainingCount);
+    const loadedRemainingCount = Math.max(0, jobs.length - displayedJobCount);
+    const unloadedMatchCount = Math.max(0, jobSearchTotal - allJobs.length);
+    const maximumRemainingCount = loadedRemainingCount + unloadedMatchCount;
+    const nextBatchCount = Math.min(JOB_PAGE_SIZE, maximumRemainingCount);
     loadMoreButton.classList.remove("hidden");
     loadMoreButton.classList.toggle("results-complete", reachedEnd);
     loadMoreButton.disabled = reachedEnd;
     loadMoreButton.removeAttribute("aria-busy");
     loadMoreButton.textContent = reachedEnd
-      ? `No more listings — all ${jobSearchTotal} shown`
-      : `Load ${nextBatchCount} more job${nextBatchCount === 1 ? "" : "s"} (${remainingCount} remaining)`;
+      ? "No more matching listings"
+      : jobSearchHasMore
+        ? `Load up to ${nextBatchCount} more job${nextBatchCount === 1 ? "" : "s"}`
+        : `Load ${nextBatchCount} more job${nextBatchCount === 1 ? "" : "s"} (${loadedRemainingCount} remaining)`;
     if (endMessage) {
       endMessage.classList.add("hidden");
     }

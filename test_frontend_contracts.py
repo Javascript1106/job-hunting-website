@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261013-v110"
+ASSET_VERSION = "20261020-v111"
 
 
 class MarkupInspector(HTMLParser):
@@ -171,6 +171,11 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("requestedDisplayCount", self.script)
         self.assertIn('loadMoreButton.setAttribute("aria-busy", "true")', self.script)
         self.assertIn('loadMoreButton.textContent = "Try loading more jobs"', self.script)
+        self.assertIn("const loadedRemainingCount", self.script)
+        self.assertIn("const unloadedMatchCount", self.script)
+        self.assertIn("Load up to ${nextBatchCount} more job", self.script)
+        self.assertIn('"No more matching listings"', self.script)
+        self.assertNotIn("jobSearchTotal - displayedJobCount", self.script)
         self.assertIn("/jobs/search?", self.script)
         self.assertIn("scheduleServerJobSearch", self.script)
         self.assertIn("fetchWithTimeout", self.script)
