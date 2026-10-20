@@ -42,6 +42,9 @@ administrator moderation page through the deployed HTTPS site.
 - Store the database on a single persistent volume. Do not run multiple
   write-capable application instances against a network-mounted SQLite file.
 - Run `sync_jobs.py` on a controlled schedule and alert when a source fails.
+- Run `python run_user_automations.py` daily. It evaluates due saved searches
+  and creates idempotent in-app job-match, interview, deadline, and application
+  follow-up reminders. It does not use an AI model or send data to a third party.
 - Prefer `python catalog_maintenance.py` for scheduled catalog work. It creates
   a verified backup first, prevents overlapping syncs, expires missing jobs only
   after successful source checks, writes a timestamped JSON report, and exits

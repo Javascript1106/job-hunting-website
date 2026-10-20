@@ -1046,6 +1046,41 @@ def synchronize_user_notifications(cursor, user_id):
             "applications.html", f"follow-up:{row['id']}:{str(row['follow_up_date'])[:10]}"
         )
 
+    # LinkedIn-style tracker nudges without opaque scoring: if an application
+    # has not changed, create one clearly labelled check-in at useful milestones.
+    # Stable event keys make repeated scheduler runs idempotent.
+    rows = cursor.execute(
+        """
+        SELECT applications.id, applications.status,
+               jobs.title, jobs.company,
+               CASE
+                   WHEN datetime(applications.updated_at) <= datetime('now', '-30 days') THEN 30
+                   WHEN datetime(applications.updated_at) <= datetime('now', '-14 days') THEN 14
+                   ELSE 7
+               END AS checkpoint_days
+        FROM applications JOIN jobs ON jobs.id = applications.job_id
+        WHERE applications.user_id = ?
+          AND applications.status IN (
+              'Applied', 'Application Viewed', 'Under Review'
+          )
+          AND datetime(applications.updated_at) <= datetime('now', '-7 days')
+        """,
+        (user_id,),
+    ).fetchall()
+    for row in rows:
+        days = row["checkpoint_days"]
+        add_notification(
+            "follow_up",
+            f"{days}-day application check-in",
+            (
+                f"Your {row['title']} application at {row['company']} "
+                f"is still marked {row['status']}. Consider checking the "
+                "official application portal or adding a follow-up date."
+            ),
+            "applications.html",
+            f"application-check-in:{row['id']}:{days}",
+        )
+
     rows = cursor.execute(
         """
         SELECT jobs.id, jobs.title, jobs.company,
