@@ -3219,7 +3219,31 @@ function filterJobs(refreshFromServer = true) {
     ageFit: selectedAgeFit
   });
 
-  filteredJobs = allJobs.filter(job => {
+  // A completed server search already applied every selected filter to the
+  // full, untruncated posting. Do not reject those cards again using compact
+  // preview text, which can omit a matching term near the end of a posting.
+  if (!refreshFromServer) {
+    filteredJobs = allJobs.filter(job => {
+      if (hiddenJobIds.has(Number(job.id))) return false;
+      // Precise coordinates never leave the browser, so this is the one
+      // location predicate the server cannot apply on the user's behalf.
+      if (!sharedJobLocation) return true;
+      if (job.is_remote === 1 && isUnitedStatesJobLocation(job.location)) {
+        return true;
+      }
+      const jobCoordinates = findJobPlaceCoordinates(job.location);
+      return Boolean(
+        jobCoordinates
+        && calculateMilesBetween(
+          sharedJobLocation.latitude,
+          sharedJobLocation.longitude,
+          jobCoordinates.latitude,
+          jobCoordinates.longitude
+        ) <= getNearbyDistanceMiles()
+      );
+    });
+  } else {
+    filteredJobs = allJobs.filter(job => {
     if (hiddenJobIds.has(Number(job.id))) return false;
     const matchesJob = jobMatchesSearchConcepts(job, getJobSearchConcepts(jobSearch), selectedQueryMode);
 
@@ -3299,9 +3323,12 @@ function filterJobs(refreshFromServer = true) {
       && matchesMinimumPay
       && matchesExclusions
     );
-  });
+    });
+  }
 
-  filteredJobs = groupDuplicateJobs(filteredJobs);
+  // Server results are already grouped across the complete result set and
+  // include accurate duplicate counts. Group only the temporary local preview.
+  if (refreshFromServer) filteredJobs = groupDuplicateJobs(filteredJobs);
   // The server already returns the complete catalog in the requested order,
   // including employer diversity. Only sort the temporary in-memory preview
   // while a fresh server search is being requested.

@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v117"
+ASSET_VERSION = "20261020-v118"
 
 
 class MarkupInspector(HTMLParser):
@@ -86,6 +86,32 @@ class FrontendContractTests(unittest.TestCase):
         self.assertEqual(len(targets), len(set(targets)))
         self.assertEqual(len(preset_names), len(targets))
         self.assertEqual(self.jobs.count('class="reset-job-filters"'), 1)
+
+    def test_every_visible_job_filter_is_sent_to_server_search(self):
+        mappings = {
+            "queryModeFilter": "query_mode",
+            "locationMatchFilter": "location_mode",
+            "categoryFilter": "category",
+            "employmentTypeFilter": "employment_type",
+            "remoteFilter": "remote",
+            "remoteEligibilityFilter": "remote_eligibility",
+            "experienceFilter": "experience",
+            "ageFitFilter": "age_fit",
+            "datePostedFilter": "date_posted",
+            "listingQualityFilter": "listing_quality",
+            "applicationFeatureFilter": "application_feature",
+            "minimumPayFilter": "minimum_pay",
+            "excludeTermsFilter": "exclude_terms",
+        }
+        for control_id, parameter in mappings.items():
+            with self.subTest(control=control_id, parameter=parameter):
+                self.assertIn(f'id="{control_id}"', self.jobs)
+                self.assertRegex(
+                    self.script,
+                    rf"{parameter}: .*getElementById\(\"{control_id}\"\)",
+                )
+        self.assertIn('input[name="jobExclusion"]:checked', self.script)
+        self.assertIn("exclusions: [...document.querySelectorAll", self.script)
 
     def test_local_page_links_and_assets_exist(self):
         for page in PROJECT_ROOT.glob("*.html"):
@@ -296,6 +322,16 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn('"minimumPayFilter"', select_block.group(1))
 
     def test_server_job_order_is_not_resorted_in_the_browser(self):
+        self.assertIn("if (!refreshFromServer) {", self.script)
+        self.assertIn(
+            "if (!sharedJobLocation) return true;",
+            self.script,
+        )
+        self.assertIn("Precise coordinates never leave the browser", self.script)
+        self.assertIn(
+            "if (refreshFromServer) filteredJobs = groupDuplicateJobs(filteredJobs);",
+            self.script,
+        )
         self.assertIn("if (refreshFromServer) {", self.script)
         self.assertIn(
             "filteredJobs = sortJobResults(filteredJobs, selectedSort, jobSearch, locationSearch);",

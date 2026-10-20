@@ -4,6 +4,7 @@ import json
 import unittest
 import sqlite3
 import tempfile
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import database
@@ -15,6 +16,81 @@ from verify_job_links import plain_page_text
 
 
 class CatalogQualityTests(unittest.TestCase):
+    def test_every_job_filter_returns_cards_with_matching_evidence(self):
+        now = datetime.now(timezone.utc)
+        jobs = [
+            {
+                "id": 1,
+                "title": "Crew Member",
+                "company": "Neighborhood Market",
+                "location": "Denver, CO",
+                "category": "Retail",
+                "employment_type": "Part-Time",
+                "is_remote": 0,
+                "experience": "No experience required",
+                "requirements": "Minimum age stated by employer: 16. Training provided.",
+                "description": (
+                    "No cover letter is required. Applicants who need a reasonable "
+                    "accommodation during the application process may contact recruiting."
+                ),
+                "application_method": "pathforge",
+                "salary_min": 20,
+                "salary_max": 22,
+                "salary_period": "hour",
+                "application_deadline": "2026-12-31",
+                "source_url": "https://example.com/crew",
+                "last_verified_at": now.isoformat(),
+                "posted_at": now.isoformat(),
+            },
+            {
+                "id": 2,
+                "title": "Senior Remote Engineer",
+                "company": "Worldwide Technology",
+                "location": "Worldwide",
+                "category": "Technology",
+                "employment_type": "Full-Time",
+                "is_remote": 1,
+                "experience": "Experienced",
+                "requirements": "Five years of experience required.",
+                "description": "Build distributed software systems.",
+                "posted_at": (now - timedelta(days=45)).isoformat(),
+            },
+        ]
+
+        def result_ids(**filters):
+            return {
+                job["id"] for job in discover_jobs(
+                    [dict(job) for job in jobs],
+                    location_scope="all",
+                    **filters,
+                )
+            }
+
+        cases = [
+            ({"query": "crew", "query_mode": "strict"}, {1}),
+            ({"location": "Denver", "location_mode": "exact"}, {1}),
+            ({"category": "Retail"}, {1}),
+            ({"employment_type": "part-time"}, {1}),
+            ({"remote": "onsite"}, {1}),
+            ({"remote_eligibility": "anywhere"}, {2}),
+            ({"experience": "first-job"}, {1}),
+            ({"age_fit": "age-16-17"}, {1}),
+            ({"date_posted": "7"}, {1}),
+            ({"listing_quality": "pay"}, {1}),
+            ({"listing_quality": "deadline"}, {1}),
+            ({"listing_quality": "accommodation"}, {1}),
+            ({"listing_quality": "complete"}, {1}),
+            ({"application_feature": "direct_apply"}, {1}),
+            ({"application_feature": "no_cover_letter"}, {1}),
+            ({"application_feature": "accommodation_contact"}, {1}),
+            ({"minimum_pay": 40_000}, {1}),
+            ({"exclusions": "senior"}, {1}),
+            ({"exclude_terms": "engineer"}, {1}),
+        ]
+        for filters, expected in cases:
+            with self.subTest(filters=filters):
+                self.assertEqual(result_ids(**filters), expected)
+
     def test_link_verifier_extracts_visible_page_text(self):
         payload = b"<style>hidden</style><h1>Cashier &amp; Store Support</h1>"
         self.assertEqual(plain_page_text(payload), "cashier & store support")

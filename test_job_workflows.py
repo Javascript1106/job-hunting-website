@@ -139,6 +139,32 @@ class JobWorkflowIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(data["total"], 1)
         self.assertTrue(all(job["category"] == target["category"] for job in data["jobs"]))
 
+    def test_server_search_keeps_matches_beyond_the_card_preview(self):
+        matching_id = self.create_job("Long Posting Match")
+        ordinary_id = self.create_job("Long Posting Without Match")
+        connection = database.get_connection(self.database_path)
+        connection.execute(
+            "UPDATE jobs SET description = ? WHERE id = ?",
+            ("General responsibilities. " * 30 + "needleterm", matching_id),
+        )
+        connection.execute(
+            "UPDATE jobs SET description = ? WHERE id = ?",
+            ("General responsibilities. " * 30, ordinary_id),
+        )
+        connection.commit()
+        connection.close()
+
+        response = self.client.get(
+            "/jobs/search",
+            params={"query": "needleterm", "location_scope": "all"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        jobs = response.json()["jobs"]
+        self.assertEqual({job["id"] for job in jobs}, {matching_id})
+        self.assertTrue(jobs[0]["details_truncated"])
+        self.assertNotIn("needleterm", jobs[0]["description"])
+
     def test_server_side_search_applies_minimum_pay_and_strict_exclusions(self):
         junior_id = self.create_job("Customer Support Representative")
         senior_id = self.create_job("Senior Customer Support Manager")
