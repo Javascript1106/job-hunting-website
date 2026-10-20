@@ -139,7 +139,7 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
         employment_type: str = Query("all", pattern="^(all|full-time|part-time)$"),
         remote: str = Query("all", pattern="^(all|remote|hybrid|onsite)$"),
         remote_eligibility: str = Query("all", pattern="^(all|us|anywhere)$"),
-        experience: str = Query("all", pattern="^(all|entry-level|experienced)$"),
+        experience: str = Query("all", pattern="^(all|first-job|entry-level|experienced)$"),
         age_fit: str = Query("all", pattern="^(all|age-14|age-15|age-16-17|age-18-plus)$"),
         date_posted: str = Query("all", pattern="^(all|1|3|7|14|30|60|90)$"),
         listing_quality: str = Query(

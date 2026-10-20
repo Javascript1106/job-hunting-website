@@ -39,6 +39,14 @@ class CatalogQualityTests(unittest.TestCase):
         self.assertIsNone(estimated["minimum_age"])
         self.assertEqual(adult["age_eligibility"], "confirmed_18_plus")
 
+    def test_years_of_experience_are_not_misread_as_minimum_age(self):
+        result = age_eligibility({
+            "title": "Mammography Technologist",
+            "requirements": "At least 15 years of experience is preferred.",
+        })
+        self.assertEqual(result["age_eligibility"], "unknown")
+        self.assertIsNone(result["minimum_age"])
+
     def test_frontline_and_underserved_categories(self):
         cases = {
             "Restaurant Crew Member": "Food Service",
@@ -92,6 +100,32 @@ class CatalogQualityTests(unittest.TestCase):
             sum(job["company"] == "Large Employer" for job in results[:4]),
             2,
         )
+
+    def test_first_job_filter_rejects_professional_credentials(self):
+        jobs = [
+            {"id": 1, "title": "Entry-Level Licensed Massage Therapist", "company": "Spa", "location": "Denver, CO", "experience": "Entry level", "requirements": "Active professional license required"},
+            {"id": 2, "title": "Anesthesiologist", "company": "Hospital", "location": "Denver, CO", "experience": "Entry level", "requirements": "Medical degree and board certified"},
+            {"id": 3, "title": "Crew Member", "company": "Restaurant", "location": "Denver, CO", "requirements": "No prior experience required. Training provided."},
+        ]
+        results = discover_jobs(jobs, location_scope="us", experience="first-job")
+        self.assertEqual([job["title"] for job in results], ["Crew Member"])
+
+    def test_broad_recommendations_include_starter_roles_near_the_top(self):
+        jobs = [
+            {"id": 1, "title": "Staff Engineer", "company": "Tech", "location": "New York, NY", "requirements": "8 years experience"},
+            {"id": 2, "title": "Director", "company": "Finance", "location": "Boston, MA", "requirements": "5 years experience"},
+            {"id": 3, "title": "Cashier", "company": "Market", "location": "Denver, CO", "requirements": "No experience required"},
+        ]
+        results = discover_jobs(jobs, location_scope="us")
+        self.assertEqual(results[0]["title"], "Cashier")
+
+    def test_teen_recommendations_rank_confirmed_age_before_estimates(self):
+        jobs = [
+            {"id": 1, "title": "Cashier", "company": "Market", "location": "Denver, CO", "experience": "No experience", "posted_at": "2026-10-20"},
+            {"id": 2, "title": "Crew Member", "company": "Restaurant", "location": "Boise, ID", "requirements": "Minimum age stated by employer: 16."},
+        ]
+        results = discover_jobs(jobs, location_scope="us", age_fit="age-16-17")
+        self.assertEqual(results[0]["title"], "Crew Member")
 
     def test_teen_source_scans_full_board_and_balances_states(self):
         configuration = json.loads(

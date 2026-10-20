@@ -124,7 +124,10 @@ def _work_setting(job: dict[str, Any]) -> str:
     combined = " ".join(_text(job.get(field)) for field in ("title", "location", "description", "requirements"))
     if re.search(r"\bhybrid\b|partly remote|remote and (?:in[- ]?office|on[- ]?site)", combined):
         return "hybrid"
-    if job.get("is_remote") == 1:
+    location = _text(job.get("location"))
+    explicit_offices = bool(re.search(r"\boffice\b|(?:^|[;/])\s*[^;/,]+,\s*(?:[a-z]{2}|[a-z ]+)(?:$|[;/])", location))
+    remote_evidence = bool(re.search(r"\b(?:fully remote|100% remote|remote role|work remotely|remote within|remote[- ]eligible)\b", combined))
+    if job.get("is_remote") == 1 and (remote_evidence or not explicit_offices):
         return "remote"
     if job.get("is_remote") == 0:
         return "onsite"
@@ -133,24 +136,57 @@ def _work_setting(job: dict[str, Any]) -> str:
 
 def _experience_group(job: dict[str, Any]) -> str:
     stated = _text(job.get("experience"))
+    title = _text(job.get("title"))
+    details = " ".join(_text(job.get(field)) for field in ("title", "experience", "requirements", "description"))
+    credential_barrier = bool(re.search(
+        r"\b(?:professional (?:license|licensure)|licensed|active [a-z ]+ license|registered (?:nurse|pharmacist)|physician|anesthesiologist|attorney|accountant|medical degree|juris doctor|ph\.?d\.?|doctorate|master'?s degree|required certification|board certified|security clearance|cdl|[2-9]\+? years?|two or more years|three or more years)\b",
+        details,
+    ))
+    if credential_barrier:
+        return "experienced"
     if re.search(r"entry|no experience", stated):
         return "entry-level"
     if "experienced" in stated:
         return "experienced"
-    title = _text(job.get("title"))
-    details = " ".join(_text(job.get(field)) for field in ("title", "experience", "requirements", "description"))
     if re.search(r"\b(?:intern(?:ship)?|apprentice|trainee|junior|entry[ -]?level|student|no experience|crew member|team member|cashier|customer service rep(?:resentative)?|pizza maker)\b", details):
         return "entry-level"
-    if re.search(r"\b(?:senior|sr\.?|manager|supervisor|director|lead|principal|chief|engineer|analyst|specialist|consultant|architect|attorney|counsel|accountant|registered|licensed|certification required|bachelor'?s|master'?s|doctorate|[1-9]\+? years?|one or more years|two or more years)\b", details):
+    if re.search(r"\b(?:senior|sr\.?|manager|supervisor|director|lead|principal|chief|engineer|analyst|specialist|consultant|architect|physician|anesthesiologist|attorney|counsel|accountant|registered|licensed|certification required|bachelor'?s|master'?s|doctorate|[1-9]\+? years?|one or more years|two or more years)\b", details):
         return "experienced"
     if re.search(r"see (?:published|official) (?:qualifications|eligibility requirements)", stated) and not re.search(r"\b(?:assistant|associate|aide|support|representative|coordinator)\b", title):
         return "experienced"
     return ""
 
 
+def _first_job_ready(job: dict[str, Any]) -> bool:
+    """Require starter-role evidence and reject career-entry credentials."""
+    title = _text(job.get("title"))
+    details = " ".join(_text(job.get(field)) for field in ("title", "experience", "requirements", "description"))
+    blocked = re.search(
+        r"\b(?:licensed|licensure|professional license|registered (?:nurse|pharmacist)|medical degree|juris doctor|ph\.?d\.?|doctorate|master'?s degree|bachelor'?s degree required|required certification|board certified|security clearance|cdl|[2-9]\+? years?|two or more years|three or more years|senior|sr\.?|staff|principal|lead|manager|supervisor|director|chief)\b",
+        details,
+    )
+    if blocked:
+        return False
+    positive = re.search(
+        r"\b(?:no (?:prior )?experience|experience (?:is )?not required|training provided|will train|first job|entry[ -]?level|crew member|team member|cashier|barista|host|hostess|busser|dishwasher|cart attendant|store associate|retail associate|sales associate|guest advocate|customer service rep(?:resentative)?|recreation aide|camp counselor|lifeguard|apprentice|trainee)\b",
+        details,
+    )
+    return bool(positive) and not re.search(r"\b(?:engineer|physician|anesthesiologist|attorney|counsel|accountant|scientist)\b", title)
+
+
 def _minimum_age(job: dict[str, Any]) -> int | None:
     details = " ".join(str(job.get(field) or "") for field in ("description", "requirements"))
-    matches = re.findall(r"\b(?:minimum age stated by employer:|at least|minimum age(?: is|:)?|must be)\s*(1[4-9]|2[01])\b", details, re.I)
+    explicit = re.findall(
+        r"\b(?:minimum age stated by employer:|minimum age(?: is|:)?)\s*(1[4-9]|2[01])\b",
+        details,
+        re.I,
+    )
+    phrased = re.findall(
+        r"\b(?:at least|must be)\s*(1[4-9]|2[01])\s*(?:years? old|years?(?: of)? age)\b",
+        details,
+        re.I,
+    )
+    matches = explicit + phrased
     return min(map(int, matches)) if matches else None
 
 
@@ -474,26 +510,45 @@ def _group_duplicates(jobs: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _diversify_employers(jobs: list[dict[str, Any]], window: int = 30) -> list[dict[str, Any]]:
-    """Limit repeat employers near the top of broad recommended searches."""
+    """Diversify broad recommendations by employer and U.S. state near the top."""
     if len(jobs) < 3:
         return jobs
     remaining = list(jobs)
     diversified = []
     employer_counts: dict[str, int] = {}
+    state_counts: dict[str, int] = {}
     target = min(window, len(remaining))
     while remaining and len(diversified) < target:
         preferred_index = next(
             (
                 index for index, job in enumerate(remaining)
-                if employer_counts.get(_text(job.get("company")), 0) < 2
+                if employer_counts.get(_text(job.get("company")), 0) < 1
+                and all(state_counts.get(state, 0) < 2 for state in (us_state_codes(job.get("location")) or {""}))
             ),
-            0,
+            next((index for index, job in enumerate(remaining) if employer_counts.get(_text(job.get("company")), 0) < 2), 0),
         )
         job = remaining.pop(preferred_index)
         employer = _text(job.get("company"))
         employer_counts[employer] = employer_counts.get(employer, 0) + 1
+        for state in us_state_codes(job.get("location")) or {""}:
+            state_counts[state] = state_counts.get(state, 0) + 1
         diversified.append(job)
     return diversified + remaining
+
+
+def _balance_career_stages(jobs: list[dict[str, Any]], window: int = 30) -> list[dict[str, Any]]:
+    """Keep an empty-query landing page from becoming a wall of senior roles."""
+    starter = [job for job in jobs if _first_job_ready(job)]
+    experienced = [job for job in jobs if _experience_group(job) == "experienced"]
+    classified = {id(job) for job in starter + experienced}
+    other = [job for job in jobs if id(job) not in classified]
+    balanced: list[dict[str, Any]] = []
+    while len(balanced) < min(window, len(jobs)) and any((starter, other, experienced)):
+        for group in (starter, other, experienced):
+            if group and len(balanced) < min(window, len(jobs)):
+                balanced.append(group.pop(0))
+    selected = {id(job) for job in balanced}
+    return balanced + [job for job in jobs if id(job) not in selected]
 
 
 def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: str = "", location_scope: str = "us", location_mode: str = "nearby", category: str = "all", employment_type: str = "all", remote: str = "all", remote_eligibility: str = "all", experience: str = "all", age_fit: str = "all", date_posted: str = "all", listing_quality: str = "all", application_feature: str = "all", minimum_pay: float = 0, exclusions: str = "", exclude_terms: str = "", sort: str = "recommended") -> list[dict[str, Any]]:
@@ -528,7 +583,9 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
             continue
         if remote_eligibility == "anywhere" and eligibility != "anywhere":
             continue
-        if experience != "all" and _experience_group(job) != experience:
+        if experience == "first-job" and not _first_job_ready(job):
+            continue
+        if experience not in {"all", "first-job"} and _experience_group(job) != experience:
             continue
         if not _matches_age(job, age_fit):
             continue
@@ -567,7 +624,11 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
         grouped.sort(key=lambda job: (_quality_score(job), job["_relevanceScore"]), reverse=True)
     else:
         grouped.sort(key=lambda job: (job["_relevanceScore"], _parse_date(job.get("posted_at") or job.get("created_at")) or datetime.min.replace(tzinfo=timezone.utc)), reverse=True)
+        if age_fit in {"age-14", "age-15", "age-16-17"}:
+            grouped.sort(key=lambda job: _minimum_age(job) is not None, reverse=True)
         if not query.strip():
+            if experience == "all" and age_fit == "all":
+                grouped = _balance_career_stages(grouped)
             grouped = _diversify_employers(grouped)
     return grouped
 
@@ -575,6 +636,7 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
 def compact_job(job: dict[str, Any]) -> dict[str, Any]:
     """Trim long card text; full text remains available from /jobs/{id}."""
     compact = dict(job)
+    compact["work_setting"] = _work_setting(job) or "not-specified"
     compact["accommodation_info"] = has_accommodation_information(job)
     compact.update(application_features(job))
     for field in ("description", "requirements", "preferred_qualifications"):

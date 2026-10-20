@@ -808,6 +808,11 @@ function formatJobCardDate(value) {
 }
 
 function getJobWorkSetting(job) {
+  const normalizedSetting = String(job.work_setting || "").toLowerCase();
+  if (normalizedSetting === "remote") return "Remote";
+  if (normalizedSetting === "hybrid") return "Hybrid";
+  if (normalizedSetting === "onsite") return "On-site";
+  if (normalizedSetting === "not-specified") return "Not clearly stated";
   const text = [job.title, job.location, job.description, job.requirements]
     .map(value => String(value || "").toLowerCase())
     .join(" ");
@@ -816,7 +821,7 @@ function getJobWorkSetting(job) {
   }
   if (Number(job.is_remote) === 1) return "Remote";
   if (Number(job.is_remote) === 0) return "On-site";
-  return "Not specified";
+  return "Not clearly stated";
 }
 
 function getJobApplicationMethod(job) {
@@ -1546,7 +1551,7 @@ function displayJobs(jobs, append = false) {
   displayedJobCount += nextJobs.length;
   if (resultCount) {
     resultCount.textContent =
-      `${jobSearchTotal} job${jobSearchTotal === 1 ? "" : "s"} found`
+      `${Number(jobSearchTotal).toLocaleString()} job${jobSearchTotal === 1 ? "" : "s"} found`
       + (jobCatalogLoading ? " · refreshing…" : "");
   }
   if (loadMoreButton) {
@@ -1561,8 +1566,8 @@ function displayJobs(jobs, append = false) {
     loadMoreButton.textContent = reachedEnd
       ? "No more matching listings"
       : jobSearchHasMore
-        ? `Load More Jobs (up to ${maximumRemainingCount} jobs remaining)`
-        : `Load More Jobs (${loadedRemainingCount} job${loadedRemainingCount === 1 ? "" : "s"} remaining)`;
+        ? `Load More Jobs (up to ${maximumRemainingCount.toLocaleString()} jobs remaining)`
+        : `Load More Jobs (${loadedRemainingCount.toLocaleString()} job${loadedRemainingCount === 1 ? "" : "s"} remaining)`;
     if (endMessage) {
       endMessage.classList.add("hidden");
     }
@@ -1625,21 +1630,31 @@ function normalizeExperienceLevel(value) {
 
 function getJobExperienceGroup(job) {
   const statedLevel = normalizeExperienceLevel(job.experience);
-  if (statedLevel) return statedLevel;
   const title = String(job.title || "").toLowerCase();
   const details = [job.title, job.experience, job.requirements, job.description]
     .map(value => String(value || "").toLowerCase())
     .join(" ");
+  if (/\b(?:professional (?:license|licensure)|licensed|active [a-z ]+ license|registered (?:nurse|pharmacist)|physician|anesthesiologist|attorney|accountant|medical degree|juris doctor|ph\.?d\.?|doctorate|master'?s degree|required certification|board certified|security clearance|cdl|[2-9]\+? years?|two or more years|three or more years)\b/i.test(details)) return "experienced";
+  if (statedLevel) return statedLevel;
   if (/\b(?:intern(?:ship)?|apprentice|trainee|junior|entry[ -]?level|student|no experience|crew member|team member|cashier|customer service rep(?:resentative)?|pizza maker)\b/i.test(details)) {
     return "entry-level";
   }
-  if (/\b(?:senior|sr\.?|manager|supervisor|director|lead|principal|chief|engineer|analyst|specialist|consultant|architect|attorney|counsel|accountant|registered|licensed|certification required|bachelor'?s|master'?s|doctorate|[1-9]\+? years?|one or more years|two or more years)\b/i.test(details)) {
+  if (/\b(?:senior|sr\.?|manager|supervisor|director|lead|principal|chief|engineer|analyst|specialist|consultant|architect|physician|anesthesiologist|attorney|counsel|accountant|registered|licensed|certification required|bachelor'?s|master'?s|doctorate|[1-9]\+? years?|one or more years|two or more years)\b/i.test(details)) {
     return "experienced";
   }
   if (/see (?:published|official) (?:qualifications|eligibility requirements)/i.test(String(job.experience || "")) && !/\b(?:assistant|associate|aide|support|representative|coordinator)\b/i.test(title)) {
     return "experienced";
   }
   return "";
+}
+
+function isFirstJobReady(job) {
+  const title = String(job.title || "").toLowerCase();
+  const details = [job.title, job.experience, job.requirements, job.description]
+    .map(value => String(value || "").toLowerCase()).join(" ");
+  if (/\b(?:licensed|licensure|professional license|registered (?:nurse|pharmacist)|medical degree|juris doctor|ph\.?d\.?|doctorate|master'?s degree|bachelor'?s degree required|required certification|board certified|security clearance|cdl|[2-9]\+? years?|two or more years|three or more years|senior|sr\.?|staff|principal|lead|manager|supervisor|director|chief)\b/i.test(details)) return false;
+  const positive = /\b(?:no (?:prior )?experience|experience (?:is )?not required|training provided|will train|first job|entry[ -]?level|crew member|team member|cashier|barista|host|hostess|busser|dishwasher|cart attendant|store associate|retail associate|sales associate|guest advocate|customer service rep(?:resentative)?|recreation aide|camp counselor|lifeguard|apprentice|trainee)\b/i.test(details);
+  return positive && !/\b(?:engineer|physician|anesthesiologist|attorney|counsel|accountant|scientist)\b/i.test(title);
 }
 
 function balanceStarterAndExperiencedJobs(jobs, experienceFilter, ageFilter) {
@@ -2869,7 +2884,10 @@ function getJobMinimumAge(job) {
   const details = [job.description, job.requirements]
     .map(value => String(value || ""))
     .join(" ");
-  const matches = [...details.matchAll(/\b(?:minimum age stated by employer:|at least|minimum age(?: is|:)?|must be)\s*(1[4-9]|2[01])\b/gi)];
+  const matches = [
+    ...details.matchAll(/\b(?:minimum age stated by employer:|minimum age(?: is|:)?)\s*(1[4-9]|2[01])\b/gi),
+    ...details.matchAll(/\b(?:at least|must be)\s*(1[4-9]|2[01])\s*(?:years? old|years?(?: of)? age)\b/gi)
+  ];
   if (!matches.length) return Number.POSITIVE_INFINITY;
   return Math.min(...matches.map(match => Number(match[1])));
 }
@@ -3237,9 +3255,10 @@ function filterJobs(refreshFromServer = true) {
     const matchesRemoteEligibility = selectedRemoteEligibility === "all"
       || (selectedRemoteEligibility === "us" && ["us", "anywhere"].includes(remoteEligibility))
       || (selectedRemoteEligibility === "anywhere" && remoteEligibility === "anywhere");
-    const matchesExperience =
-      selectedExperience === "all"
-      || getJobExperienceGroup(job) === selectedExperience;
+    const matchesExperience = selectedExperience === "all"
+      || (selectedExperience === "first-job"
+        ? isFirstJobReady(job)
+        : getJobExperienceGroup(job) === selectedExperience);
     const matchesAgeFit = jobMatchesApplicantAge(job, selectedAgeFit);
     const postedAt = Date.parse(job.posted_at || job.created_at || "");
     const matchesDatePosted = selectedDatePosted === "all" || (Number.isFinite(postedAt) && postedAt >= Date.now() - Number(selectedDatePosted) * 86400000);
@@ -3323,7 +3342,7 @@ function updateQuickJobPresetStates() {
     "age-14": document.getElementById("ageFitFilter")?.value === "age-14",
     "age-15": document.getElementById("ageFitFilter")?.value === "age-15",
     teen: document.getElementById("ageFitFilter")?.value === "age-16-17",
-    "first-job": document.getElementById("experienceFilter")?.value === "entry-level",
+    "first-job": document.getElementById("experienceFilter")?.value === "first-job",
     "part-time": document.getElementById("employmentTypeFilter")?.value === "part-time",
     "pay-listed": document.getElementById("listingQualityFilter")?.value === "pay"
   };
@@ -3357,7 +3376,7 @@ function applyQuickJobPreset(preset) {
     "age-14": ["ageFitFilter", "age-14"],
     "age-15": ["ageFitFilter", "age-15"],
     teen: ["ageFitFilter", "age-16-17"],
-    "first-job": ["experienceFilter", "entry-level"],
+    "first-job": ["experienceFilter", "first-job"],
     "part-time": ["employmentTypeFilter", "part-time"],
     "pay-listed": ["listingQualityFilter", "pay"]
   };
@@ -3750,8 +3769,10 @@ function describeSavedSearch(savedSearch) {
   if (savedSearch.exclude_terms) parts.push(`Without: ${savedSearch.exclude_terms}`);
   if (savedSearch.experience !== "all") {
     parts.push(
-      savedSearch.experience === "entry-level"
-        ? "Entry Level or No Experience"
+      savedSearch.experience === "first-job"
+        ? "First Job — No Career Credentials"
+        : savedSearch.experience === "entry-level"
+          ? "Early Career — Credentials May Apply"
         : savedSearch.experience === "experienced"
           ? "Experienced"
           : savedSearch.experience
