@@ -12808,6 +12808,24 @@ function initializeGlobalAccessibility() {
   });
 }
 
+function initializeJobsPagePosition() {
+  if (!document.body.classList.contains("jobs-page")) return;
+
+  const parameters = new URLSearchParams(window.location.search);
+  const hasDirectTarget = parameters.has("job") || Boolean(window.location.hash);
+  if (hasDirectTarget) return;
+
+  if ("scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "manual";
+  }
+
+  window.addEventListener("pageshow", () => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+  });
+}
+
 function initializeMobileNavigation() {
   // Build the trigger once in JavaScript so every page receives identical
   // responsive navigation without duplicating markup across the HTML files.
@@ -13319,6 +13337,7 @@ async function initializeAnalyticsPage() {
   } catch (error) { status.textContent = error.message; status.classList.add("error-message"); }
 }
 
+initializeJobsPagePosition();
 initializeGlobalAccessibility();
 initializeRequiredFieldGuidance();
 initializePwaSupport();

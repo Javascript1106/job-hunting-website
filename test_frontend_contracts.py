@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v114"
+ASSET_VERSION = "20261020-v115"
 
 
 class MarkupInspector(HTMLParser):
@@ -225,6 +225,12 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('loadMoreButton.textContent = "Finishing the current search…"', self.script)
         self.assertIn("const firstNewJob = filteredJobs[previouslyDisplayed]", self.script)
         self.assertIn('firstNewCard?.scrollIntoView({ behavior: "smooth", block: "start" })', self.script)
+
+    def test_general_jobs_page_starts_at_the_top(self):
+        self.assertIn("function initializeJobsPagePosition()", self.script)
+        self.assertIn('window.history.scrollRestoration = "manual"', self.script)
+        self.assertIn('parameters.has("job") || Boolean(window.location.hash)', self.script)
+        self.assertIn('window.scrollTo({ top: 0, left: 0, behavior: "auto" })', self.script)
 
     def test_reset_job_filters_does_not_reapply_text_filters(self):
         self.assertEqual(self.jobs.count('id="resetJobFiltersButton"'), 1)
