@@ -1,6 +1,7 @@
 """Public job-discovery routes and shared public-listing eligibility rules."""
 
 import sqlite3
+from collections import OrderedDict
 from pathlib import Path
 from threading import RLock
 from typing import Callable
@@ -49,6 +50,8 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
     """Build public job routes around late-bound app dependencies."""
     router = APIRouter(tags=["jobs"])
     discovery_cache = {"signature": None, "jobs": None, "categories": None}
+    search_cache = OrderedDict()
+    search_cache_limit = 32
     discovery_cache_lock = RLock()
 
     def catalog_signature(path):
@@ -78,6 +81,7 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
                 jobs=jobs,
                 categories=categories,
             )
+            search_cache.clear()
             return jobs, categories
 
     @router.get("/jobs")
@@ -164,27 +168,44 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
         connection.row_factory = sqlite3.Row
         try:
             jobs, categories = discovery_catalog(connection, path)
-            results = discover_jobs(
-                jobs,
-                query=query,
-                query_mode=query_mode,
-                location=location,
-                location_scope=location_scope,
-                location_mode=location_mode,
-                category=category,
-                employment_type=employment_type,
-                remote=remote,
-                remote_eligibility=remote_eligibility,
-                experience=experience,
-                age_fit=age_fit,
-                date_posted=date_posted,
-                listing_quality=listing_quality,
-                application_feature=application_feature,
-                minimum_pay=minimum_pay,
-                exclusions=exclusions,
-                exclude_terms=exclude_terms,
-                sort=sort,
+            search_key = (
+                query, query_mode, location, location_scope, location_mode,
+                category, employment_type, remote, remote_eligibility,
+                experience, age_fit, date_posted, listing_quality,
+                application_feature, minimum_pay, exclusions, exclude_terms,
+                sort,
             )
+            with discovery_cache_lock:
+                results = search_cache.get(search_key)
+                if results is not None:
+                    search_cache.move_to_end(search_key)
+            if results is None:
+                results = discover_jobs(
+                    jobs,
+                    query=query,
+                    query_mode=query_mode,
+                    location=location,
+                    location_scope=location_scope,
+                    location_mode=location_mode,
+                    category=category,
+                    employment_type=employment_type,
+                    remote=remote,
+                    remote_eligibility=remote_eligibility,
+                    experience=experience,
+                    age_fit=age_fit,
+                    date_posted=date_posted,
+                    listing_quality=listing_quality,
+                    application_feature=application_feature,
+                    minimum_pay=minimum_pay,
+                    exclusions=exclusions,
+                    exclude_terms=exclude_terms,
+                    sort=sort,
+                )
+                with discovery_cache_lock:
+                    search_cache[search_key] = results
+                    search_cache.move_to_end(search_key)
+                    while len(search_cache) > search_cache_limit:
+                        search_cache.popitem(last=False)
             page = [compact_job(job) for job in results[offset:offset + limit]]
             return {
                 "jobs": page,
