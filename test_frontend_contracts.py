@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v112"
+ASSET_VERSION = "20261020-v113"
 
 
 class MarkupInspector(HTMLParser):
@@ -211,6 +211,14 @@ class FrontendContractTests(unittest.TestCase):
     def test_equal_salary_bounds_render_as_one_amount(self):
         self.assertIn("if (minimumSalary === maximumSalary)", self.script)
         self.assertIn("`$${minimumSalary.toLocaleString()}${salarySuffix}`", self.script)
+
+    def test_jobs_page_identifies_itself_before_and_after_scripts_load(self):
+        self.assertIn('<body class="jobs-page">', self.jobs)
+        self.assertIn('<a href="jobs.html" aria-current="page">Jobs</a>', self.jobs)
+        self.assertIn('class="page-breadcrumb" aria-label="Breadcrumb"', self.jobs)
+        self.assertIn('<span aria-current="page">Jobs</span>', self.jobs)
+        self.assertIn('const pathParts = window.location.pathname.split("/").filter(Boolean);', self.script)
+        self.assertIn('.main-nav .nav-links > a[aria-current="page"]', self.styles)
 
     def test_reset_job_filters_does_not_reapply_text_filters(self):
         self.assertEqual(self.jobs.count('id="resetJobFiltersButton"'), 1)

@@ -12686,7 +12686,8 @@ function initializeGlobalAccessibility() {
     }
   }
 
-  const pageName = window.location.pathname.split("/").pop() || "index.html";
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const pageName = pathParts.at(-1) || "index.html";
   document.querySelectorAll(".main-nav a[href]:not(.nav-brand)").forEach(link => {
     const linkPage = link.getAttribute("href")?.split(/[?#]/)[0];
     if (linkPage === pageName) {
