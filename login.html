@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261020-v120">
+  <link rel="stylesheet" href="style.css?v=20261020-v121">
 </head>
 <body>
 
@@ -77,7 +77,15 @@
         career preparation.
       </p>
 
-      <form id="loginForm" class="auth-form">
+      <div class="auth-account-choice" role="group" aria-label="Choose how to log in">
+        <button type="button" data-auth-account="job_seeker" aria-pressed="true">Log in as a job seeker</button>
+        <button type="button" data-auth-account="employer" aria-pressed="false">Log in as an employer</button>
+      </div>
+      <p id="loginAccountGuidance" class="auth-account-guidance">
+        Access saved jobs, applications, career resources, and your profile.
+      </p>
+
+      <form id="loginForm" class="auth-form" data-account-type="job_seeker">
         <div class="auth-field">
           <label for="loginIdentifier">Email or username</label>
           <input
@@ -100,7 +108,7 @@
           >
         </div>
 
-        <button type="submit" class="auth-submit">Log in</button>
+        <button id="loginSubmitButton" type="submit" class="auth-submit">Log in as a job seeker</button>
       </form>
 
       <p
@@ -126,7 +134,7 @@
 
       <p class="auth-switch">
         New to PathForge?
-        <a href="register.html">Create an account</a>
+        <a id="loginCreateAccountLink" href="register.html?account=job_seeker">Create an account</a>
       </p>
     </div>
 
@@ -163,8 +171,8 @@
   </section>
 </main>
 
-<script src="pathforge-core.js?v=20261020-v120"></script>
-<script src="script.js?v=20261020-v120"></script>
+<script src="pathforge-core.js?v=20261020-v121"></script>
+<script src="script.js?v=20261020-v121"></script>
 <footer class="home-footer">
   <div class="home-footer-brand">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
