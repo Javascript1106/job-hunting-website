@@ -452,10 +452,18 @@ function formatJobSalary(job) {
       : "Not listed";
   }
 
+  const minimumSalary = Number(job.salary_min);
+  const maximumSalary = Number(job.salary_max);
+  const salarySuffix = `/${job.salary_period}`;
+
+  if (minimumSalary === maximumSalary) {
+    return `$${minimumSalary.toLocaleString()}${salarySuffix}`;
+  }
+
   return (
-    `$${Number(job.salary_min).toLocaleString()}`
-    + `–$${Number(job.salary_max).toLocaleString()}`
-    + `/${job.salary_period}`
+    `$${minimumSalary.toLocaleString()}`
+    + `–$${maximumSalary.toLocaleString()}`
+    + salarySuffix
   );
 }
 

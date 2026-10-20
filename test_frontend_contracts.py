@@ -176,6 +176,7 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("up to ${maximumRemainingCount.toLocaleString()}", self.script)
         self.assertIn('"No more matching listings"', self.script)
         self.assertIn("jobSearchTotal - displayedJobCount", self.script)
+
         self.assertIn("/jobs/search?", self.script)
         self.assertIn("scheduleServerJobSearch", self.script)
         self.assertIn("fetchWithTimeout", self.script)
@@ -206,6 +207,10 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("isUnitedStatesJobLocation(job.location)", self.script)
         self.assertIn("United States only", self.jobs)
         self.assertNotIn("Country: Any", self.jobs)
+
+    def test_equal_salary_bounds_render_as_one_amount(self):
+        self.assertIn("if (minimumSalary === maximumSalary)", self.script)
+        self.assertIn("`$${minimumSalary.toLocaleString()}${salarySuffix}`", self.script)
 
     def test_reset_job_filters_does_not_reapply_text_filters(self):
         self.assertEqual(self.jobs.count('id="resetJobFiltersButton"'), 1)
