@@ -45,7 +45,9 @@ class PasswordResetConfirmation(BaseModel):
     new_password: str
 
 
-def create_auth_router(database_path: Callable[[], str]):
+def create_auth_router(
+    database_path: Callable[[], str], is_production: bool = False
+):
     """Build account routes around a late-bound database path for test isolation."""
     router = APIRouter(tags=["authentication"])
 
@@ -168,7 +170,9 @@ def create_auth_router(database_path: Callable[[], str]):
             value=session_token,
             httponly=True,
             samesite="lax",
-            secure=request.url.scheme == "https",
+            # Production cookies stay secure even when TLS is terminated by a
+            # reverse proxy and the application sees an internal HTTP request.
+            secure=is_production or request.url.scheme == "https",
             max_age=14 * 24 * 60 * 60,
             path="/",
         )

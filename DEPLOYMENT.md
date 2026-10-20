@@ -27,6 +27,7 @@ automatically load that file; copy the values into the deployment environment.
 ```powershell
 python migrate_database.py
 python -m pytest -q
+python -m pip_audit -r requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 

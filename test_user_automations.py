@@ -13,6 +13,7 @@ class UserAutomationTests(unittest.TestCase):
     def setUp(self):
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.database_path = str(Path(self.temporary_directory.name) / "automation.db")
+        self.lock_path = str(Path(self.temporary_directory.name) / "automation.lock")
         database.initialize_database(self.database_path)
         self.connection = database.get_connection(self.database_path)
         self.connection.row_factory = main.sqlite3.Row
@@ -47,8 +48,8 @@ class UserAutomationTests(unittest.TestCase):
         )
         self.connection.commit()
 
-        first = run_user_automations(self.database_path)
-        second = run_user_automations(self.database_path)
+        first = run_user_automations(self.database_path, self.lock_path)
+        second = run_user_automations(self.database_path, self.lock_path)
         events = self.connection.execute(
             "SELECT event_key FROM notifications ORDER BY event_key"
         ).fetchall()
@@ -72,10 +73,18 @@ class UserAutomationTests(unittest.TestCase):
         )
         self.connection.commit()
 
-        result = run_user_automations(self.database_path)
+        result = run_user_automations(self.database_path, self.lock_path)
 
         self.assertEqual(result["users_checked"], 0)
         self.assertEqual(result["notifications_created"], 0)
+
+    def test_runner_rejects_overlapping_execution(self):
+        import os
+
+        Path(self.lock_path).write_text(f"pid={os.getpid()}\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(RuntimeError, "already running"):
+            run_user_automations(self.database_path, self.lock_path)
 
 
 if __name__ == "__main__":

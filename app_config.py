@@ -34,13 +34,11 @@ async def apply_security_headers(
     has_session = bool(request.cookies.get("pathforge_session"))
     if is_production and unsafe_method and has_session:
         request_origin = request.headers.get("origin", "").rstrip("/")
-        host = request.headers.get("host", request.url.netloc)
         allowed_origins = {
             str(origin).rstrip("/")
             for origin in configured_origins
             if str(origin).strip()
         }
-        allowed_origins.add(f"{request.url.scheme}://{host}".rstrip("/"))
         if not request_origin or request_origin not in allowed_origins:
             return JSONResponse(
                 {"detail": "Request origin could not be verified."},

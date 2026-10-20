@@ -91,7 +91,7 @@ async def add_security_headers(request: Request, call_next):
 initialize_database()
 # The callback resolves DB_NAME at request time so isolated tests and maintenance
 # environments can safely substitute a temporary database.
-app.include_router(create_auth_router(lambda: DB_NAME))
+app.include_router(create_auth_router(lambda: DB_NAME, IS_PRODUCTION))
 
 # Compatibility wrappers keep route code and external maintenance tests stable
 # while the implementation lives in the focused authentication module.

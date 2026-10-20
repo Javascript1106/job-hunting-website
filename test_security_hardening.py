@@ -79,6 +79,26 @@ class SecurityHeaderTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    async def test_production_does_not_trust_request_host_as_an_origin(self):
+        async def call_next(_request):
+            return JSONResponse({"ok": True})
+
+        response = await main.apply_security_headers(
+            build_request(
+                "/profile",
+                method="PATCH",
+                headers={
+                    "Host": "attacker.example",
+                    "Origin": "https://attacker.example",
+                    "Cookie": "pathforge_session=secret",
+                },
+            ),
+            call_next,
+            True,
+            ["https://pathforge.example"],
+        )
+        self.assertEqual(response.status_code, 403)
+
     async def test_private_responses_are_not_cached(self):
         async def call_next(_request):
             return JSONResponse({"private": True})

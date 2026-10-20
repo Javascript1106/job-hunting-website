@@ -25,7 +25,11 @@ class AuthenticationApiIntegrationTests(unittest.TestCase):
         )
         database.initialize_database(self.database_path)
         main.DB_NAME = self.database_path
-        self.client = TestClient(main.app, headers=TRUSTED_ORIGIN_HEADERS)
+        self.client = TestClient(
+            main.app,
+            headers=TRUSTED_ORIGIN_HEADERS,
+            base_url="https://pathforge.example",
+        )
 
     def tearDown(self):
         self.client.close()
@@ -70,6 +74,8 @@ class AuthenticationApiIntegrationTests(unittest.TestCase):
         set_cookie = login.headers["set-cookie"].lower()
         self.assertIn("httponly", set_cookie)
         self.assertIn("samesite=lax", set_cookie)
+        if main.IS_PRODUCTION:
+            self.assertIn("secure", set_cookie)
 
         current_user = self.client.get("/me")
         self.assertEqual(current_user.status_code, 200)
@@ -139,8 +145,16 @@ class AuthenticationApiIntegrationTests(unittest.TestCase):
         self.create_account_directly("employer_one", "one@example.com", "employer")
         self.create_account_directly("employer_two", "two@example.com", "employer")
 
-        first_client = TestClient(main.app, headers=TRUSTED_ORIGIN_HEADERS)
-        second_client = TestClient(main.app, headers=TRUSTED_ORIGIN_HEADERS)
+        first_client = TestClient(
+            main.app,
+            headers=TRUSTED_ORIGIN_HEADERS,
+            base_url="https://pathforge.example",
+        )
+        second_client = TestClient(
+            main.app,
+            headers=TRUSTED_ORIGIN_HEADERS,
+            base_url="https://pathforge.example",
+        )
         try:
             first_login = first_client.post("/login", json={
                 "identifier": "employer_one", "password": VALID_PASSWORD,
