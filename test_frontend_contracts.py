@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v116"
+ASSET_VERSION = "20261020-v117"
 
 
 class MarkupInspector(HTMLParser):
@@ -21,6 +21,8 @@ class MarkupInspector(HTMLParser):
         self.ids = []
         self.h1_count = 0
         self.local_references = []
+        self.select_values = {}
+        self.current_select = None
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
@@ -28,10 +30,20 @@ class MarkupInspector(HTMLParser):
             self.ids.append(attributes["id"])
         if tag == "h1":
             self.h1_count += 1
+        if tag == "select":
+            self.current_select = attributes.get("id")
+            if self.current_select:
+                self.select_values.setdefault(self.current_select, [])
+        elif tag == "option" and self.current_select:
+            self.select_values[self.current_select].append(attributes.get("value", ""))
         for attribute in ("href", "src"):
             value = attributes.get(attribute, "").strip()
             if value:
                 self.local_references.append(value)
+
+    def handle_endtag(self, tag):
+        if tag == "select":
+            self.current_select = None
 
 
 class FrontendContractTests(unittest.TestCase):
@@ -50,6 +62,30 @@ class FrontendContractTests(unittest.TestCase):
             with self.subTest(page=page.name):
                 self.assertEqual(inspector.h1_count, 1)
                 self.assertEqual(len(inspector.ids), len(set(inspector.ids)))
+
+    def test_filter_dropdowns_and_quick_paths_are_unique(self):
+        inspector = MarkupInspector()
+        inspector.feed(self.jobs)
+        for select_id, values in inspector.select_values.items():
+            with self.subTest(select=select_id):
+                self.assertEqual(len(values), len(set(values)))
+
+        preset_names = re.findall(r'data-job-preset="([^"]+)"', self.jobs)
+        self.assertEqual(len(preset_names), len(set(preset_names)))
+
+        mappings_match = re.search(
+            r"function applyQuickJobPreset\(preset\) \{\s*const mappings = \{(.*?)\n  \};",
+            self.script,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(mappings_match)
+        targets = re.findall(
+            r"(?:\"[^\"]+\"|[\w-]+): \[\"([^\"]+)\", \"([^\"]+)\"\]",
+            mappings_match.group(1),
+        )
+        self.assertEqual(len(targets), len(set(targets)))
+        self.assertEqual(len(preset_names), len(targets))
+        self.assertEqual(self.jobs.count('class="reset-job-filters"'), 1)
 
     def test_local_page_links_and_assets_exist(self):
         for page in PROJECT_ROOT.glob("*.html"):
