@@ -3472,8 +3472,16 @@ function scheduleServerJobSearch() {
 }
 
 async function loadMoreJobResults() {
-  if (jobCatalogLoading) return;
   const loadMoreButton = document.getElementById("loadMoreJobsButton");
+  if (jobCatalogLoading) {
+    if (loadMoreButton) {
+      loadMoreButton.disabled = true;
+      loadMoreButton.setAttribute("aria-busy", "true");
+      loadMoreButton.textContent = "Finishing the current search…";
+    }
+    return;
+  }
+  const previouslyDisplayed = displayedJobCount;
   const requestedDisplayCount = Math.min(
     displayedJobCount + JOB_PAGE_SIZE,
     jobSearchTotal
@@ -3483,13 +3491,25 @@ async function loadMoreJobResults() {
     displayJobs(filteredJobs, true);
   }
 
-  if (displayedJobCount >= requestedDisplayCount || !jobSearchHasMore) return;
-  if (loadMoreButton) {
-    loadMoreButton.disabled = true;
-    loadMoreButton.setAttribute("aria-busy", "true");
-    loadMoreButton.textContent = "Loading more jobs…";
+  if (displayedJobCount < requestedDisplayCount && jobSearchHasMore) {
+    if (loadMoreButton) {
+      loadMoreButton.disabled = true;
+      loadMoreButton.setAttribute("aria-busy", "true");
+      loadMoreButton.textContent = "Loading more jobs…";
+    }
+    await runJobSearch(allJobs.length, requestedDisplayCount);
   }
-  await runJobSearch(allJobs.length, requestedDisplayCount);
+
+  if (displayedJobCount > previouslyDisplayed) {
+    const firstNewJob = filteredJobs[previouslyDisplayed];
+    const firstNewCard = firstNewJob
+      ? document.getElementById(`job-${firstNewJob.id}`)
+      : null;
+    window.requestAnimationFrame(() => {
+      firstNewCard?.focus({ preventScroll: true });
+      firstNewCard?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 }
 
 function applyNaturalJobSearch() {
