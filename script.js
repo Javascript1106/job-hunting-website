@@ -1554,7 +1554,6 @@ function displayJobs(jobs, append = false) {
     const loadedRemainingCount = Math.max(0, jobs.length - displayedJobCount);
     const unloadedMatchCount = Math.max(0, jobSearchTotal - allJobs.length);
     const maximumRemainingCount = loadedRemainingCount + unloadedMatchCount;
-    const nextBatchCount = Math.min(JOB_PAGE_SIZE, maximumRemainingCount);
     loadMoreButton.classList.remove("hidden");
     loadMoreButton.classList.toggle("results-complete", reachedEnd);
     loadMoreButton.disabled = reachedEnd;
@@ -1562,8 +1561,8 @@ function displayJobs(jobs, append = false) {
     loadMoreButton.textContent = reachedEnd
       ? "No more matching listings"
       : jobSearchHasMore
-        ? `Load up to ${nextBatchCount} more job${nextBatchCount === 1 ? "" : "s"}`
-        : `Load ${nextBatchCount} more job${nextBatchCount === 1 ? "" : "s"} (${loadedRemainingCount} remaining)`;
+        ? `Load More Jobs (up to ${maximumRemainingCount} jobs remaining)`
+        : `Load More Jobs (${loadedRemainingCount} job${loadedRemainingCount === 1 ? "" : "s"} remaining)`;
     if (endMessage) {
       endMessage.classList.add("hidden");
     }
