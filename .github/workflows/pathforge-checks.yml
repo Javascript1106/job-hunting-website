@@ -3,6 +3,10 @@ name: PathForge checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly production-mode regression check; 19:00 UTC is 1 PM MDT.
+    - cron: "0 19 * * 2"
 
 permissions:
   contents: read
@@ -29,6 +33,18 @@ jobs:
         env:
           PATHFORGE_DATABASE_PATH: ${{ runner.temp }}/pathforge-tests.db
         run: python -m pytest -q
+
+      - name: Run production security regression checks
+        env:
+          PATHFORGE_ENV: production
+          PATHFORGE_DATABASE_PATH: ${{ runner.temp }}/pathforge-security-tests.db
+          PATHFORGE_ALLOWED_ORIGINS: https://pathforge.example
+        run: >-
+          python -m pytest -q
+          test_security_hardening.py
+          test_auth_rate_limits.py
+          test_auth_verification.py
+          test_api_auth_integration.py
 
       - name: Validate JavaScript syntax
         run: |

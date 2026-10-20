@@ -66,6 +66,7 @@ async def apply_security_headers(
         "/account", "/profile", "/applications", "/messages",
         "/notifications", "/dashboard-summary", "/analytics",
         "/saved-jobs", "/saved-searches", "/connected-guidance",
+        "/login", "/logout", "/register", "/password-reset",
     )
     if request.url.path.startswith(private_prefixes):
         response.headers["Cache-Control"] = "no-store"

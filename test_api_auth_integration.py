@@ -13,6 +13,7 @@ import main
 
 
 VALID_PASSWORD = "A carefully chosen integration passphrase 42!"
+TRUSTED_ORIGIN_HEADERS = {"Origin": "https://pathforge.example"}
 
 
 class AuthenticationApiIntegrationTests(unittest.TestCase):
@@ -24,7 +25,7 @@ class AuthenticationApiIntegrationTests(unittest.TestCase):
         )
         database.initialize_database(self.database_path)
         main.DB_NAME = self.database_path
-        self.client = TestClient(main.app)
+        self.client = TestClient(main.app, headers=TRUSTED_ORIGIN_HEADERS)
 
     def tearDown(self):
         self.client.close()
@@ -138,8 +139,8 @@ class AuthenticationApiIntegrationTests(unittest.TestCase):
         self.create_account_directly("employer_one", "one@example.com", "employer")
         self.create_account_directly("employer_two", "two@example.com", "employer")
 
-        first_client = TestClient(main.app)
-        second_client = TestClient(main.app)
+        first_client = TestClient(main.app, headers=TRUSTED_ORIGIN_HEADERS)
+        second_client = TestClient(main.app, headers=TRUSTED_ORIGIN_HEADERS)
         try:
             first_login = first_client.post("/login", json={
                 "identifier": "employer_one", "password": VALID_PASSWORD,

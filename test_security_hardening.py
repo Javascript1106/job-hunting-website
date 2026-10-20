@@ -89,6 +89,17 @@ class SecurityHeaderTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(response.headers["cache-control"], "no-store")
 
+    async def test_authentication_responses_are_not_cached(self):
+        async def call_next(_request):
+            return JSONResponse({"token": "sensitive"})
+
+        for path in ("/login", "/register", "/password-reset/request"):
+            with self.subTest(path=path):
+                response = await main.add_security_headers(
+                    build_request(path, method="POST"), call_next
+                )
+                self.assertEqual(response.headers["cache-control"], "no-store")
+
 
 class PublicHealthTests(unittest.TestCase):
     def test_public_email_health_omits_provider_diagnostics(self):
@@ -127,6 +138,7 @@ class FrontendServingTests(unittest.TestCase):
 
 
 class DevelopmentCorsTests(unittest.TestCase):
+    @unittest.skipIf(main.IS_PRODUCTION, "Development-only CORS behavior")
     def test_loopback_frontend_ports_are_allowed_in_development(self):
         with TestClient(main.app) as client:
             response = client.options(
