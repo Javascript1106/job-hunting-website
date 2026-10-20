@@ -3354,7 +3354,11 @@ function updateQuickJobPresetStates() {
     teen: document.getElementById("ageFitFilter")?.value === "age-16-17",
     "first-job": document.getElementById("experienceFilter")?.value === "first-job",
     "part-time": document.getElementById("employmentTypeFilter")?.value === "part-time",
-    "pay-listed": document.getElementById("listingQualityFilter")?.value === "pay"
+    "pay-listed": document.getElementById("listingQualityFilter")?.value === "pay",
+    remote: document.getElementById("remoteFilter")?.value === "remote",
+    recent: document.getElementById("datePostedFilter")?.value === "7",
+    accommodation: document.getElementById("listingQualityFilter")?.value === "accommodation",
+    "direct-apply": document.getElementById("applicationFeatureFilter")?.value === "direct_apply"
   };
   document.querySelectorAll("[data-job-preset]").forEach(button => {
     button.setAttribute(
@@ -3371,7 +3375,10 @@ function resetQuickJobPresets() {
     "ageFitFilter",
     "experienceFilter",
     "employmentTypeFilter",
-    "listingQualityFilter"
+    "listingQualityFilter",
+    "remoteFilter",
+    "datePostedFilter",
+    "applicationFeatureFilter"
   ];
   quickPathControls.forEach(controlId => {
     const control = document.getElementById(controlId);
@@ -3388,7 +3395,11 @@ function applyQuickJobPreset(preset) {
     teen: ["ageFitFilter", "age-16-17"],
     "first-job": ["experienceFilter", "first-job"],
     "part-time": ["employmentTypeFilter", "part-time"],
-    "pay-listed": ["listingQualityFilter", "pay"]
+    "pay-listed": ["listingQualityFilter", "pay"],
+    remote: ["remoteFilter", "remote"],
+    recent: ["datePostedFilter", "7"],
+    accommodation: ["listingQualityFilter", "accommodation"],
+    "direct-apply": ["applicationFeatureFilter", "direct_apply"]
   };
   const mapping = mappings[preset];
   if (!mapping) return;

@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261020-v115"
+ASSET_VERSION = "20261020-v116"
 
 
 class MarkupInspector(HTMLParser):
@@ -193,6 +193,14 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("Listing details", self.jobs)
         self.assertIn("Job types to hide", self.jobs)
         self.assertIn('data-job-preset="first-job"', self.jobs)
+        self.assertIn('data-job-preset="remote"', self.jobs)
+        self.assertIn('data-job-preset="recent"', self.jobs)
+        self.assertIn('data-job-preset="accommodation"', self.jobs)
+        self.assertIn('data-job-preset="direct-apply"', self.jobs)
+        self.assertIn('remote: ["remoteFilter", "remote"]', self.script)
+        self.assertIn('recent: ["datePostedFilter", "7"]', self.script)
+        self.assertIn('accommodation: ["listingQualityFilter", "accommodation"]', self.script)
+        self.assertIn('"direct-apply": ["applicationFeatureFilter", "direct_apply"]', self.script)
         self.assertIn('id="queryModeFilter"', self.jobs)
         self.assertIn('query_mode: document.getElementById("queryModeFilter")', self.script)
         self.assertIn('name="jobExclusion"', self.jobs)
