@@ -110,6 +110,16 @@ class CatalogQualityTests(unittest.TestCase):
         results = discover_jobs(jobs, location_scope="us", experience="first-job")
         self.assertEqual([job["title"] for job in results], ["Crew Member"])
 
+    def test_strict_search_ignores_description_only_matches(self):
+        jobs = [
+            {"id": 1, "title": "Office Assistant", "company": "Example", "location": "Denver, CO", "category": "Administrative", "description": "Supports software engineers."},
+            {"id": 2, "title": "Software Engineer", "company": "Example", "location": "Denver, CO", "category": "Technology", "description": "Builds products."},
+        ]
+        broad = discover_jobs(jobs, query="software engineer", location_scope="us")
+        strict = discover_jobs(jobs, query="software engineer", query_mode="strict", location_scope="us")
+        self.assertEqual({job["id"] for job in broad}, {1, 2})
+        self.assertEqual([job["id"] for job in strict], [2])
+
     def test_broad_recommendations_include_starter_roles_near_the_top(self):
         jobs = [
             {"id": 1, "title": "Staff Engineer", "company": "Tech", "location": "New York, NY", "requirements": "8 years experience"},

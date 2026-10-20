@@ -498,6 +498,7 @@ def saved_search_matches_job(saved_search, job):
     return bool(discover_jobs(
         [dict(job)],
         query=criteria.get("keyword", ""),
+        query_mode=criteria.get("query_mode", "broad"),
         location=criteria.get("location", ""),
         location_scope=criteria.get("location_scope", "us"),
         location_mode=criteria.get("location_mode", "nearby"),
@@ -520,6 +521,7 @@ def validate_saved_search_input(saved_search):
     values = {
         "name": saved_search.name.strip(),
         "keyword": saved_search.keyword.strip(),
+        "query_mode": saved_search.query_mode.strip().lower(),
         "location": saved_search.location.strip(),
         "location_scope": saved_search.location_scope.strip().lower(),
         "category": saved_search.category.strip() or "all",
@@ -552,6 +554,9 @@ def validate_saved_search_input(saved_search):
             status_code=400,
             detail="Search keyword and location must be 120 characters or fewer."
         )
+
+    if values["query_mode"] not in {"broad", "strict"}:
+        raise HTTPException(status_code=400, detail="Invalid search matching mode.")
 
     if values["location_scope"] not in {"us", "all"}:
         raise HTTPException(status_code=400, detail="Invalid location scope.")
@@ -722,16 +727,16 @@ def create_saved_search(saved_search: SavedSearchInput, request: Request):
     cursor.execute(
         """
         INSERT INTO saved_searches (
-            user_id, name, keyword, location, location_scope,
+            user_id, name, keyword, query_mode, location, location_scope,
             category, employment_type, remote_filter, experience,
             location_mode, remote_eligibility, age_fit, date_posted,
             listing_quality, application_feature, minimum_pay, exclusions, exclude_terms,
             frequency, is_enabled, baseline_job_id, next_check_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            user["id"], values["name"], values["keyword"],
+            user["id"], values["name"], values["keyword"], values["query_mode"],
             values["location"], values["location_scope"],
             values["category"], values["employment_type"],
             values["remote_filter"], values["experience"],
@@ -773,7 +778,7 @@ def update_saved_search(
         raise HTTPException(status_code=404, detail="Saved search not found.")
 
     criteria_fields = (
-        "keyword", "location", "location_scope", "category",
+        "keyword", "query_mode", "location", "location_scope", "category",
         "employment_type", "remote_filter", "experience", "location_mode",
         "remote_eligibility", "age_fit", "date_posted", "listing_quality",
         "application_feature",
@@ -796,7 +801,7 @@ def update_saved_search(
     cursor.execute(
         """
         UPDATE saved_searches
-        SET name = ?, keyword = ?, location = ?, location_scope = ?,
+        SET name = ?, keyword = ?, query_mode = ?, location = ?, location_scope = ?,
             category = ?, employment_type = ?, remote_filter = ?,
             experience = ?, location_mode = ?, remote_eligibility = ?,
             age_fit = ?, date_posted = ?, listing_quality = ?,
@@ -807,7 +812,7 @@ def update_saved_search(
         WHERE id = ? AND user_id = ?
         """,
         (
-            values["name"], values["keyword"], values["location"],
+            values["name"], values["keyword"], values["query_mode"], values["location"],
             values["location_scope"], values["category"],
             values["employment_type"], values["remote_filter"],
             values["experience"], values["location_mode"],

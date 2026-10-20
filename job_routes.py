@@ -132,6 +132,7 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
     @router.get("/jobs/search")
     def search_jobs(
         query: str = Query("", max_length=200),
+        query_mode: str = Query("broad", pattern="^(broad|strict)$"),
         location: str = Query("", max_length=200),
         location_scope: str = Query("us", pattern="^(us|all)$"),
         location_mode: str = Query("nearby", pattern="^(nearby|exact)$"),
@@ -166,6 +167,7 @@ def create_job_router(database_path: Callable[[], str], enrich_job: Callable):
             results = discover_jobs(
                 jobs,
                 query=query,
+                query_mode=query_mode,
                 location=location,
                 location_scope=location_scope,
                 location_mode=location_mode,

@@ -72,6 +72,7 @@ class JobStatusUpdate(BaseModel):
 class SavedSearchInput(BaseModel):
     name: str
     keyword: str = ""
+    query_mode: str = "broad"
     location: str = ""
     location_scope: str = "us"
     category: str = "all"

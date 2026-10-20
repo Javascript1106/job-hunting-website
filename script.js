@@ -1327,6 +1327,7 @@ function displayJobs(jobs, append = false) {
         <div class="job-card-title-group">
           <h3>${escapeEmployerHtml(job.title)}</h3>
           <p class="job-card-company"><a href="company.html?name=${encodeURIComponent(job.company)}">${escapeEmployerHtml(job.company)}</a></p>
+          ${Number(job.employer_result_count) > 1 ? `<a class="more-employer-results" href="jobs.html?q=${encodeURIComponent(job.company)}">See ${Number(job.employer_result_count - 1).toLocaleString()} more from this employer</a>` : ""}
         </div>
 
         <div class="job-card-heading-controls">
@@ -1400,7 +1401,7 @@ function displayJobs(jobs, append = false) {
         </div>
         <div>
           <dt>${getJobPayLabel(job)}</dt>
-          <dd>${escapeEmployerHtml(formatJobSalary(job))}</dd>
+          <dd>${escapeEmployerHtml(formatJobSalary(job))}${job.pay_evidence ? `<small class="job-metadata-evidence">${escapeEmployerHtml(job.pay_evidence)}</small>` : ""}</dd>
         </div>
       </dl>
 
@@ -2981,10 +2982,12 @@ function getJobSearchText(job) {
   };
 }
 
-function jobMatchesSearchConcepts(job, concepts) {
+function jobMatchesSearchConcepts(job, concepts, queryMode = "broad") {
   if (!concepts.length) return true;
   const text = getJobSearchText(job);
-  const allText = `${text.title} ${text.company} ${text.category} ${text.details}`;
+  const allText = queryMode === "strict"
+    ? `${text.title} ${text.company} ${text.category}`
+    : `${text.title} ${text.company} ${text.category} ${text.details}`;
   return concepts.every(alternatives => alternatives.some(term => allText.includes(term)));
 }
 
@@ -3169,6 +3172,7 @@ function filterJobs(refreshFromServer = true) {
   const listingQualityFilter = document.getElementById("listingQualityFilter");
   const applicationFeatureFilter = document.getElementById("applicationFeatureFilter");
   const locationMatchFilter = document.getElementById("locationMatchFilter");
+  const queryModeFilter = document.getElementById("queryModeFilter");
   const remoteEligibilityFilter = document.getElementById("remoteEligibilityFilter");
   const minimumPayFilter = document.getElementById("minimumPayFilter");
   const excludeTermsFilter = document.getElementById("excludeTermsFilter");
@@ -3191,6 +3195,7 @@ function filterJobs(refreshFromServer = true) {
   const selectedListingQuality = listingQualityFilter?.value || "all";
   const selectedApplicationFeature = applicationFeatureFilter?.value || "all";
   const selectedLocationMatch = locationMatchFilter?.value || "nearby";
+  const selectedQueryMode = queryModeFilter?.value || "broad";
   const selectedRemoteEligibility = remoteEligibilityFilter?.value || "all";
   const minimumPay = Math.max(0, Number(minimumPayFilter?.value) || 0);
   const excludedTerms = String(excludeTermsFilter?.value || "").toLowerCase().split(",").map(term => term.trim()).filter(Boolean);
@@ -3212,7 +3217,7 @@ function filterJobs(refreshFromServer = true) {
 
   filteredJobs = allJobs.filter(job => {
     if (hiddenJobIds.has(Number(job.id))) return false;
-    const matchesJob = jobMatchesSearchConcepts(job, getJobSearchConcepts(jobSearch));
+    const matchesJob = jobMatchesSearchConcepts(job, getJobSearchConcepts(jobSearch), selectedQueryMode);
 
     const normalizedJobLocation = normalizeUnitedStatesLocation(job.location);
     const matchesLocation = sharedJobLocation ? true : selectedLocationMatch === "exact" && locationSearch
@@ -3319,6 +3324,7 @@ function filterJobs(refreshFromServer = true) {
     { controlId: "listingQualityFilter", defaultValue: "all", label: listingQualityFilter?.selectedOptions[0]?.textContent || "Details", active: selectedListingQuality !== "all" },
     { controlId: "applicationFeatureFilter", defaultValue: "all", label: applicationFeatureFilter?.selectedOptions[0]?.textContent || "Application", active: selectedApplicationFeature !== "all" },
     { controlId: "locationMatchFilter", defaultValue: "nearby", label: "Exact location only", active: selectedLocationMatch === "exact" },
+    { controlId: "queryModeFilter", defaultValue: "broad", label: "Strict search matching", active: selectedQueryMode === "strict" },
     { controlId: "remoteEligibilityFilter", defaultValue: "all", label: remoteEligibilityFilter?.selectedOptions[0]?.textContent || "Remote eligibility", active: selectedRemoteEligibility !== "all" },
     { controlId: "minimumPayFilter", defaultValue: "", label: `Minimum pay: $${minimumPay.toLocaleString()}`, active: minimumPay > 0 },
     { controlId: "excludeTermsFilter", defaultValue: "", label: `Exclude: ${excludedTerms.join(", ")}`, active: excludedTerms.length > 0 },
@@ -3391,6 +3397,7 @@ function applyQuickJobPreset(preset) {
 function getServerJobSearchParameters(offset = 0) {
   const parameters = new URLSearchParams({
     query: document.getElementById("jobSearchInput")?.value.trim() || "",
+    query_mode: document.getElementById("queryModeFilter")?.value || "broad",
     location: sharedJobLocation ? "" : (document.getElementById("locationSearchInput")?.value.trim() || ""),
     location_scope: document.getElementById("locationScopeFilter")?.value || "us",
     location_mode: document.getElementById("locationMatchFilter")?.value || "nearby",
@@ -3656,6 +3663,7 @@ function resetJobFilters() {
   const selectFilters = [
     "locationScopeFilter",
     "locationMatchFilter",
+    "queryModeFilter",
     "categoryFilter",
     "employmentTypeFilter",
     "remoteFilter",
@@ -3680,6 +3688,8 @@ function resetJobFilters() {
         filter.value = "us";
       } else if (filterId === "locationMatchFilter") {
         filter.value = "nearby";
+      } else if (filterId === "queryModeFilter") {
+        filter.value = "broad";
       } else if (filterId === "jobSortSelect") {
         filter.value = "recommended";
       } else {
@@ -3708,6 +3718,7 @@ function resetJobFilters() {
 function getCurrentSavedSearchCriteria() {
   return {
     keyword: document.getElementById("jobSearchInput")?.value.trim() || "",
+    query_mode: document.getElementById("queryModeFilter")?.value || "broad",
     location:
       document.getElementById("locationSearchInput")?.value.trim() || "",
     location_scope:
@@ -3742,6 +3753,7 @@ function describeSavedSearch(savedSearch) {
   const parts = [];
 
   if (savedSearch.keyword) parts.push(`Keyword: ${savedSearch.keyword}`);
+  if (savedSearch.query_mode === "strict") parts.push("Strict matches");
   if (savedSearch.location) parts.push(`Location: ${savedSearch.location}`);
   if (savedSearch.category !== "all") parts.push(savedSearch.category);
   if (savedSearch.employment_type !== "all") {
@@ -4147,6 +4159,7 @@ window.onload = function() {
     document.getElementById("useCurrentLocationButton");
   const additionalFilters = [
     "locationScopeFilter",
+    "queryModeFilter",
     "employmentTypeFilter",
     "remoteFilter",
     "experienceFilter",

@@ -103,11 +103,12 @@ def _search_fields(job: dict[str, Any]) -> tuple[str, str, str, str]:
     )
 
 
-def _matches_query(job: dict[str, Any], query: str) -> bool:
+def _matches_query(job: dict[str, Any], query: str, query_mode: str = "broad") -> bool:
     concepts = _search_concepts(query)
     if not concepts:
         return True
-    combined = " ".join(_search_fields(job))
+    fields = _search_fields(job)
+    combined = " ".join(fields[:3] if query_mode == "strict" else fields)
     return all(any(term in combined for term in alternatives) for alternatives in concepts)
 
 
@@ -551,7 +552,7 @@ def _balance_career_stages(jobs: list[dict[str, Any]], window: int = 30) -> list
     return balanced + [job for job in jobs if id(job) not in selected]
 
 
-def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: str = "", location_scope: str = "us", location_mode: str = "nearby", category: str = "all", employment_type: str = "all", remote: str = "all", remote_eligibility: str = "all", experience: str = "all", age_fit: str = "all", date_posted: str = "all", listing_quality: str = "all", application_feature: str = "all", minimum_pay: float = 0, exclusions: str = "", exclude_terms: str = "", sort: str = "recommended") -> list[dict[str, Any]]:
+def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", query_mode: str = "broad", location: str = "", location_scope: str = "us", location_mode: str = "nearby", category: str = "all", employment_type: str = "all", remote: str = "all", remote_eligibility: str = "all", experience: str = "all", age_fit: str = "all", date_posted: str = "all", listing_quality: str = "all", application_feature: str = "all", minimum_pay: float = 0, exclusions: str = "", exclude_terms: str = "", sort: str = "recommended") -> list[dict[str, Any]]:
     """Apply the public job-search rules and return grouped, ranked results."""
     normalized_location = _text(location)
     cutoff_days = int(date_posted) if date_posted.isdigit() else None
@@ -560,7 +561,7 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
     now = datetime.now(timezone.utc)
     matches = []
     for job in jobs:
-        if not _matches_query(job, query):
+        if not _matches_query(job, query, query_mode):
             continue
         if normalized_location:
             job_location = _text(job.get("location"))
@@ -612,6 +613,12 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", location: 
         matches.append(job)
 
     grouped = _group_duplicates(matches)
+    employer_totals: dict[str, int] = {}
+    for job in grouped:
+        employer = _text(job.get("company"))
+        employer_totals[employer] = employer_totals.get(employer, 0) + 1
+    for job in grouped:
+        job["employer_result_count"] = employer_totals.get(_text(job.get("company")), 1)
     for job in grouped:
         score, reasons = _relevance(job, query, normalized_location)
         job["_relevanceScore"] = score
@@ -637,6 +644,7 @@ def compact_job(job: dict[str, Any]) -> dict[str, Any]:
     """Trim long card text; full text remains available from /jobs/{id}."""
     compact = dict(job)
     compact["work_setting"] = _work_setting(job) or "not-specified"
+    compact["pay_evidence"] = "Listed by employer" if _has_pay(job) else None
     compact["accommodation_info"] = has_accommodation_information(job)
     compact.update(application_features(job))
     for field in ("description", "requirements", "preferred_qualifications"):

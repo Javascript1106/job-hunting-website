@@ -193,6 +193,8 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("Listing details", self.jobs)
         self.assertIn("Job types to hide", self.jobs)
         self.assertIn('data-job-preset="first-job"', self.jobs)
+        self.assertIn('id="queryModeFilter"', self.jobs)
+        self.assertIn('query_mode: document.getElementById("queryModeFilter")', self.script)
         self.assertIn('name="jobExclusion"', self.jobs)
         self.assertIn("buildJobEvidenceDetails", self.script)
         self.assertIn("getTeenEligibilityBadge", self.script)

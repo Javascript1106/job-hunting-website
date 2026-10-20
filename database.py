@@ -552,6 +552,8 @@ def create_jobs_table(db_name=DB_NAME):
             user_id INTEGER NOT NULL,
             name TEXT NOT NULL,
             keyword TEXT NOT NULL DEFAULT '',
+            query_mode TEXT NOT NULL DEFAULT 'broad'
+                CHECK (query_mode IN ('broad', 'strict')),
             location TEXT NOT NULL DEFAULT '',
             location_scope TEXT NOT NULL DEFAULT 'us'
                 CHECK (location_scope IN ('us', 'all')),
@@ -1452,6 +1454,23 @@ def add_catalog_sync_comparison(db_name=DB_NAME):
         conn.close()
 
 
+def add_saved_search_query_mode(db_name=DB_NAME):
+    """Persist broad or strict keyword matching for saved searches."""
+    conn = get_connection(db_name)
+    try:
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(saved_searches)")
+        }
+        if "query_mode" not in columns:
+            conn.execute(
+                "ALTER TABLE saved_searches "
+                "ADD COLUMN query_mode TEXT NOT NULL DEFAULT 'broad'"
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Each migration has an immutable version and descriptive name. New schema
 # changes belong in a new function and tuple entry instead of being silently
 # added to application startup forever.
@@ -1465,6 +1484,7 @@ SCHEMA_MIGRATIONS = (
     (7, "catalog_sync_comparison", add_catalog_sync_comparison),
     (8, "close_bundled_sample_jobs", close_bundled_sample_jobs),
     (9, "close_jobs_from_removed_sources", close_jobs_from_removed_sources),
+    (10, "saved_search_query_mode", add_saved_search_query_mode),
 )
 
 

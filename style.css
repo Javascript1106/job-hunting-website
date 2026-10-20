@@ -2004,6 +2004,22 @@ textarea.required-field-missing {
   border-bottom: 0;
 }
 
+.more-employer-results {
+  display: inline-block;
+  margin-top: 0.25rem;
+  color: #3159a7;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.job-metadata-evidence {
+  display: block;
+  margin-top: 0.2rem;
+  color: #526277;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .job-card-metadata dt {
   margin-bottom: 0.25rem;
   color: #64748b;
