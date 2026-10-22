@@ -20,7 +20,7 @@ $action = New-ScheduledTaskAction `
     -Execute $PythonExecutable `
     -Argument $quotedScript `
     -WorkingDirectory $projectDirectory
-$trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Tuesday -At 1:00PM
+$trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Tuesday, Thursday -At 2:00PM
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
@@ -36,8 +36,15 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Settings $settings `
     -Principal $principal `
-    -Description "Back up and refresh the PathForge job catalog every Tuesday at 1 PM." `
+    -Description "Back up and refresh the PathForge job catalog every Tuesday and Thursday at 2 PM." `
     -Force | Out-Null
 
-Get-ScheduledTask -TaskName $TaskName | Select-Object TaskName, State
-Get-ScheduledTaskInfo -TaskName $TaskName | Select-Object LastRunTime, LastTaskResult, NextRunTime
+$registeredTask = Get-ScheduledTask -TaskName $TaskName
+$taskInfo = Get-ScheduledTaskInfo -TaskName $TaskName
+[pscustomobject]@{
+    TaskName = $registeredTask.TaskName
+    State = $registeredTask.State
+    LastRunTime = $taskInfo.LastRunTime
+    LastTaskResult = $taskInfo.LastTaskResult
+    NextRunTime = $taskInfo.NextRunTime
+} | Format-List
