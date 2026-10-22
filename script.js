@@ -2,6 +2,7 @@
 // dashboards, learning tools, employer workflows, accessibility, and feedback.
 let allJobs = [];
 const JOB_SEARCH_BATCH_SIZE = 100;
+const PATHFORGE_CATALOG_SCOPE = "us";
 let jobCatalogLoading = false;
 let jobSearchTotal = 0;
 let jobSearchHasMore = false;
@@ -2841,9 +2842,6 @@ async function useCurrentJobLocation() {
     locationInput.value =
       `${nearestPlace.placeName}, ${nearestPlace.stateCode}`;
 
-    const locationScope = document.getElementById("locationScopeFilter");
-    if (locationScope) locationScope.value = "us";
-
     filterJobs();
     updateJobLocationStatus("");
   } catch (error) {
@@ -3196,8 +3194,6 @@ function filterJobs(refreshFromServer = true) {
   clearDirectJobFocus();
   const jobSearchInput = document.getElementById("jobSearchInput");
   const locationSearchInput = document.getElementById("locationSearchInput");
-  const locationScopeFilter =
-    document.getElementById("locationScopeFilter");
   const categoryFilter = document.getElementById("categoryFilter");
   const jobSearchForm = document.getElementById("jobSearchForm");
   const employmentTypeFilter =
@@ -3221,7 +3217,7 @@ function filterJobs(refreshFromServer = true) {
   const locationSearch = normalizeUnitedStatesLocation(
     locationSearchInput.value
   );
-  const selectedLocationScope = locationScopeFilter?.value || "us";
+  const selectedLocationScope = PATHFORGE_CATALOG_SCOPE;
   const selectedCategory = categoryFilter.value;
   const selectedEmploymentType =
     employmentTypeFilter?.value || "all";
@@ -3474,7 +3470,7 @@ function getServerJobSearchParameters(offset = 0) {
     query: document.getElementById("jobSearchInput")?.value.trim() || "",
     query_mode: document.getElementById("queryModeFilter")?.value || "broad",
     location: sharedJobLocation ? "" : (document.getElementById("locationSearchInput")?.value.trim() || ""),
-    location_scope: document.getElementById("locationScopeFilter")?.value || "us",
+    location_scope: PATHFORGE_CATALOG_SCOPE,
     location_mode: document.getElementById("locationMatchFilter")?.value || "nearby",
     category: document.getElementById("categoryFilter")?.value || "all",
     employment_type: document.getElementById("employmentTypeFilter")?.value || "all",
@@ -3674,7 +3670,7 @@ function applyJobSearchHistoryParameters() {
   const parameters = new URLSearchParams(window.location.search);
   const mappings = {
     q: "jobSearchInput", location: "locationSearchInput",
-    scope: "locationScopeFilter", category: "categoryFilter",
+    category: "categoryFilter",
     type: "employmentTypeFilter", remote: "remoteFilter",
     experience: "experienceFilter", age: "ageFitFilter"
   };
@@ -3696,7 +3692,7 @@ function applyJobSearchHistoryParameters() {
     }
   });
   const advancedFilters = document.querySelector(".advanced-job-filters");
-  const advancedValues = ["scope", "category", "type", "remote", "experience"]
+  const advancedValues = ["category", "type", "remote", "experience"]
     .map(parameter => parameters.get(parameter))
     .filter(Boolean);
   if (
@@ -3756,7 +3752,6 @@ function resetJobFilters() {
     "excludeTermsFilter"
   ];
   const selectFilters = [
-    "locationScopeFilter",
     "locationMatchFilter",
     "queryModeFilter",
     "categoryFilter",
@@ -3779,9 +3774,7 @@ function resetJobFilters() {
   selectFilters.forEach(filterId => {
     const filter = document.getElementById(filterId);
     if (filter) {
-      if (filterId === "locationScopeFilter") {
-        filter.value = "us";
-      } else if (filterId === "locationMatchFilter") {
+      if (filterId === "locationMatchFilter") {
         filter.value = "nearby";
       } else if (filterId === "queryModeFilter") {
         filter.value = "broad";
@@ -3816,8 +3809,7 @@ function getCurrentSavedSearchCriteria() {
     query_mode: document.getElementById("queryModeFilter")?.value || "broad",
     location:
       document.getElementById("locationSearchInput")?.value.trim() || "",
-    location_scope:
-      document.getElementById("locationScopeFilter")?.value || "us",
+    location_scope: PATHFORGE_CATALOG_SCOPE,
     category: document.getElementById("categoryFilter")?.value || "all",
     employment_type:
       document.getElementById("employmentTypeFilter")?.value || "all",
@@ -4253,7 +4245,6 @@ window.onload = function() {
   const useCurrentLocationButton =
     document.getElementById("useCurrentLocationButton");
   const additionalFilters = [
-    "locationScopeFilter",
     "queryModeFilter",
     "employmentTypeFilter",
     "remoteFilter",

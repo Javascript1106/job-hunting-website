@@ -256,6 +256,9 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('content: "View details +"', self.styles)
         self.assertIn('content: "Hide details −"', self.styles)
         self.assertIn('id="advancedFilterCount"', self.jobs)
+        self.assertNotIn('id="locationScopeFilter"', self.jobs)
+        self.assertNotIn("Catalog area", self.jobs)
+        self.assertIn('const PATHFORGE_CATALOG_SCOPE = "us"', self.script)
         self.assertIn('class="job-loading-state"', self.jobs)
         self.assertIn("buildContentLoadingState", self.script)
         self.assertIn("const JOB_SEARCH_BATCH_SIZE = 100", self.script)
@@ -305,7 +308,7 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("applyQuickJobPreset", self.script)
         self.assertNotIn("function isCanadaJobLocation", self.script)
         self.assertIn("isUnitedStatesJobLocation(job.location)", self.script)
-        self.assertIn("United States only", self.jobs)
+        self.assertNotIn("United States only", self.jobs)
         self.assertNotIn("Country: Any", self.jobs)
 
     def test_equal_salary_bounds_render_as_one_amount(self):
