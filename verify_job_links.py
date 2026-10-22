@@ -2,12 +2,15 @@
 
 import argparse
 import html
+import ipaddress
 import json
 import re
+import socket
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.parse import urljoin, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from backup_database import backup_database
 from database import DB_NAME, get_connection, initialize_database
@@ -23,6 +26,42 @@ CLOSED_MARKERS = (
 )
 
 
+def validate_public_url(url):
+    """Reject credentials, loopback names, and non-public network targets."""
+    parsed = urlsplit(str(url or "").strip())
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ValueError("Only public HTTP or HTTPS listing URLs are allowed.")
+    if parsed.username or parsed.password:
+        raise ValueError("Listing URLs cannot contain embedded credentials.")
+    hostname = parsed.hostname.rstrip(".").lower()
+    if hostname in {"localhost", "localhost.localdomain"} or hostname.endswith(".localhost"):
+        raise ValueError("Local listing URLs are not allowed.")
+    try:
+        addresses = {
+            row[4][0] for row in socket.getaddrinfo(
+                hostname, parsed.port or (443 if parsed.scheme == "https" else 80),
+                type=socket.SOCK_STREAM,
+            )
+        }
+    except socket.gaierror as error:
+        raise ValueError("The listing hostname could not be resolved.") from error
+    if not addresses:
+        raise ValueError("The listing hostname did not resolve to an address.")
+    for address in addresses:
+        candidate = ipaddress.ip_address(address)
+        if not candidate.is_global:
+            raise ValueError("Private or reserved listing network addresses are not allowed.")
+    return parsed.geturl()
+
+
+class PublicOnlyRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        safe_url = validate_public_url(urljoin(request.full_url, new_url))
+        return super().redirect_request(
+            request, file_pointer, code, message, headers, safe_url
+        )
+
+
 def plain_page_text(payload):
     text = payload.decode("utf-8", errors="ignore")
     text = re.sub(r"<script\b[^>]*>.*?</script>", " ", text, flags=re.I | re.S)
@@ -33,6 +72,10 @@ def plain_page_text(payload):
 
 def verify_listing(job, timeout=15):
     url = job["application_url"] or job["source_url"]
+    try:
+        url = validate_public_url(url)
+    except ValueError as error:
+        return {"id": job["id"], "result": "blocked", "error": str(error)}
     request = Request(
         url,
         headers={
@@ -44,7 +87,9 @@ def verify_listing(job, timeout=15):
         },
     )
     try:
-        with urlopen(request, timeout=timeout) as response:
+        with build_opener(PublicOnlyRedirectHandler()).open(
+            request, timeout=timeout
+        ) as response:
             status = response.status
             page_text = plain_page_text(response.read(2_000_000))
     except HTTPError as error:

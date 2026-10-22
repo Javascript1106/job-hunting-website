@@ -50,6 +50,9 @@ administrator moderation page through the deployed HTTPS site.
   a verified backup first, prevents overlapping syncs, expires missing jobs only
   after successful source checks, writes a timestamped JSON report, and exits
   non-zero when a source failure or large source drop needs attention.
+- Run `python site_maintenance.py` daily for a bounded, read-only link check,
+  verified-backup freshness, database integrity, expired-session cleanup, and a
+  private showcase-readiness report. Review `automation-logs/site-readiness-latest.md`.
 - Monitor application errors, response latency, disk space, database size, and
   the public `/health/email` availability signal.
 - Keep API documentation disabled in production by retaining

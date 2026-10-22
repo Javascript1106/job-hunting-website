@@ -239,6 +239,22 @@ employer and category balance, and missing listing details. A closed-link result
 marks the run as needing attention; scheduled maintenance does not close that
 listing automatically.
 
+Run `python site_maintenance.py` for the lightweight daily check. It verifies or
+creates a recent database backup, checks SQLite integrity and foreign keys,
+removes expired sessions and auth-attempt records older than 30 days, summarizes
+recent failed-login activity without storing raw IP addresses, and safely checks
+up to 25 stale public job links without changing job status. Its private local
+readiness reports are `automation-logs/site-readiness-latest.json` and
+`automation-logs/site-readiness-latest.md`.
+
+To register this check in Windows Task Scheduler for 9:15 AM daily (no open
+PowerShell window is required), run:
+
+```powershell
+$pythonExecutable = (Resolve-Path .\.venv\Scripts\python.exe).Path
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup_local_site_maintenance_task.ps1 -PythonExecutable $pythonExecutable
+```
+
 Stale links from manually imported employer pages can be checked separately.
 The default command is read-only; add `--apply` to create a verified backup,
 close only definitive dead pages, and refresh jobs whose title is confirmed:

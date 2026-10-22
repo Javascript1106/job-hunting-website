@@ -228,3 +228,4 @@ backups/
 automation-logs/
 .catalog-maintenance.lock
 .user-automations.lock
+.site-maintenance.lock
