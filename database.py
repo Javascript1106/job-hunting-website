@@ -1471,6 +1471,70 @@ def add_saved_search_query_mode(db_name=DB_NAME):
         conn.close()
 
 
+def add_automation_controls_and_review_queue(db_name=DB_NAME):
+    """Add opt-in automation controls and a non-destructive review queue."""
+    conn = get_connection(db_name)
+    try:
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS automation_preferences (
+                user_id INTEGER PRIMARY KEY,
+                digest_frequency TEXT NOT NULL DEFAULT 'daily'
+                    CHECK (digest_frequency IN ('individual', 'daily', 'weekly')),
+                delivery_channel TEXT NOT NULL DEFAULT 'in_app'
+                    CHECK (delivery_channel IN ('in_app', 'email_and_in_app')),
+                employer_reminders INTEGER NOT NULL DEFAULT 1
+                    CHECK (employer_reminders IN (0, 1)),
+                archive_suggestion_days INTEGER NOT NULL DEFAULT 90
+                    CHECK (archive_suggestion_days BETWEEN 0 AND 730),
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS application_presets (
+                user_id INTEGER PRIMARY KEY,
+                preferred_resume_label TEXT,
+                work_authorized INTEGER CHECK (work_authorized IN (0, 1) OR work_authorized IS NULL),
+                needs_sponsorship INTEGER CHECK (needs_sponsorship IN (0, 1) OR needs_sponsorship IS NULL),
+                willing_to_relocate INTEGER CHECK (willing_to_relocate IN (0, 1) OR willing_to_relocate IS NULL),
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS automation_review_flags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id INTEGER,
+                flag_type TEXT NOT NULL CHECK (
+                    flag_type IN ('ghost_listing', 'suspicious_listing', 'broken_link')
+                ),
+                severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high')),
+                reason TEXT NOT NULL,
+                event_key TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'open'
+                    CHECK (status IN ('open', 'resolved', 'dismissed')),
+                first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                resolved_at TEXT,
+                FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_automation_review_flags_status
+            ON automation_review_flags(status, severity, last_seen_at DESC);
+
+            CREATE TABLE IF NOT EXISTS automation_deliveries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                delivery_key TEXT NOT NULL UNIQUE,
+                channel TEXT NOT NULL CHECK (channel IN ('email')),
+                status TEXT NOT NULL CHECK (status IN ('sent', 'failed')),
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Each migration has an immutable version and descriptive name. New schema
 # changes belong in a new function and tuple entry instead of being silently
 # added to application startup forever.
@@ -1485,6 +1549,7 @@ SCHEMA_MIGRATIONS = (
     (8, "close_bundled_sample_jobs", close_bundled_sample_jobs),
     (9, "close_jobs_from_removed_sources", close_jobs_from_removed_sources),
     (10, "saved_search_query_mode", add_saved_search_query_mode),
+    (11, "automation_controls_and_review_queue", add_automation_controls_and_review_queue),
 )
 
 

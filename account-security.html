@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261020-v122">
+  <link rel="stylesheet" href="style.css?v=20261022-v123">
 </head>
 <body>
 <!-- Shared navigation is populated according to the current session and account role. -->
@@ -49,6 +49,35 @@
         <p id="privacySettingsStatus" class="form-message" role="status" aria-live="polite"></p>
       </form>
     </section>
+
+    <details class="account-security-card account-security-wide settings-details" open>
+      <summary><span>Helpful automations</span><small>Choose reminders and digest timing</small></summary>
+      <form id="automationPreferencesForm" class="privacy-settings-form">
+        <label for="digestFrequency">Job-match notifications</label>
+        <select id="digestFrequency"><option value="individual">As each match arrives</option><option value="daily">Daily summary</option><option value="weekly">Weekly summary</option></select>
+        <label for="deliveryChannel">Delivery</label>
+        <select id="deliveryChannel"><option value="in_app">In PathForge</option><option value="email_and_in_app">Email and PathForge</option></select>
+        <label><input id="employerReminders" type="checkbox"> Remind me about hiring responses (employer accounts)</label>
+        <label for="archiveSuggestionDays">Suggest reviewing older saved jobs after this many days</label>
+        <input id="archiveSuggestionDays" type="number" min="0" max="730" value="90" aria-describedby="archiveSuggestionHelp">
+        <small id="archiveSuggestionHelp">Use 0 to turn these suggestions off. PathForge never removes saved jobs automatically.</small>
+        <button type="submit">Save automation choices</button>
+        <p id="automationPreferencesStatus" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </details>
+
+    <details id="applicationPresetCard" class="account-security-card account-security-wide settings-details">
+      <summary><span>Reusable application information</span><small>Save common answers for PathForge applications</small></summary>
+      <form id="applicationPresetsForm" class="privacy-settings-form">
+        <label for="preferredResumeLabel">Preferred resume label</label><input id="preferredResumeLabel" maxlength="120" placeholder="Example: Retail and customer service resume">
+        <label for="workAuthorizedPreset">Authorized to work in the U.S.</label><select id="workAuthorizedPreset"><option value="">Ask me each time</option><option value="true">Yes</option><option value="false">No</option></select>
+        <label for="sponsorshipPreset">Need employer sponsorship</label><select id="sponsorshipPreset"><option value="">Ask me each time</option><option value="true">Yes</option><option value="false">No</option></select>
+        <label for="relocationPreset">Willing to relocate</label><select id="relocationPreset"><option value="">Ask me each time</option><option value="true">Yes</option><option value="false">No</option></select>
+        <small>These answers stay in your account and are only inserted into matching questions. You review every answer before submitting.</small>
+        <button type="submit">Save reusable information</button>
+        <p id="applicationPresetsStatus" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </details>
 
     <details class="account-security-card settings-details">
       <summary><span id="emailVerificationHeading">Email and verification</span><small>Confirm your email or resend a code</small></summary>
@@ -106,7 +135,7 @@
     </details>
   </div>
 </main>
-<script src="pathforge-core.js?v=20261020-v122"></script>
-<script src="script.js?v=20261020-v122"></script>
+<script src="pathforge-core.js?v=20261022-v123"></script>
+<script src="script.js?v=20261022-v123"></script>
 </body>
 </html>

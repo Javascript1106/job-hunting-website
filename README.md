@@ -245,7 +245,18 @@ removes expired sessions and auth-attempt records older than 30 days, summarizes
 recent failed-login activity without storing raw IP addresses, and safely checks
 up to 25 stale public job links without changing job status. Its private local
 readiness reports are `automation-logs/site-readiness-latest.json` and
-`automation-logs/site-readiness-latest.md`.
+`automation-logs/site-readiness-latest.md`. It also performs a temporary restore
+verification and showcase smoke test. Retention keeps all backups for 30 days,
+at least the newest 12, one monthly backup for six months, and reports for 90
+days.
+
+`python run_user_automations.py` now also creates employer-response summaries,
+older-saved-job suggestions, administrator operations alerts, and a human review
+queue for possible ghost listings, suspicious wording, and broken links. These
+checks never remove, close, or hide listings automatically. Account holders can
+choose notification frequency and save reusable application answers in Settings.
+Email summaries are optional and require a verified email plus the configured
+email provider; in-app notifications continue to work without it.
 
 To register this check in Windows Task Scheduler for 9:15 AM daily (no open
 PowerShell window is required), run:

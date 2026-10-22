@@ -8,7 +8,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import database
-from site_maintenance import ensure_fresh_backup, run_site_maintenance
+from site_maintenance import (
+    ensure_fresh_backup, prune_runtime_files, run_site_maintenance,
+    verify_restore_candidate,
+)
 
 
 class SiteMaintenanceTests(unittest.TestCase):
@@ -56,6 +59,7 @@ class SiteMaintenanceTests(unittest.TestCase):
             lock_path=self.root / "maintenance.lock",
             backup_func=create_backup,
             link_check_func=lambda: {"checked": 0, "closed": 0, "results": []},
+            smoke_test_func=lambda: {"status": "success", "checks": [], "slowest_ms": 0},
         )
         self.assertEqual(report["status"], "success")
         self.assertEqual(report["database"]["old_auth_attempts_removed"], 1)
@@ -97,6 +101,24 @@ class SiteMaintenanceTests(unittest.TestCase):
             backup_func=lambda _path: self.fail("fresh valid backup should be reused"),
         )
         self.assertFalse(result["created"])
+
+    def test_restore_candidate_is_verified_without_touching_live_database(self):
+        backup = self.root / "backup.db"
+        source = sqlite3.connect(self.database_path)
+        target = sqlite3.connect(backup)
+        source.backup(target); target.close(); source.close()
+        result = verify_restore_candidate(backup)
+        self.assertTrue(result["passed"])
+
+    def test_retention_keeps_minimum_backup_count(self):
+        backups = self.root / "backups"; backups.mkdir()
+        for index in range(14):
+            path = backups / f"pathforge-{index:02}.db"; path.write_bytes(b"test")
+            old = (datetime.now(timezone.utc) - timedelta(days=60 + index)).timestamp()
+            os.utime(path, (old, old))
+        result = prune_runtime_files(self.database_path, self.root / "logs")
+        self.assertGreaterEqual(result["backups_retained"], 12)
+        self.assertGreater(result["backups_removed"], 0)
 
 
 if __name__ == "__main__":

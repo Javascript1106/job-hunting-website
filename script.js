@@ -2107,6 +2107,29 @@ const ApplicationService = {
     if (firstAnswer) {
       firstAnswer.focus();
     }
+    this.applyApplicationPresets(questions);
+  },
+
+  async applyApplicationPresets(questions) {
+    try {
+      const response = await fetchWithTimeout(apiUrl("/account/application-presets"), { credentials: "include" });
+      if (!response.ok) return;
+      const presets = await response.json();
+      questions.forEach(question => {
+        if (question.field_type !== "yes_no") return;
+        const text = String(question.question_text || "").toLowerCase();
+        let value = null;
+        if (/authorized|authorization/.test(text) && /work|united states|u\.s\./.test(text)) value = presets.work_authorized;
+        else if (/sponsor|sponsorship/.test(text)) value = presets.needs_sponsorship;
+        else if (/relocat/.test(text)) value = presets.willing_to_relocate;
+        if (value !== null && value !== undefined) {
+          const input = document.getElementById(`internal-answer-${question.id}`);
+          if (input && !input.value) input.value = value ? "Yes" : "No";
+        }
+      });
+    } catch (error) {
+      console.warn("Reusable application information could not be loaded.");
+    }
   },
 
 
@@ -4791,7 +4814,6 @@ async function checkLoginStatus() {
         }
 
         if (user.role === "admin") {
-            if (alertBellLink) alertBellLink.style.display = "none";
             if (!adminModerationLink) {
                 const navLinks = document.querySelector(".nav-links");
                 if (navLinks) {
@@ -4807,9 +4829,6 @@ async function checkLoginStatus() {
              learningCenterLink, employerDashboardLink, employerAccessLink]
                 .forEach(link => { if (link) link.style.display = "none"; });
         } else if (user.role === "employer") {
-            if (alertBellLink) {
-                alertBellLink.style.display = "none";
-            }
             if (adminModerationLink) adminModerationLink.style.display = "none";
 
             if (employerDashboardLink) {
@@ -4823,10 +4842,6 @@ async function checkLoginStatus() {
                 .forEach(link => { if (link) link.style.display = "none"; });
         } else {
             if (adminModerationLink) adminModerationLink.style.display = "none";
-            alertBellLink = ensureJobAlertBell();
-            alertBellLink.style.display = "inline-flex";
-            loadJobAlertCount();
-
             if (employerDashboardLink) {
                 employerDashboardLink.style.display = "none";
             }
@@ -4835,6 +4850,10 @@ async function checkLoginStatus() {
                 employerAccessLink.style.display = "inline";
             }
         }
+
+        alertBellLink = ensureJobAlertBell();
+        alertBellLink.style.display = "inline-flex";
+        loadJobAlertCount();
 
         if (userStatus) {
             userStatus.textContent =
@@ -12564,8 +12583,35 @@ function initializeAdminModerationPage() {
   if (!document.getElementById("moderationReportList")) return;
   document.getElementById("moderationStatusFilter")?.addEventListener("change", loadModerationReports);
   document.getElementById("refreshOperationsButton")?.addEventListener("click", loadAdminOperations);
+  document.getElementById("refreshAutomationReviewButton")?.addEventListener("click", loadAutomationReview);
   loadAdminOperations();
   loadModerationReports();
+  loadAutomationReview();
+}
+
+async function loadAutomationReview() {
+  const list = document.getElementById("automationReviewList");
+  const quality = document.getElementById("listingQualityReviewList");
+  const status = document.getElementById("automationReviewStatus");
+  if (!list || !quality || !status) return;
+  status.textContent = "Loading automated review findings…";
+  try {
+    const response = await fetchWithTimeout(apiUrl("/admin/automation-review?status=open"), { credentials: "include" });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Automated review could not be loaded.");
+    list.innerHTML = (data.flags || []).map(flag => `<article class="moderation-report-card" data-automation-flag="${flag.id}"><div class="moderation-report-heading"><div><span class="moderation-status-badge status-${flag.severity === "high" ? "submitted" : "reviewed"}">${escapeEmployerHtml(flag.severity)} priority</span><h3>${escapeEmployerHtml(flag.title || "Listing unavailable")}</h3><p>${escapeEmployerHtml(flag.company || "Unknown employer")} · ${escapeEmployerHtml(flag.location || "Location not listed")}</p></div></div><p><strong>${flag.flag_type === "ghost_listing" ? "Possible ghost listing" : flag.flag_type === "broken_link" ? "Broken link" : "Possible safety concern"}:</strong> ${escapeEmployerHtml(flag.reason)}</p><div class="moderation-listing-actions">${flag.job_id ? `<a href="jobs.html?job=${flag.job_id}">Review listing</a>` : ""}<button type="button" data-flag-status="resolved">Mark resolved</button><button type="button" class="button-secondary" data-flag-status="dismissed">Dismiss</button></div></article>`).join("") || `<div class="moderation-empty-state"><h3>No open automated findings</h3><p>No ghost-listing, suspicious-content, or broken-link signals currently need review.</p></div>`;
+    quality.innerHTML = (data.quality_queue || []).slice(0, 30).map(job => { const gaps = [job.missing_pay && "pay", job.missing_requirements && "requirements", job.missing_deadline && "deadline"].filter(Boolean).join(", "); return `<article class="moderation-report-card"><h4>${escapeEmployerHtml(job.title)}</h4><p>${escapeEmployerHtml(job.company)} · ${escapeEmployerHtml(job.location || "Location not listed")}</p><p>Missing: ${escapeEmployerHtml(gaps)}</p><div class="moderation-listing-actions"><a href="jobs.html?job=${job.id}">Review listing</a></div></article>`; }).join("") || `<div class="moderation-empty-state"><h3>No quality gaps</h3><p>Active listings have the tracked details.</p></div>`;
+    status.textContent = `${(data.flags || []).length} automated finding${(data.flags || []).length === 1 ? "" : "s"} open. Nothing is removed automatically.`;
+    list.querySelectorAll("[data-flag-status]").forEach(button => button.addEventListener("click", async () => {
+      const card = button.closest("[data-automation-flag]");
+      button.disabled = true;
+      const update = await fetch(apiUrl(`/admin/automation-review/${card.dataset.automationFlag}`), { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: button.dataset.flagStatus }) });
+      if (update.ok) await loadAutomationReview(); else button.disabled = false;
+    }));
+  } catch (error) {
+    status.textContent = error.message || "Automated review could not be loaded.";
+    status.classList.add("error-message");
+  }
 }
 
 function safeExternalUrl(value) {
@@ -13071,12 +13117,50 @@ async function loadPrivacySettings() {
   }
 }
 
+function presetSelectValue(value) {
+  return value === null || value === undefined ? "" : String(Boolean(value));
+}
+
+async function loadAutomationSettings() {
+  const form = document.getElementById("automationPreferencesForm");
+  if (!form) return;
+  try {
+    const [preferencesResponse, meResponse] = await Promise.all([
+      fetchWithTimeout(apiUrl("/account/automation-preferences"), { credentials: "include" }),
+      fetchWithTimeout(apiUrl("/me"), { credentials: "include" })
+    ]);
+    const preferences = await preferencesResponse.json();
+    const user = await meResponse.json();
+    if (!preferencesResponse.ok) throw new Error(preferences.detail || "Automation choices could not be loaded.");
+    document.getElementById("digestFrequency").value = preferences.digest_frequency;
+    document.getElementById("deliveryChannel").value = preferences.delivery_channel;
+    document.getElementById("employerReminders").checked = preferences.employer_reminders;
+    document.getElementById("archiveSuggestionDays").value = preferences.archive_suggestion_days;
+    document.getElementById("applicationPresetCard")?.classList.toggle("hidden", user.role !== "job_seeker");
+    if (user.role === "job_seeker") {
+      const presetResponse = await fetchWithTimeout(apiUrl("/account/application-presets"), { credentials: "include" });
+      const preset = await presetResponse.json();
+      if (presetResponse.ok) {
+        document.getElementById("preferredResumeLabel").value = preset.preferred_resume_label || "";
+        document.getElementById("workAuthorizedPreset").value = presetSelectValue(preset.work_authorized);
+        document.getElementById("sponsorshipPreset").value = presetSelectValue(preset.needs_sponsorship);
+        document.getElementById("relocationPreset").value = presetSelectValue(preset.willing_to_relocate);
+      }
+    }
+  } catch (error) {
+    const status = document.getElementById("automationPreferencesStatus");
+    status.textContent = error.message;
+    status.classList.add("error-message");
+  }
+}
+
 function initializeAccountSecurityPage() {
   const passwordForm = document.getElementById("changePasswordForm");
   if (!passwordForm) return;
   loadAccountSessions();
   loadSecurityEvents();
   loadPrivacySettings();
+  loadAutomationSettings();
 
   const verificationControls = document.getElementById("emailVerificationControls");
   const verificationSummary = document.getElementById("emailVerificationSummary");
@@ -13231,6 +13315,31 @@ function initializeAccountSecurityPage() {
       status.textContent = data.message;
       status.classList.add("success-message");
       await loadJobAlertCount();
+    } catch (error) { status.textContent = error.message; status.classList.add("error-message"); }
+    finally { button.disabled = false; }
+  });
+
+  document.getElementById("automationPreferencesForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const status = document.getElementById("automationPreferencesStatus");
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    button.disabled = true; status.className = "form-message"; status.textContent = "Saving automation choices…";
+    try {
+      const response = await fetchWithTimeout(apiUrl("/account/automation-preferences"), { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ digest_frequency: document.getElementById("digestFrequency").value, delivery_channel: document.getElementById("deliveryChannel").value, employer_reminders: document.getElementById("employerReminders").checked, archive_suggestion_days: Number(document.getElementById("archiveSuggestionDays").value) }) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.detail || "Automation choices could not be saved."); status.textContent = data.message; status.classList.add("success-message");
+    } catch (error) { status.textContent = error.message; status.classList.add("error-message"); }
+    finally { button.disabled = false; }
+  });
+
+  document.getElementById("applicationPresetsForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const status = document.getElementById("applicationPresetsStatus");
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    const optionalBoolean = id => document.getElementById(id).value === "" ? null : document.getElementById(id).value === "true";
+    button.disabled = true; status.className = "form-message"; status.textContent = "Saving reusable information…";
+    try {
+      const response = await fetchWithTimeout(apiUrl("/account/application-presets"), { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ preferred_resume_label: document.getElementById("preferredResumeLabel").value, work_authorized: optionalBoolean("workAuthorizedPreset"), needs_sponsorship: optionalBoolean("sponsorshipPreset"), willing_to_relocate: optionalBoolean("relocationPreset") }) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.detail || "Reusable information could not be saved."); status.textContent = data.message; status.classList.add("success-message");
     } catch (error) { status.textContent = error.message; status.classList.add("error-message"); }
     finally { button.disabled = false; }
   });

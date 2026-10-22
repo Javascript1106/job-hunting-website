@@ -3,8 +3,10 @@
 import argparse
 import json
 import os
+import shutil
 import sqlite3
 import sys
+import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -12,6 +14,7 @@ from backup_database import backup_database
 from catalog_insights import build_catalog_insights
 from database import DB_NAME, get_connection, initialize_database, resolve_database_path
 from verify_job_links import verify_stale_links
+from showcase_smoke_test import run_showcase_smoke_test
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -19,6 +22,10 @@ DEFAULT_LOG_DIRECTORY = PROJECT_ROOT / "automation-logs"
 DEFAULT_LOCK_PATH = PROJECT_ROOT / ".site-maintenance.lock"
 BACKUP_MAX_AGE = timedelta(days=8)
 LOCK_MAX_AGE = timedelta(hours=2)
+LOG_RETENTION = timedelta(days=90)
+BACKUP_RECENT_RETENTION = timedelta(days=30)
+BACKUP_MONTHLY_RETENTION = 6
+BACKUP_MINIMUM_COUNT = 12
 
 
 def _utc_now():
@@ -61,6 +68,69 @@ def ensure_fresh_backup(database_path=DB_NAME, backup_func=backup_database):
             return {"created": False, "path": str(latest.resolve()), "age_days": (now - modified).days}
     created = Path(backup_func(database_path)).resolve()
     return {"created": True, "path": str(created), "age_days": 0}
+
+
+def verify_restore_candidate(backup_path):
+    """Copy the latest backup to a temporary restore target and validate it."""
+    temporary_root = PROJECT_ROOT / ".automation-tmp"
+    temporary_root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="pathforge-restore-check-", dir=temporary_root) as directory:
+        restored = Path(directory) / "restored.db"
+        shutil.copy2(backup_path, restored)
+        connection = sqlite3.connect(restored)
+        try:
+            integrity = connection.execute("PRAGMA quick_check").fetchone()[0]
+            foreign_keys = len(connection.execute("PRAGMA foreign_key_check").fetchall())
+            required = {row[0] for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            ).fetchall()}
+        finally:
+            connection.close()
+    missing = sorted({"users", "jobs", "applications", "schema_migrations"} - required)
+    return {"passed": integrity == "ok" and not foreign_keys and not missing,
+            "integrity": integrity, "foreign_key_issues": foreign_keys,
+            "missing_required_tables": missing}
+
+
+def prune_runtime_files(database_path=DB_NAME, log_directory=DEFAULT_LOG_DIRECTORY):
+    """Keep recent, minimum-count, and monthly backups plus 90 days of reports."""
+    now = _utc_now()
+    backup_directory = Path(resolve_database_path(database_path)).parent / "backups"
+    backups = sorted(
+        backup_directory.glob("pathforge-*.db"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    ) if backup_directory.exists() else []
+    keep = set(backups[:BACKUP_MINIMUM_COUNT])
+    monthly = set()
+    for backup in backups:
+        modified = datetime.fromtimestamp(backup.stat().st_mtime, timezone.utc)
+        if now - modified <= BACKUP_RECENT_RETENTION:
+            keep.add(backup)
+        month = modified.strftime("%Y-%m")
+        if month not in monthly and len(monthly) < BACKUP_MONTHLY_RETENTION:
+            keep.add(backup)
+            monthly.add(month)
+    removed_backups = 0
+    for backup in backups:
+        if backup not in keep:
+            backup.unlink()
+            removed_backups += 1
+
+    removed_reports = 0
+    directory = Path(log_directory)
+    if directory.exists():
+        for report in directory.glob("*.json"):
+            modified = datetime.fromtimestamp(report.stat().st_mtime, timezone.utc)
+            if now - modified > LOG_RETENTION and "latest" not in report.name:
+                report.unlink()
+                removed_reports += 1
+    return {
+        "policy": "Keep every backup for 30 days, at least the newest 12, and one monthly backup for 6 months; keep reports for 90 days.",
+        "backups_retained": len(backups) - removed_backups,
+        "backups_removed": removed_backups,
+        "reports_removed": removed_reports,
+    }
 
 
 def _acquire_lock(lock_path):
@@ -175,6 +245,7 @@ def run_site_maintenance(
     lock_path=DEFAULT_LOCK_PATH,
     backup_func=backup_database,
     link_check_func=None,
+    smoke_test_func=run_showcase_smoke_test,
 ):
     initialize_database(database_path)
     lock = _acquire_lock(lock_path)
@@ -187,12 +258,17 @@ def run_site_maintenance(
             database_path=database_path, stale_days=7, workers=4, apply=False, limit=25
         ))
         links = check_links()
+        restore_check = verify_restore_candidate(backup["path"])
+        retention = prune_runtime_files(database_path, log_directory)
+        smoke_test = smoke_test_func()
         attention = bool(
             database_report["integrity"] != "ok"
             or database_report["foreign_key_issues"]
             or database_report["active_public_jobs"] == 0
             or database_report["failed_sources"]
             or links.get("closed", 0)
+            or not restore_check["passed"]
+            or smoke_test.get("status") != "success"
         )
         report = {
             "status": "attention_required" if attention else "success",
@@ -202,6 +278,9 @@ def run_site_maintenance(
             "database": database_report,
             "catalog": insights,
             "link_check": links,
+            "restore_check": restore_check,
+            "retention": retention,
+            "showcase_smoke_test": smoke_test,
         }
         directory = Path(log_directory)
         stamp = _utc_now().strftime("%Y%m%d-%H%M%S")

@@ -1,13 +1,16 @@
 """Run PathForge's free, deterministic user automations for every account."""
 
 import argparse
+import html
 import json
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import main
+from auth import send_transactional_email
 from database import DB_NAME, get_connection
+from platform_automations import run_platform_automations
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -126,6 +129,8 @@ def run_user_automations(database_path=DB_NAME, lock_path=DEFAULT_LOCK_PATH):
             connection.close()
         lock.unlink(missing_ok=True)
 
+    platform = run_platform_automations(database_path)
+    email_delivery = deliver_email_digests(database_path)
     return {
         "status": "success",
         "started_at": started_at,
@@ -133,8 +138,67 @@ def run_user_automations(database_path=DB_NAME, lock_path=DEFAULT_LOCK_PATH):
         "users_checked": len(users),
         "saved_searches_checked": searches_checked,
         "notifications_created": after - before,
-        "delivery": "in_app",
+        "delivery": {"in_app": True, "email": email_delivery},
+        "platform": platform,
     }
+
+
+def deliver_email_digests(database_path=DB_NAME):
+    """Best-effort email summaries; in-app notifications remain authoritative."""
+    connection = get_connection(database_path)
+    connection.row_factory = main.sqlite3.Row
+    sent = failed = skipped = 0
+    try:
+        users = connection.execute(
+            """SELECT users.id, users.email, preferences.digest_frequency
+               FROM users JOIN automation_preferences preferences
+                 ON preferences.user_id = users.id
+               WHERE preferences.delivery_channel = 'email_and_in_app'
+                 AND COALESCE(users.email_verified, 0) = 1"""
+        ).fetchall()
+        now = datetime.now(timezone.utc)
+        for user in users:
+            weekly = user["digest_frequency"] == "weekly"
+            period = now.strftime("%Y-W%W" if weekly else "%Y-%m-%d")
+            key = f"notification-email:{user['id']}:{'weekly' if weekly else 'daily'}:{period}"
+            if connection.execute(
+                "SELECT 1 FROM automation_deliveries WHERE delivery_key = ? AND status = 'sent'", (key,)
+            ).fetchone():
+                skipped += 1
+                continue
+            window = "-7 days" if weekly else "-1 day"
+            notifications = connection.execute(
+                """SELECT title FROM notifications
+                   WHERE user_id = ? AND created_at >= datetime('now', ?)
+                   ORDER BY datetime(created_at) DESC LIMIT 20""",
+                (user["id"], window),
+            ).fetchall()
+            if not notifications:
+                skipped += 1
+                continue
+            titles = [str(row["title"])[:160] for row in notifications]
+            text = "Your PathForge summary:\n\n" + "\n".join(f"- {title}" for title in titles) + "\n\nSign in to PathForge to review details."
+            items = "".join(f"<li>{html.escape(title)}</li>" for title in titles)
+            try:
+                send_transactional_email(
+                    user["email"], "Your PathForge notification summary", text,
+                    f"<p>Your PathForge summary:</p><ul>{items}</ul><p>Sign in to PathForge to review details.</p>",
+                    key,
+                )
+                delivery_status = "sent"; sent += 1
+            except Exception:
+                delivery_status = "failed"; failed += 1
+            connection.execute(
+                """INSERT INTO automation_deliveries
+                   (user_id, delivery_key, channel, status) VALUES (?, ?, 'email', ?)
+                   ON CONFLICT(delivery_key) DO UPDATE SET
+                     status = excluded.status, created_at = CURRENT_TIMESTAMP""",
+                (user["id"], key, delivery_status),
+            )
+        connection.commit()
+        return {"sent": sent, "failed": failed, "skipped": skipped}
+    finally:
+        connection.close()
 
 
 def main_cli():

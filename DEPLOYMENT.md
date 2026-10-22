@@ -45,14 +45,19 @@ administrator moderation page through the deployed HTTPS site.
 - Run `sync_jobs.py` on a controlled schedule and alert when a source fails.
 - Run `python run_user_automations.py` daily. It evaluates due saved searches
   and creates idempotent in-app job-match, interview, deadline, and application
-  follow-up reminders. It does not use an AI model or send data to a third party.
+  follow-up reminders, employer response summaries, admin operations alerts,
+  saved-job review suggestions, and non-destructive ghost/fraud/link review
+  flags. It does not use an AI model. Optional email summaries only use the
+  already configured transactional-email provider.
 - Prefer `python catalog_maintenance.py` for scheduled catalog work. It creates
   a verified backup first, prevents overlapping syncs, expires missing jobs only
   after successful source checks, writes a timestamped JSON report, and exits
   non-zero when a source failure or large source drop needs attention.
 - Run `python site_maintenance.py` daily for a bounded, read-only link check,
   verified-backup freshness, database integrity, expired-session cleanup, and a
-  private showcase-readiness report. Review `automation-logs/site-readiness-latest.md`.
+  private showcase-readiness report. It performs a restore drill and local
+  showcase smoke test, then applies the documented backup/report retention
+  policy. Review `automation-logs/site-readiness-latest.md`.
 - Monitor application errors, response latency, disk space, database size, and
   the public `/health/email` availability signal.
 - Keep API documentation disabled in production by retaining

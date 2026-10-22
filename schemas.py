@@ -105,6 +105,24 @@ class PrivacySettingsUpdate(BaseModel):
     security_notifications: bool = True
 
 
+class AutomationPreferencesUpdate(BaseModel):
+    digest_frequency: Literal["individual", "daily", "weekly"] = "daily"
+    delivery_channel: Literal["in_app", "email_and_in_app"] = "in_app"
+    employer_reminders: bool = True
+    archive_suggestion_days: int = 90
+
+
+class ApplicationPresetUpdate(BaseModel):
+    preferred_resume_label: Optional[str] = None
+    work_authorized: Optional[bool] = None
+    needs_sponsorship: Optional[bool] = None
+    willing_to_relocate: Optional[bool] = None
+
+
+class AutomationReviewUpdate(BaseModel):
+    status: Literal["open", "resolved", "dismissed"]
+
+
 class ConversationCreate(BaseModel):
     application_id: int
 

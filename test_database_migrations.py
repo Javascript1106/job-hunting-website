@@ -33,7 +33,7 @@ class DatabaseMigrationTests(unittest.TestCase):
         ).fetchall()
         connection.close()
 
-        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
         self.assertIn("users", tables)
         self.assertIn("jobs", tables)
         self.assertIn("auth_attempts", tables)
@@ -50,6 +50,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                 (8, "close_bundled_sample_jobs"),
                 (9, "close_jobs_from_removed_sources"),
                 (10, "saved_search_query_mode"),
+                (11, "automation_controls_and_review_queue"),
             ],
         )
         connection = sqlite3.connect(self.database_path)

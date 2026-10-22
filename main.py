@@ -29,6 +29,7 @@ from job_routes import PUBLIC_JOB_ELIGIBILITY_SQL, create_job_router
 from saved_job_routes import create_saved_job_router
 from schemas import (
     ApplicationAnswerInput, ApplicationCreate, ApplicationFormUpdate,
+    ApplicationPresetUpdate, AutomationPreferencesUpdate, AutomationReviewUpdate,
     ApplicationQuestionInput, ApplicationUpdate, ChatMessage,
     CompanyProfileUpdate, ConversationBlockUpdate, ConversationCreate,
     DirectMessageCreate, EmployerApplicationUpdate, EmployerCodeRedemption,
@@ -959,14 +960,25 @@ def synchronize_user_notifications(cursor, user_id):
     def add_notification(kind, title, message, href, event_key, created_at=None):
         cursor.execute(
             """
-            INSERT OR IGNORE INTO notifications (
+            INSERT INTO notifications (
                 user_id, notification_type, title, message,
                 href, event_key, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+            ON CONFLICT(user_id, event_key) DO UPDATE SET
+                title = excluded.title,
+                message = excluded.message,
+                href = excluded.href
+            WHERE notifications.is_read = 0
             """,
             (user_id, kind, title, message, href, event_key, created_at)
         )
 
+    digest_row = cursor.execute(
+        """SELECT digest_frequency FROM automation_preferences
+           WHERE user_id = ?""",
+        (user_id,),
+    ).fetchone()
+    digest_frequency = digest_row[0] if digest_row else "daily"
     rows = cursor.execute(
         """
         SELECT matches.id, matches.first_matched_at, jobs.id AS job_id,
@@ -974,16 +986,35 @@ def synchronize_user_notifications(cursor, user_id):
         FROM saved_search_matches AS matches
         JOIN saved_searches AS searches ON searches.id = matches.saved_search_id
         JOIN jobs ON jobs.id = matches.job_id
-        WHERE searches.user_id = ?
+        WHERE searches.user_id = ? AND matches.seen_at IS NULL
         """,
         (user_id,)
     ).fetchall()
-    for row in rows:
+    if digest_frequency == "individual":
+        for row in rows:
+            add_notification(
+                "job_match", f"New match: {row['title']}",
+                f"{row['company']} matched your saved search “{row['search_name']}.”",
+                f"jobs.html?job={row['job_id']}", f"job-match:{row['id']}",
+                row["first_matched_at"]
+            )
+    elif rows:
+        period = (
+            datetime.now(timezone.utc).strftime("%Y-W%W")
+            if digest_frequency == "weekly"
+            else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        )
+        companies = []
+        for row in rows:
+            if row["company"] not in companies:
+                companies.append(row["company"])
+        company_preview = ", ".join(companies[:3])
+        if len(companies) > 3:
+            company_preview += f" and {len(companies) - 3} more"
         add_notification(
-            "job_match", f"New match: {row['title']}",
-            f"{row['company']} matched your saved search “{row['search_name']}.”",
-            f"jobs.html?job={row['job_id']}", f"job-match:{row['id']}",
-            row["first_matched_at"]
+            "job_match", f"{len(rows)} new job matches",
+            f"Your saved searches found {len(rows)} match(es), including {company_preview}.",
+            "alerts.html", f"job-digest:{digest_frequency}:{period}",
         )
 
     rows = cursor.execute(
@@ -1103,8 +1134,6 @@ def synchronize_user_notifications(cursor, user_id):
 @app.get("/notifications")
 def get_notifications(request: Request, category: str = "all"):
     user = get_authenticated_user(request)
-    if user["role"] != "job_seeker":
-        raise HTTPException(status_code=403, detail="Job-seeker access is required.")
     allowed = {"all", "job_match", "application_update", "interview", "follow_up", "deadline", "account"}
     if category not in allowed:
         raise HTTPException(status_code=400, detail="Invalid notification category.")
@@ -1114,14 +1143,15 @@ def get_notifications(request: Request, category: str = "all"):
     preference = cursor.execute(
         "SELECT security_notifications FROM privacy_settings WHERE user_id = ?",
         (user["id"],),
-    ).fetchone()
-    notifications_enabled = preference is None or bool(preference[0])
+    ).fetchone() if user["role"] == "job_seeker" else None
+    notifications_enabled = user["role"] != "job_seeker" or preference is None or bool(preference[0])
     if not notifications_enabled:
         conn.close()
         empty_counts = {key: 0 for key in allowed}
         return {"notifications": [], "counts": empty_counts, "unread_count": 0, "notifications_enabled": False}
-    evaluate_user_saved_searches(cursor, user["id"])
-    synchronize_user_notifications(cursor, user["id"])
+    if user["role"] == "job_seeker":
+        evaluate_user_saved_searches(cursor, user["id"])
+        synchronize_user_notifications(cursor, user["id"])
     conn.commit()
     clause = "" if category == "all" else "AND notification_type = ?"
     params = [user["id"]] + ([] if category == "all" else [category])
@@ -3878,6 +3908,8 @@ def download_account_data(request: Request):
         "saved_searches": ("SELECT * FROM saved_searches WHERE user_id = ?",),
         "applications": ("SELECT * FROM applications WHERE user_id = ?",),
         "notifications": ("SELECT * FROM notifications WHERE user_id = ?",),
+        "automation_preferences": ("SELECT * FROM automation_preferences WHERE user_id = ?",),
+        "application_presets": ("SELECT * FROM application_presets WHERE user_id = ?",),
         "security_events": ("SELECT event_type, event_summary, created_at FROM security_events WHERE user_id = ?",),
     }
     for label, (query,) in table_queries.items():
@@ -3933,6 +3965,157 @@ def update_privacy_settings(data: PrivacySettingsUpdate, request: Request):
     conn.commit()
     conn.close()
     return {"message": "Privacy preferences saved."}
+
+
+@app.get("/account/automation-preferences")
+def get_automation_preferences(request: Request):
+    user = get_authenticated_user(request)
+    conn = get_connection(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    conn.execute(
+        "INSERT OR IGNORE INTO automation_preferences (user_id) VALUES (?)",
+        (user["id"],),
+    )
+    conn.commit()
+    row = conn.execute(
+        "SELECT * FROM automation_preferences WHERE user_id = ?", (user["id"],)
+    ).fetchone()
+    conn.close()
+    return {
+        "digest_frequency": row["digest_frequency"],
+        "delivery_channel": row["delivery_channel"],
+        "employer_reminders": bool(row["employer_reminders"]),
+        "archive_suggestion_days": row["archive_suggestion_days"],
+    }
+
+
+@app.put("/account/automation-preferences")
+def update_automation_preferences(data: AutomationPreferencesUpdate, request: Request):
+    user = get_authenticated_user(request)
+    if not 0 <= data.archive_suggestion_days <= 730:
+        raise HTTPException(status_code=400, detail="Archive suggestions must be between 0 and 730 days.")
+    if data.delivery_channel == "email_and_in_app" and not user.get("email_verified"):
+        raise HTTPException(status_code=400, detail="Verify your email before enabling email digests.")
+    conn = get_connection(DB_NAME)
+    conn.execute(
+        """INSERT INTO automation_preferences
+           (user_id, digest_frequency, delivery_channel, employer_reminders,
+            archive_suggestion_days, updated_at)
+           VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+           ON CONFLICT(user_id) DO UPDATE SET
+             digest_frequency = excluded.digest_frequency,
+             delivery_channel = excluded.delivery_channel,
+             employer_reminders = excluded.employer_reminders,
+             archive_suggestion_days = excluded.archive_suggestion_days,
+             updated_at = CURRENT_TIMESTAMP""",
+        (user["id"], data.digest_frequency, data.delivery_channel,
+         int(data.employer_reminders), data.archive_suggestion_days),
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Automation preferences saved."}
+
+
+@app.get("/account/application-presets")
+def get_application_presets(request: Request):
+    user = get_authenticated_user(request)
+    if user["role"] != "job_seeker":
+        raise HTTPException(status_code=403, detail="Job-seeker access is required.")
+    conn = get_connection(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    conn.execute("INSERT OR IGNORE INTO application_presets (user_id) VALUES (?)", (user["id"],))
+    conn.commit()
+    row = conn.execute("SELECT * FROM application_presets WHERE user_id = ?", (user["id"],)).fetchone()
+    conn.close()
+    return {
+        "preferred_resume_label": row["preferred_resume_label"] or "",
+        "work_authorized": None if row["work_authorized"] is None else bool(row["work_authorized"]),
+        "needs_sponsorship": None if row["needs_sponsorship"] is None else bool(row["needs_sponsorship"]),
+        "willing_to_relocate": None if row["willing_to_relocate"] is None else bool(row["willing_to_relocate"]),
+    }
+
+
+@app.put("/account/application-presets")
+def update_application_presets(data: ApplicationPresetUpdate, request: Request):
+    user = get_authenticated_user(request)
+    if user["role"] != "job_seeker":
+        raise HTTPException(status_code=403, detail="Job-seeker access is required.")
+    label = str(data.preferred_resume_label or "").strip()
+    if len(label) > 120:
+        raise HTTPException(status_code=400, detail="Resume labels must be 120 characters or fewer.")
+    conn = get_connection(DB_NAME)
+    conn.execute(
+        """INSERT INTO application_presets
+           (user_id, preferred_resume_label, work_authorized, needs_sponsorship,
+            willing_to_relocate, updated_at)
+           VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+           ON CONFLICT(user_id) DO UPDATE SET
+             preferred_resume_label = excluded.preferred_resume_label,
+             work_authorized = excluded.work_authorized,
+             needs_sponsorship = excluded.needs_sponsorship,
+             willing_to_relocate = excluded.willing_to_relocate,
+             updated_at = CURRENT_TIMESTAMP""",
+        (user["id"], label or None,
+         None if data.work_authorized is None else int(data.work_authorized),
+         None if data.needs_sponsorship is None else int(data.needs_sponsorship),
+         None if data.willing_to_relocate is None else int(data.willing_to_relocate)),
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Reusable application information saved. You can review it before every application."}
+
+
+@app.get("/admin/automation-review")
+def get_automation_review_queue(request: Request, status: str = "open"):
+    require_admin(request)
+    if status not in {"open", "resolved", "dismissed", "all"}:
+        raise HTTPException(status_code=400, detail="Invalid review status.")
+    clause = "" if status == "all" else "WHERE flags.status = ?"
+    parameters = [] if status == "all" else [status]
+    conn = get_connection(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        f"""SELECT flags.*, jobs.title, jobs.company, jobs.location,
+                   jobs.status AS job_status, jobs.source_url, jobs.application_url
+            FROM automation_review_flags AS flags
+            LEFT JOIN jobs ON jobs.id = flags.job_id
+            {clause}
+            ORDER BY CASE flags.severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+                     datetime(flags.last_seen_at) DESC LIMIT 250""",
+        parameters,
+    ).fetchall()
+    quality = conn.execute(
+        """SELECT id, title, company, location,
+                  salary_min IS NULL AS missing_pay,
+                  trim(COALESCE(requirements, '')) = '' AS missing_requirements,
+                  application_deadline IS NULL AS missing_deadline
+           FROM jobs WHERE status = 'active' AND owner_user_id IS NULL
+             AND ((salary_min IS NULL) + (trim(COALESCE(requirements, '')) = '')
+                  + (application_deadline IS NULL)) >= 2
+           ORDER BY (salary_min IS NULL) + (trim(COALESCE(requirements, '')) = '')
+                    + (application_deadline IS NULL) DESC, datetime(updated_at) DESC
+           LIMIT 100"""
+    ).fetchall()
+    conn.close()
+    return {"flags": [dict(row) for row in rows], "quality_queue": [dict(row) for row in quality]}
+
+
+@app.put("/admin/automation-review/{flag_id}")
+def update_automation_review_flag(flag_id: int, data: AutomationReviewUpdate, request: Request):
+    require_admin(request)
+    conn = get_connection(DB_NAME)
+    cursor = conn.execute(
+        """UPDATE automation_review_flags SET status = ?,
+             resolved_at = CASE WHEN ? = 'open' THEN NULL ELSE CURRENT_TIMESTAMP END
+           WHERE id = ?""",
+        (data.status, data.status, flag_id),
+    )
+    if cursor.rowcount == 0:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Automation review flag not found.")
+    conn.commit()
+    conn.close()
+    return {"message": "Review flag updated."}
 
 
 # Messaging access is limited to participants in an application conversation.
