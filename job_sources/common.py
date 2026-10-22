@@ -26,6 +26,7 @@ SYNC_COLUMNS = [
     "verification_status", "link_status", "last_link_checked_at"
 ]
 MAX_JSON_BYTES = 10_000_000
+MAX_LARGE_JSON_BYTES = 16_000_000
 
 
 def utc_now():
@@ -33,7 +34,8 @@ def utc_now():
 
 
 # Network requests use a recognizable agent and bounded timeout for reliable sync runs.
-def fetch_json(url, headers=None, timeout=30, retries=3):
+def fetch_json(url, headers=None, timeout=30, retries=3, max_bytes=MAX_JSON_BYTES):
+    max_bytes = max(1, min(int(max_bytes), MAX_LARGE_JSON_BYTES))
     request_headers = {
         "Accept": "application/json",
         "User-Agent": "PathForge/1.0"
@@ -48,8 +50,8 @@ def fetch_json(url, headers=None, timeout=30, retries=3):
                     raise RuntimeError(
                         f"unexpected HTTP status {response.status}"
                     )
-                payload = response.read(MAX_JSON_BYTES + 1)
-                if len(payload) > MAX_JSON_BYTES:
+                payload = response.read(max_bytes + 1)
+                if len(payload) > max_bytes:
                     raise RuntimeError("job source response exceeded the safe size limit")
                 return json.loads(payload.decode("utf-8"))
         except HTTPError as error:

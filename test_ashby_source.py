@@ -97,6 +97,22 @@ class AshbySourceTests(unittest.TestCase):
         self.assertIn("Denver", records[1]["location"])
         self.assertIsNone(records[0]["application_deadline"])
         self.assertIn("includeCompensation=true", fetch.call_args.args[0])
+        self.assertEqual(
+            fetch.call_args.kwargs["max_bytes"],
+            ashby.MAX_JSON_BYTES,
+        )
+
+    def test_source_specific_response_limit_is_forwarded(self):
+        with patch(
+            "job_sources.ashby.fetch_json",
+            return_value={"jobs": []},
+        ) as fetch:
+            ashby.fetch_jobs({
+                "employer": "Large Employer",
+                "board_name": "large-board",
+                "max_response_bytes": 16_000_000,
+            })
+        self.assertEqual(fetch.call_args.kwargs["max_bytes"], 16_000_000)
 
     def test_remote_only_excludes_non_remote_jobs(self):
         payload = {"jobs": [{

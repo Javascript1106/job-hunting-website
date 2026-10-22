@@ -346,7 +346,8 @@
     {
       "employer": "OpenAI",
       "board_name": "openai",
-      "max_jobs": 500
+      "max_jobs": 500,
+      "max_response_bytes": 16000000
     },
     {
       "employer": "Notion",
@@ -781,6 +782,71 @@
       "detail_scan_limit": 220,
       "detail_workers": 2,
       "max_jobs": 180
+    },
+    {
+      "employer": "Caribou Coffee and Einstein Bros. Bagels",
+      "host": "coffeeandbagelbrands.wd1",
+      "tenant": "coffeeandbagelbrands",
+      "site": "coffeeandbagelbrands",
+      "country_codes": ["US"],
+      "search_queries": [
+        "North Dakota",
+        "Iowa",
+        "South Dakota",
+        "Minnesota",
+        "Wisconsin",
+        "team member"
+      ],
+      "title_patterns": ["team member"],
+      "scan_limit": 80,
+      "detail_scan_limit": 300,
+      "detail_workers": 12,
+      "max_jobs": 250
+    },
+    {
+      "employer": "Mo Bettahs",
+      "host": "mobettahs.wd503",
+      "tenant": "mobettahs",
+      "site": "MoBettahs",
+      "country_codes": ["US"],
+      "search_queries": ["Idaho", "Utah", "team member"],
+      "title_patterns": ["team member", "grill cook", "line cook"],
+      "scan_limit": 80,
+      "detail_scan_limit": 160,
+      "detail_workers": 8,
+      "max_jobs": 120
+    },
+    {
+      "employer": "Les Schwab Tire Centers",
+      "host": "lesschwab.wd1",
+      "tenant": "lesschwab",
+      "site": "Stores",
+      "country_codes": ["US"],
+      "search_queries": ["Montana", "Idaho", "Wyoming", "shop assistant"],
+      "title_patterns": ["shop assistant"],
+      "scan_limit": 80,
+      "detail_scan_limit": 160,
+      "detail_workers": 8,
+      "max_jobs": 120
+    },
+    {
+      "employer": "SeaWorld Parks & Entertainment",
+      "host": "seaworldentertainment.wd1",
+      "tenant": "seaworldentertainment",
+      "site": "SEA",
+      "country_codes": ["US"],
+      "search_queries": ["team member", "ambassador", "ride operator"],
+      "title_patterns": [
+        "team member",
+        "ambassador",
+        "ride operator",
+        "food",
+        "merchandise"
+      ],
+      "scan_limit": 80,
+      "detail_scan_limit": 120,
+      "detail_workers": 8,
+      "max_jobs": 80
     }
   ],
   "usajobs": {
@@ -788,7 +854,7 @@
     "keyword": "",
     "location": "",
     "remote_only": false,
-    "results_per_page": 500,
-    "pages": 5
+    "results_per_page": 100,
+    "pages": 25
   }
 }

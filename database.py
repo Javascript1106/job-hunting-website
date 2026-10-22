@@ -1535,6 +1535,24 @@ def add_automation_controls_and_review_queue(db_name=DB_NAME):
         conn.close()
 
 
+def add_saved_search_notification_tracking(db_name=DB_NAME):
+    """Track alert delivery separately from whether a person viewed a match."""
+    conn = get_connection(db_name)
+    try:
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(saved_search_matches)")
+        }
+        if "notified_at" not in columns:
+            conn.execute("ALTER TABLE saved_search_matches ADD COLUMN notified_at TEXT")
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_saved_search_matches_notification
+               ON saved_search_matches(saved_search_id, notified_at)"""
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Each migration has an immutable version and descriptive name. New schema
 # changes belong in a new function and tuple entry instead of being silently
 # added to application startup forever.
@@ -1550,6 +1568,7 @@ SCHEMA_MIGRATIONS = (
     (9, "close_jobs_from_removed_sources", close_jobs_from_removed_sources),
     (10, "saved_search_query_mode", add_saved_search_query_mode),
     (11, "automation_controls_and_review_queue", add_automation_controls_and_review_queue),
+    (12, "saved_search_notification_tracking", add_saved_search_notification_tracking),
 )
 
 

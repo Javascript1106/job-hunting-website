@@ -3,6 +3,7 @@
 from urllib.parse import quote
 
 from .common import (
+    MAX_JSON_BYTES,
     classify_category,
     concise_summary,
     extract_qualification_text,
@@ -106,7 +107,8 @@ def fetch_jobs(configuration):
     source = f"Ashby:{board_name}"
     payload = fetch_json(
         "https://api.ashbyhq.com/posting-api/job-board/"
-        f"{quote(board_name, safe='')}?includeCompensation=true"
+        f"{quote(board_name, safe='')}?includeCompensation=true",
+        max_bytes=configuration.get("max_response_bytes", MAX_JSON_BYTES),
     )
     records = []
 

@@ -259,6 +259,32 @@ class CatalogQualityTests(unittest.TestCase):
             connection.close()
             self.assertEqual(row, (4, 20))
 
+    def test_success_clears_superseded_failure_alias(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "recovered-source.db"
+            database.initialize_database(path)
+            record_source_health(path, [{
+                "source": "ashby",
+                "employer": "Example Employer",
+                "status": "failed",
+                "fetched": 0,
+                "error": "temporary failure",
+            }])
+            record_source_health(path, [{
+                "source": "Ashby:example",
+                "employer": "Example Employer",
+                "status": "ok",
+                "fetched": 12,
+                "imported": 12,
+                "excluded_by_country": 0,
+            }])
+            connection = sqlite3.connect(path)
+            rows = connection.execute(
+                "SELECT source, status FROM catalog_sync_status"
+            ).fetchall()
+            connection.close()
+            self.assertEqual(rows, [("Ashby:example", "ok")])
+
     def test_catalog_health_reports_empty_failed_and_dropped_sources(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "catalog-health.db"

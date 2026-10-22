@@ -8,6 +8,12 @@ from job_sources import workday
 
 
 class WorkdaySourceTests(unittest.TestCase):
+    def test_minimum_age_accepts_you_must_be_wording(self):
+        self.assertEqual(
+            workday._minimum_age("You must be at least 16 years old."),
+            16,
+        )
+
     def test_retries_rate_limited_listing_request(self):
         limited = HTTPError(
             "https://example.wd5.myworkdayjobs.com/jobs",

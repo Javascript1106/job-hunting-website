@@ -61,6 +61,20 @@ def record_source_health(database_path, source_results):
     """Persist source failures and counts so administrators can act on them."""
     connection = get_connection(database_path)
     try:
+        # A failed adapter may only know its generic provider name, while a
+        # successful retry returns the board-specific source identifier. Clear
+        # superseded failure aliases so recovered feeds do not keep generating
+        # false administrator alerts.
+        for result in source_results:
+            if result.get("status") != "ok":
+                continue
+            connection.execute(
+                """DELETE FROM catalog_sync_status
+                   WHERE employer = ?
+                     AND status = 'failed'
+                     AND source <> ?""",
+                (result.get("employer"), result.get("source")),
+            )
         connection.executemany(
             """INSERT INTO catalog_sync_status
                (source, employer, status, fetched, imported,

@@ -61,7 +61,10 @@ def fetch_jobs(configuration):
         query["RemoteIndicator"] = "true"
 
     items = []
-    page_count = max(1, min(int(configuration.get("pages", 1)), 10))
+    # Smaller pages keep each response inside the shared safety limit. The
+    # higher page ceiling preserves broad catalog coverage without accepting
+    # an oversized single response.
+    page_count = max(1, min(int(configuration.get("pages", 1)), 30))
     headers = {
         "Authorization-Key": api_key,
         "User-Agent": user_agent,

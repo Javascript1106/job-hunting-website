@@ -20,7 +20,8 @@ from .common import (
 
 MINIMUM_AGE = re.compile(
     r"\b(?:minimum age(?: requirement)?(?: is|:)?\s*\(?|"
-    r"meet the minimum age requirement\s*\(?|at least\s+|must be\s+)"
+    r"meet the minimum age requirement\s*\(?|at least\s+|"
+    r"(?:you\s+)?must be\s+(?:at least\s+)?)"
     r"(1[4-9]|2[01])\+?",
     re.IGNORECASE,
 )

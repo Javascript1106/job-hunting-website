@@ -36,6 +36,20 @@ class JobSourceCommonTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "safe size limit"):
                 common.fetch_json("https://api.example.com/jobs")
 
+    def test_fetch_json_caps_source_specific_limit(self):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.status = 200
+        response.read.return_value = b'{}'
+        with patch("job_sources.common.urlopen", return_value=response):
+            common.fetch_json(
+                "https://api.example.com/jobs",
+                max_bytes=100_000_000,
+            )
+        response.read.assert_called_once_with(
+            common.MAX_LARGE_JSON_BYTES + 1
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

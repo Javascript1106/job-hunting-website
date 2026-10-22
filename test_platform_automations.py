@@ -43,6 +43,31 @@ class PlatformAutomationTests(unittest.TestCase):
         self.assertEqual({row[0] for row in flags}, {"suspicious_listing", "ghost_listing"})
         self.assertEqual(report["open_review_flags"], 2)
 
+    def test_dismissed_flag_stays_dismissed_while_signal_remains(self):
+        connection = sqlite3.connect(self.database_path)
+        connection.execute(
+            """INSERT INTO jobs
+               (title, company, location, pay, description, schedule, experience,
+                category, status)
+               VALUES ('Assistant', 'Example', 'Utah', 'Pay listed',
+                       'Contact us via Telegram', 'Part-time', 'Entry level',
+                       'Other', 'active')"""
+        )
+        connection.commit(); connection.close()
+        run_platform_automations(self.database_path)
+        connection = sqlite3.connect(self.database_path)
+        connection.execute(
+            "UPDATE automation_review_flags SET status = 'dismissed'"
+        )
+        connection.commit(); connection.close()
+        run_platform_automations(self.database_path)
+        connection = sqlite3.connect(self.database_path)
+        status = connection.execute(
+            "SELECT status FROM automation_review_flags"
+        ).fetchone()[0]
+        connection.close()
+        self.assertEqual(status, "dismissed")
+
 
 if __name__ == "__main__":
     unittest.main()

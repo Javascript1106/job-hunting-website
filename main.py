@@ -986,7 +986,7 @@ def synchronize_user_notifications(cursor, user_id):
         FROM saved_search_matches AS matches
         JOIN saved_searches AS searches ON searches.id = matches.saved_search_id
         JOIN jobs ON jobs.id = matches.job_id
-        WHERE searches.user_id = ? AND matches.seen_at IS NULL
+        WHERE searches.user_id = ? AND matches.notified_at IS NULL
         """,
         (user_id,)
     ).fetchall()
@@ -1015,6 +1015,13 @@ def synchronize_user_notifications(cursor, user_id):
             "job_match", f"{len(rows)} new job matches",
             f"Your saved searches found {len(rows)} match(es), including {company_preview}.",
             "alerts.html", f"job-digest:{digest_frequency}:{period}",
+        )
+    if rows:
+        cursor.executemany(
+            """UPDATE saved_search_matches
+               SET notified_at = COALESCE(notified_at, CURRENT_TIMESTAMP)
+               WHERE id = ?""",
+            [(row["id"],) for row in rows],
         )
 
     rows = cursor.execute(

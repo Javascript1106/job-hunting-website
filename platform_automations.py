@@ -55,9 +55,16 @@ def flag_listing(cursor, job_id, flag_type, severity, reason, event_key):
            ON CONFLICT(event_key) DO UPDATE SET
              severity = excluded.severity,
              reason = excluded.reason,
-             status = 'open',
+             status = CASE
+               WHEN automation_review_flags.status = 'dismissed' THEN 'dismissed'
+               ELSE 'open'
+             END,
              last_seen_at = CURRENT_TIMESTAMP,
-             resolved_at = NULL""",
+             resolved_at = CASE
+               WHEN automation_review_flags.status = 'dismissed'
+                 THEN automation_review_flags.resolved_at
+               ELSE NULL
+             END""",
         (job_id, flag_type, severity, reason[:800], event_key),
     )
 
