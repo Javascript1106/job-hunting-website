@@ -847,6 +847,37 @@
       "detail_scan_limit": 120,
       "detail_workers": 8,
       "max_jobs": 80
+    },
+    {
+      "employer": "World Market",
+      "host": "worldmarket.wd5",
+      "tenant": "worldmarket",
+      "site": "cost_plus_world_market_jobs",
+      "country_codes": ["US"],
+      "search_queries": [
+        "California",
+        "Utah",
+        "Idaho",
+        "Nevada",
+        "Arizona",
+        "Oregon",
+        "Washington",
+        "Colorado",
+        "New Mexico",
+        "Montana",
+        "Wyoming",
+        "Alaska",
+        "Hawaii"
+      ],
+      "title_patterns": [
+        "sales associate",
+        "stock associate",
+        "seasonal sales associate"
+      ],
+      "scan_limit": 100,
+      "detail_scan_limit": 500,
+      "detail_workers": 12,
+      "max_jobs": 400
     }
   ],
   "usajobs": {

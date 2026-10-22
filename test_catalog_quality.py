@@ -225,6 +225,16 @@ class CatalogQualityTests(unittest.TestCase):
         self.assertGreaterEqual(dominos["detail_scan_limit"], 5000)
         self.assertGreaterEqual(dominos["max_jobs"], 750)
 
+        world_market = next(
+            source for source in configuration["workday"]
+            if source["employer"] == "World Market"
+        )
+        self.assertTrue(
+            {"California", "Utah", "Idaho", "Oregon", "Washington"}
+            <= set(world_market["search_queries"])
+        )
+        self.assertIn("sales associate", world_market["title_patterns"])
+
         postings = [
             {"id": "co-1", "location": {"region": "CO"}},
             {"id": "co-2", "location": {"region": "CO"}},
