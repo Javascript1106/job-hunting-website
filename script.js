@@ -6,6 +6,7 @@ const PATHFORGE_CATALOG_SCOPE = "us";
 let jobCatalogLoading = false;
 let jobSearchTotal = 0;
 let jobSearchHasMore = false;
+let jobSearchLoadedCount = 0;
 let jobSearchTimer = null;
 let jobSearchRequestId = 0;
 const { apiUrl, fetchWithTimeout, getSessionStatus } = window.PathForgeCore;
@@ -18,7 +19,8 @@ let activeReportJobId = null;
 let activeReportTrigger = null;
 let filteredJobs = [];
 let displayedJobCount = 0;
-const JOB_PAGE_SIZE = 12;
+const JOB_PAGE_SIZE = 24;
+const MAX_SEARCH_BATCHES_PER_LOAD = 8;
 let jobChatAuthenticated = false;
 let opportunityFitProfile = null;
 let sharedJobLocation = null;
@@ -1270,7 +1272,7 @@ function openJobComparison() {
 }
 
 
-function displayJobs(jobs, append = false) {
+function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
   const jobListings = document.getElementById("jobListings");
   const resultCount = document.getElementById("jobResultCount");
   const loadMoreButton = document.getElementById("loadMoreJobsButton");
@@ -1312,7 +1314,7 @@ function displayJobs(jobs, append = false) {
   // Render a small page at a time so large result sets remain responsive.
   const nextJobs = jobs.slice(
     displayedJobCount,
-    displayedJobCount + JOB_PAGE_SIZE
+    displayedJobCount + pageSize
   );
 
   nextJobs.forEach(job => {
@@ -3512,6 +3514,7 @@ async function runJobSearch(offset = 0, requestedDisplayCount = null) {
     if (requestId !== jobSearchRequestId) return;
     const knownIds = new Set(offset ? allJobs.map(job => Number(job.id)) : []);
     allJobs = offset ? allJobs.concat(data.jobs.filter(job => !knownIds.has(Number(job.id)))) : data.jobs;
+    jobSearchLoadedCount = offset + data.jobs.length;
     jobSearchTotal = data.total;
     jobSearchHasMore = data.has_more;
     populateJobCategories(data.categories || []);
@@ -3522,8 +3525,11 @@ async function runJobSearch(offset = 0, requestedDisplayCount = null) {
         requestedDisplayCount ?? previouslyDisplayed + JOB_PAGE_SIZE,
         filteredJobs.length
       );
-      while (displayedJobCount < target) displayJobs(filteredJobs, true);
+      while (displayedJobCount < target) {
+        displayJobs(filteredJobs, true, target - displayedJobCount);
+      }
     }
+    return true;
   } catch (error) {
     if (requestId !== jobSearchRequestId) return;
     jobCatalogLoading = false;
@@ -3536,6 +3542,7 @@ async function runJobSearch(offset = 0, requestedDisplayCount = null) {
       loadMoreButton.removeAttribute("aria-busy");
       loadMoreButton.textContent = "Try loading more jobs";
     }
+    return false;
   }
 }
 
@@ -3564,13 +3571,20 @@ async function loadMoreJobResults() {
     displayJobs(filteredJobs, true);
   }
 
-  if (displayedJobCount < requestedDisplayCount && jobSearchHasMore) {
+  let batchesFetched = 0;
+  while (
+    displayedJobCount < requestedDisplayCount
+    && jobSearchHasMore
+    && batchesFetched < MAX_SEARCH_BATCHES_PER_LOAD
+  ) {
     if (loadMoreButton) {
       loadMoreButton.disabled = true;
       loadMoreButton.setAttribute("aria-busy", "true");
-      loadMoreButton.textContent = "Loading more jobs…";
+      loadMoreButton.textContent = `Finding up to ${JOB_PAGE_SIZE} more jobs…`;
     }
-    await runJobSearch(allJobs.length, requestedDisplayCount);
+    const loaded = await runJobSearch(jobSearchLoadedCount, requestedDisplayCount);
+    if (!loaded) break;
+    batchesFetched += 1;
   }
 
   if (displayedJobCount > previouslyDisplayed) {
