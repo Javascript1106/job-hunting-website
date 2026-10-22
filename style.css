@@ -2470,16 +2470,17 @@ textarea.required-field-missing {
 
 .advanced-filter-count {
   display: inline-grid;
-  min-width: 24px;
-  height: 24px;
+  min-height: 26px;
   margin-left: .35rem;
-  padding: 0 .35rem;
+  padding: .15rem .65rem;
   place-items: center;
   border-radius: 999px;
   box-sizing: border-box;
   background: #2563eb;
   color: #fff;
-  font-size: .78rem;
+  font-size: .72rem;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .advanced-filter-count[hidden] {

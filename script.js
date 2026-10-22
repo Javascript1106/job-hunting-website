@@ -3154,7 +3154,9 @@ function renderActiveJobFilters(filters) {
       "locationSearchInput"
     ].includes(filter.controlId)).length;
     advancedFilterCount.hidden = secondaryCount === 0;
-    advancedFilterCount.textContent = secondaryCount ? String(secondaryCount) : "";
+    advancedFilterCount.textContent = secondaryCount
+      ? `${secondaryCount} filter${secondaryCount === 1 ? "" : "s"} active`
+      : "";
     advancedFilterCount.setAttribute(
       "aria-label",
       `${secondaryCount} additional filter${secondaryCount === 1 ? "" : "s"} active`

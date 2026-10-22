@@ -256,6 +256,7 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('content: "View details +"', self.styles)
         self.assertIn('content: "Hide details −"', self.styles)
         self.assertIn('id="advancedFilterCount"', self.jobs)
+        self.assertIn('`${secondaryCount} filter${secondaryCount === 1 ? "" : "s"} active`', self.script)
         self.assertNotIn('id="locationScopeFilter"', self.jobs)
         self.assertNotIn("Catalog area", self.jobs)
         self.assertIn('const PATHFORGE_CATALOG_SCOPE = "us"', self.script)
