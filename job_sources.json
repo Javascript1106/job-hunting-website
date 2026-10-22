@@ -736,6 +736,24 @@
       "max_jobs": 200
     },
     {
+      "employer": "Cinemark",
+      "host": "cinemark.wd1",
+      "tenant": "cinemark",
+      "site": "Cinemark",
+      "country_codes": ["US"],
+      "search_queries": [
+        "Alaska",
+        "Massachusetts",
+        "North Dakota",
+        "South Dakota"
+      ],
+      "title_patterns": ["theatre team member"],
+      "scan_limit": 40,
+      "detail_scan_limit": 40,
+      "detail_workers": 4,
+      "max_jobs": 40
+    },
+    {
       "employer": "Target",
       "host": "target.wd5",
       "tenant": "target",
@@ -743,6 +761,10 @@
       "country_codes": ["US"],
       "confirmed_teen_only": false,
       "search_queries": [
+        "Alaska",
+        "Massachusetts",
+        "North Dakota",
+        "South Dakota",
         "guest advocate",
         "fulfillment expert",
         "starbucks barista"
@@ -756,9 +778,9 @@
         "general merchandise expert"
       ],
       "scan_limit": 40,
-      "detail_scan_limit": 150,
-      "detail_workers": 16,
-      "max_jobs": 100
+      "detail_scan_limit": 220,
+      "detail_workers": 2,
+      "max_jobs": 180
     }
   ],
   "usajobs": {

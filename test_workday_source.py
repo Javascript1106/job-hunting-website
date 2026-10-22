@@ -1,12 +1,33 @@
 """Contract tests for the public Workday career-site adapter."""
 
 import unittest
-from unittest.mock import patch
+from urllib.error import HTTPError
+from unittest.mock import MagicMock, patch
 
 from job_sources import workday
 
 
 class WorkdaySourceTests(unittest.TestCase):
+    def test_retries_rate_limited_listing_request(self):
+        limited = HTTPError(
+            "https://example.wd5.myworkdayjobs.com/jobs",
+            429,
+            "Too Many Requests",
+            {"Retry-After": "1"},
+            None,
+        )
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = b'{"total": 0, "jobPostings": []}'
+        with patch("job_sources.workday.urlopen", side_effect=[limited, response]), patch(
+            "job_sources.workday.time.sleep"
+        ) as sleep:
+            result = workday._post_json(
+                "https://example.wd5.myworkdayjobs.com/jobs", {}
+            )
+        self.assertEqual(result["total"], 0)
+        sleep.assert_called_once_with(1.0)
+
     def test_imports_only_explicitly_teen_eligible_regional_roles(self):
         listing = {
             "total": 1,

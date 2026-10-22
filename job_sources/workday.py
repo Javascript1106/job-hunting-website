@@ -2,6 +2,7 @@
 
 import json
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlparse
@@ -28,6 +29,7 @@ PAY_RANGE = re.compile(
     r"\$(\d{1,3}(?:\.\d{1,2})?)",
     re.IGNORECASE,
 )
+MAX_JSON_BYTES = 10_000_000
 
 
 def _identifier(value):
@@ -44,7 +46,7 @@ def _host(value):
     return result
 
 
-def _post_json(url, payload):
+def _post_json(url, payload, retries=4):
     request = Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
@@ -54,17 +56,27 @@ def _post_json(url, payload):
             "User-Agent": "PathForge/1.0",
         },
     )
-    try:
-        with urlopen(request, timeout=30) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except HTTPError as error:
-        raise RuntimeError(
-            f"HTTP {error.code} returned by {urlparse(url).netloc}"
-        ) from error
-    except URLError as error:
-        raise RuntimeError(
-            f"could not reach {urlparse(url).netloc}: {error.reason}"
-        ) from error
+    for attempt in range(max(0, int(retries)) + 1):
+        try:
+            with urlopen(request, timeout=30) as response:
+                response_body = response.read(MAX_JSON_BYTES + 1)
+                if len(response_body) > MAX_JSON_BYTES:
+                    raise RuntimeError("Workday response exceeded the safe size limit")
+                return json.loads(response_body.decode("utf-8"))
+        except HTTPError as error:
+            retryable = error.code in {429, 502, 503, 504}
+            if retryable and attempt < retries:
+                retry_after = (error.headers or {}).get("Retry-After")
+                delay = float(retry_after) if str(retry_after or "").isdigit() else 2 ** attempt
+                time.sleep(min(max(delay, 0.25), 30))
+                continue
+            raise RuntimeError(
+                f"HTTP {error.code} returned by {urlparse(url).netloc}"
+            ) from error
+        except URLError as error:
+            raise RuntimeError(
+                f"could not reach {urlparse(url).netloc}: {error.reason}"
+            ) from error
 
 
 def _minimum_age(text):

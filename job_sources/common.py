@@ -4,6 +4,7 @@ import html
 import json
 import re
 import sqlite3
+import time
 from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
@@ -24,6 +25,7 @@ SYNC_COLUMNS = [
     "salary_min", "salary_max", "salary_period",
     "verification_status", "link_status", "last_link_checked_at"
 ]
+MAX_JSON_BYTES = 10_000_000
 
 
 def utc_now():
@@ -31,7 +33,7 @@ def utc_now():
 
 
 # Network requests use a recognizable agent and bounded timeout for reliable sync runs.
-def fetch_json(url, headers=None, timeout=30):
+def fetch_json(url, headers=None, timeout=30, retries=3):
     request_headers = {
         "Accept": "application/json",
         "User-Agent": "PathForge/1.0"
@@ -39,25 +41,35 @@ def fetch_json(url, headers=None, timeout=30):
     request_headers.update(headers or {})
     request = Request(url, headers=request_headers)
 
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            if response.status != 200:
-                raise RuntimeError(
-                    f"unexpected HTTP status {response.status}"
-                )
-            return json.loads(response.read().decode("utf-8"))
-    except HTTPError as error:
-        raise RuntimeError(
-            f"HTTP {error.code} returned by {urlparse(url).netloc}"
-        ) from error
-    except URLError as error:
-        raise RuntimeError(
-            f"could not reach {urlparse(url).netloc}: {error.reason}"
-        ) from error
-    except json.JSONDecodeError as error:
-        raise RuntimeError(
-            f"invalid JSON returned by {urlparse(url).netloc}"
-        ) from error
+    for attempt in range(max(0, int(retries)) + 1):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                if response.status != 200:
+                    raise RuntimeError(
+                        f"unexpected HTTP status {response.status}"
+                    )
+                payload = response.read(MAX_JSON_BYTES + 1)
+                if len(payload) > MAX_JSON_BYTES:
+                    raise RuntimeError("job source response exceeded the safe size limit")
+                return json.loads(payload.decode("utf-8"))
+        except HTTPError as error:
+            retryable = error.code in {429, 502, 503, 504}
+            if retryable and attempt < retries:
+                retry_after = (error.headers or {}).get("Retry-After")
+                delay = float(retry_after) if str(retry_after or "").isdigit() else 2 ** attempt
+                time.sleep(min(max(delay, 0.25), 30))
+                continue
+            raise RuntimeError(
+                f"HTTP {error.code} returned by {urlparse(url).netloc}"
+            ) from error
+        except URLError as error:
+            raise RuntimeError(
+                f"could not reach {urlparse(url).netloc}: {error.reason}"
+            ) from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError(
+                f"invalid JSON returned by {urlparse(url).netloc}"
+            ) from error
 
 
 def plain_text(value):
