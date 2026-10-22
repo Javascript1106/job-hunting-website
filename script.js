@@ -2961,11 +2961,15 @@ function getTeenEligibilityBadge(job) {
 }
 
 function jobMatchesApplicantAge(job, selectedAge) {
-  if (selectedAge === "all" || selectedAge === "age-18-plus") return true;
+  if (selectedAge === "all") return true;
   const statedMinimumAge = getJobMinimumAge(job);
-  if (selectedAge === "age-14") return statedMinimumAge <= 14;
-  if (selectedAge === "age-15") return statedMinimumAge <= 15;
-  return statedMinimumAge <= 17 || isTeenFriendlyJob(job);
+  if (!Number.isFinite(statedMinimumAge)) return false;
+  if (selectedAge === "age-14") return statedMinimumAge === 14;
+  if (selectedAge === "age-15") return statedMinimumAge === 15;
+  if (selectedAge === "age-16-17") {
+    return statedMinimumAge >= 16 && statedMinimumAge <= 17;
+  }
+  return statedMinimumAge >= 18;
 }
 
 function clearDirectJobFocus() {

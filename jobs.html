@@ -120,12 +120,12 @@
     <section class="job-quick-paths" aria-labelledby="jobQuickPathsTitle">
       <div>
         <strong id="jobQuickPathsTitle">Quick paths</strong>
-        <span>Start with a useful filter, then refine it if needed.</span>
+        <span>Choose an employer-stated minimum age or another useful filter. Older applicants can apply too.</span>
       </div>
       <div class="job-quick-path-buttons">
-        <button type="button" data-job-preset="age-14" aria-pressed="false">Age 14</button>
-        <button type="button" data-job-preset="age-15" aria-pressed="false">Age 15</button>
-        <button type="button" data-job-preset="teen" aria-pressed="false">Ages 16–17</button>
+        <button type="button" data-job-preset="age-14" aria-pressed="false">Minimum age 14+</button>
+        <button type="button" data-job-preset="age-15" aria-pressed="false">Minimum age 15+</button>
+        <button type="button" data-job-preset="teen" aria-pressed="false">Minimum age 16–17+</button>
         <button type="button" data-job-preset="first-job" aria-pressed="false">First job</button>
         <button type="button" data-job-preset="part-time" aria-pressed="false">Part-time</button>
         <button type="button" data-job-preset="pay-listed" aria-pressed="false">Pay listed</button>
@@ -161,7 +161,7 @@
             <label class="job-filter-field" for="queryModeFilter"><span>Search matching</span><select id="queryModeFilter"><option value="broad">Include related matches</option><option value="strict">Strict title, employer, or field matches</option></select></label>
             <label class="job-filter-field" for="categoryFilter"><span>Job field</span><select id="categoryFilter"><option value="all">All job fields</option></select></label>
             <label class="job-filter-field" for="experienceFilter"><span>Experience</span><select id="experienceFilter"><option value="all">Any experience level</option><option value="first-job">First job — no career credentials</option><option value="entry-level">Early career — credentials may apply</option><option value="experienced">Experienced</option></select></label>
-            <label class="job-filter-field" for="ageFitFilter"><span>Applicant age</span><select id="ageFitFilter"><option value="all">Any applicant age</option><option value="age-14">Age 14</option><option value="age-15">Age 15</option><option value="age-16-17">Ages 16–17</option><option value="age-18-plus">Age 18 or older</option></select></label>
+            <label class="job-filter-field" for="ageFitFilter"><span>Employer minimum age</span><select id="ageFitFilter"><option value="all">Any stated minimum age</option><option value="age-14">Minimum age 14+</option><option value="age-15">Minimum age 15+</option><option value="age-16-17">Minimum age 16–17+</option><option value="age-18-plus">Minimum age 18+</option></select></label>
           </div>
         </fieldset>
         <fieldset class="job-filter-group">
@@ -178,7 +178,7 @@
         <fieldset class="job-exclusion-filters"><legend>Job types to hide</legend><p>These choices stay active until you clear them.</p><label><input type="checkbox" name="jobExclusion" value="senior"> Senior or management roles</label><label><input type="checkbox" name="jobExclusion" value="staffing"> Staffing-agency listings</label><label><input type="checkbox" name="jobExclusion" value="commission"> Commission-only or 1099 work</label><label><input type="checkbox" name="jobExclusion" value="clearance"> Security-clearance roles</label><label><input type="checkbox" name="jobExclusion" value="unpaid"> Unpaid roles</label></fieldset>
         <div class="advanced-filter-actions"><button id="restoreHiddenJobsButton" class="restore-hidden-jobs-button" type="button">Restore Hidden Jobs</button></div>
       </div>
-      <p id="teenJobFilterGuidance" class="teen-job-filter-guidance" hidden><strong>For applicants under 18:</strong> PathForge uses age requirements stated in the posting when available. Always confirm the employer’s minimum age and your local work-permit rules before applying.</p>
+      <p id="teenJobFilterGuidance" class="teen-job-filter-guidance" hidden><strong>How minimum ages work:</strong> A minimum age is the youngest age the employer says it hires—not the only eligible age. Older applicants can apply too. Always confirm current requirements and local work-permit rules.</p>
     </details>
 
     <details class="natural-job-search" aria-labelledby="naturalJobSearchTitle">

@@ -237,14 +237,16 @@ def _teen_friendly(job: dict[str, Any]) -> bool:
 
 
 def _matches_age(job: dict[str, Any], selected: str) -> bool:
-    if selected in {"all", "age-18-plus"}:
+    if selected == "all":
         return True
     minimum = _minimum_age(job)
     if selected == "age-14":
-        return minimum is not None and minimum <= 14
+        return minimum == 14
     if selected == "age-15":
-        return minimum is not None and minimum <= 15
-    return (minimum is not None and minimum <= 17) or _teen_friendly(job)
+        return minimum == 15
+    if selected == "age-16-17":
+        return minimum is not None and 16 <= minimum <= 17
+    return minimum is not None and minimum >= 18
 
 
 def _is_us_location(value: Any) -> bool:

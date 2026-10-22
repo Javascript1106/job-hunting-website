@@ -213,6 +213,27 @@ class CatalogQualityTests(unittest.TestCase):
         results = discover_jobs(jobs, location_scope="us", age_fit="age-16-17")
         self.assertEqual(results[0]["title"], "Crew Member")
 
+    def test_minimum_age_filters_use_employer_stated_age_groups(self):
+        jobs = [
+            {"id": 14, "title": "Host", "company": "Cafe", "location": "Denver, CO", "requirements": "Minimum age stated by employer: 14."},
+            {"id": 15, "title": "Cashier", "company": "Market", "location": "Boise, ID", "requirements": "Minimum age stated by employer: 15."},
+            {"id": 16, "title": "Crew Member", "company": "Restaurant", "location": "Provo, UT", "requirements": "Minimum age stated by employer: 16."},
+            {"id": 18, "title": "Associate", "company": "Store", "location": "Reno, NV", "requirements": "Minimum age stated by employer: 18."},
+        ]
+        for age_filter, expected in (
+            ("age-14", {14}),
+            ("age-15", {15}),
+            ("age-16-17", {16}),
+            ("age-18-plus", {18}),
+        ):
+            with self.subTest(age_filter=age_filter):
+                results = discover_jobs(
+                    [dict(job) for job in jobs],
+                    location_scope="us",
+                    age_fit=age_filter,
+                )
+                self.assertEqual({job["id"] for job in results}, expected)
+
     def test_teen_source_scans_full_board_and_balances_states(self):
         configuration = json.loads(
             (Path(__file__).resolve().parent / "job_sources.json")
