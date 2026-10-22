@@ -249,8 +249,9 @@ def create_admin_alerts(cursor, open_flags):
     ).fetchone()[0]
     quality_gaps = cursor.execute(
         """SELECT COUNT(*) FROM jobs WHERE status = 'active' AND owner_user_id IS NULL
-           AND ((salary_min IS NULL) + (trim(COALESCE(requirements, '')) = '')
-                + (application_deadline IS NULL)) >= 2"""
+           AND salary_min IS NULL
+           AND trim(COALESCE(requirements, '')) = ''
+           AND application_deadline IS NULL"""
     ).fetchone()[0]
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     created = 0
@@ -261,11 +262,38 @@ def create_admin_alerts(cursor, open_flags):
                 f"Failed sources: {failed_sources}. Open listing flags: {open_flags}. Pending reports: {pending_reports}. Failed logins in 24 hours: {failed_logins}.",
                 "admin-moderation.html", f"admin-operations:{day}",
             )
+        else:
+            # Operational alerts are snapshots. Remove unresolved alerts once
+            # every monitored condition has recovered so admins do not chase a
+            # failure that is no longer present. Read alerts remain as history.
+            cursor.execute(
+                """DELETE FROM notifications
+                   WHERE user_id = ? AND is_read = 0
+                     AND event_key LIKE 'admin-operations:%'""",
+                (admin["id"],),
+            )
         if quality_gaps:
+            quality_message = (
+                f"{quality_gaps} active listings are missing pay, requirements, "
+                "and a deadline. Review employer-provided details; never invent "
+                "missing information."
+            )
             created += _notify(
                 cursor, admin["id"], "account", "Listing-quality review queue",
-                f"{quality_gaps} active listings are missing pay, requirements, or a deadline. Prioritize high-traffic and teen-friendly listings first.",
+                quality_message,
                 "admin-moderation.html#qualityReviewQueue", f"quality-review:{day}",
+            )
+            # This is a same-day health snapshot rather than an immutable user
+            # event. Keep its count accurate even if an admin already opened it.
+            cursor.execute(
+                """UPDATE notifications SET message = ?, href = ?
+                   WHERE user_id = ? AND event_key = ?""",
+                (
+                    quality_message,
+                    "admin-moderation.html#qualityReviewQueue",
+                    admin["id"],
+                    f"quality-review:{day}",
+                ),
             )
     return created
 
