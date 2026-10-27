@@ -9147,7 +9147,7 @@ function displayEmployerApplications(applications) {
           </p>
         </div>
 
-        <span class="employer-application-status">
+        <span class="employer-application-status" data-status="${escapeEmployerHtml(application.status)}">
           ${escapeEmployerHtml(application.status)}
         </span>
       </div>

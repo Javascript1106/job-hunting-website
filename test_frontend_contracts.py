@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261027-v129"
+ASSET_VERSION = "20261027-v130"
 
 
 class MarkupInspector(HTMLParser):
@@ -62,6 +62,14 @@ class FrontendContractTests(unittest.TestCase):
             with self.subTest(page=page.name):
                 self.assertEqual(inspector.h1_count, 1)
                 self.assertEqual(len(inspector.ids), len(set(inspector.ids)))
+
+    def test_showcase_polish_remains_accessible_and_meaningful(self):
+        dashboard = (PROJECT_ROOT / "dashboard.html").read_text(encoding="utf-8")
+        self.assertEqual(dashboard.count('class="dashboard-card-icon" aria-hidden="true"'), 5)
+        self.assertIn("prefers-reduced-motion: reduce", self.styles)
+        self.assertIn("forced-colors: active", self.styles)
+        self.assertIn(".main-nav.nav-open .nav-menu-icon", self.styles)
+        self.assertIn('data-status="${escapeEmployerHtml(application.status)}"', self.script)
 
     def test_filter_dropdowns_and_quick_paths_are_unique(self):
         inspector = MarkupInspector()

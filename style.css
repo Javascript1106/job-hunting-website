@@ -19,6 +19,12 @@
   --pf-color-error: #991b1b;
   --pf-color-error-bg: #fef2f2;
   --pf-color-error-border: #fecaca;
+  --pf-color-info: #1e4f91;
+  --pf-color-info-bg: #eff6ff;
+  --pf-color-info-border: #bfdbfe;
+  --pf-color-warning: #854d0e;
+  --pf-color-warning-bg: #fffbeb;
+  --pf-color-warning-border: #fde68a;
   --pf-radius-control: 8px;
   --pf-radius-card: 14px;
   --pf-shadow-card: 0 8px 24px rgba(23, 35, 52, .08);
@@ -1233,6 +1239,214 @@ textarea.required-field-missing {
 
   .home-button:hover {
     transform: none;
+  }
+}
+
+/* Showcase polish: meaningful hierarchy, states, and responsive feedback. */
+main h1 {
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+
+main h2,
+main h3 {
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+
+main p {
+  text-wrap: pretty;
+}
+
+main section[id] {
+  scroll-margin-top: 7rem;
+}
+
+.dashboard-stats .dashboard-card {
+  position: relative;
+  overflow: hidden;
+  padding-right: 5rem;
+}
+
+.dashboard-card::after {
+  position: absolute;
+  inset: auto -1.75rem -2.25rem auto;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pf-color-primary) 7%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.dashboard-card-icon {
+  position: absolute;
+  top: 1.15rem;
+  right: 1.15rem;
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  place-items: center;
+  border: 1px solid #c9dcff;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #2454b8;
+}
+
+.dashboard-card-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.dashboard-card:nth-child(3) .dashboard-card-icon,
+.dashboard-card:nth-child(4) .dashboard-card-icon {
+  border-color: var(--pf-color-warning-border);
+  background: var(--pf-color-warning-bg);
+  color: var(--pf-color-warning);
+}
+
+.dashboard-card:nth-child(5) .dashboard-card-icon {
+  border-color: var(--pf-color-success-border);
+  background: var(--pf-color-success-bg);
+  color: var(--pf-color-success);
+}
+
+:where(.empty-state, .employer-empty-state, .moderation-empty-state, .message-empty-state)::before {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 auto .9rem;
+  place-items: center;
+  border: 1px solid #c9dcff;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2454b8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232454b8' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='5.75'/%3E%3Cpath d='m15 15 4.25 4.25'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1.45rem;
+  content: "";
+}
+
+:where(.empty-state, .employer-empty-state, .moderation-empty-state, .message-empty-state) p {
+  max-width: 42rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.success-message:not(:empty),
+.error-message:not(:empty) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: .65rem;
+}
+
+.success-message:not(:empty)::before,
+.error-message:not(:empty)::before {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-top: .05rem;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  content: "\2713";
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.error-message:not(:empty)::before {
+  content: "!";
+}
+
+.employer-application-status[data-status="Interview" i],
+.employer-application-status[data-status="Interviewing" i] {
+  border-color: var(--pf-color-warning-border);
+  background: var(--pf-color-warning-bg);
+  color: var(--pf-color-warning);
+}
+
+.employer-application-status[data-status="Offer" i],
+.employer-application-status[data-status="Hired" i],
+.employer-application-status[data-status="Accepted" i] {
+  border-color: var(--pf-color-success-border);
+  background: var(--pf-color-success-bg);
+  color: var(--pf-color-success);
+}
+
+.employer-application-status[data-status="Rejected" i],
+.employer-application-status[data-status="Withdrawn" i] {
+  border-color: var(--pf-color-error-border);
+  background: var(--pf-color-error-bg);
+  color: var(--pf-color-error);
+}
+
+@keyframes pf-nav-panel-enter {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 980px) {
+  .main-nav.nav-open .nav-links {
+    animation: pf-nav-panel-enter 180ms ease-out both;
+    box-shadow: 0 18px 32px rgba(15, 23, 42, .2);
+  }
+
+  .main-nav.nav-open .nav-menu-icon {
+    background: transparent;
+  }
+
+  .main-nav.nav-open .nav-menu-icon::before {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .main-nav.nav-open .nav-menu-icon::after {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .nav-menu-icon,
+  .nav-menu-icon::before,
+  .nav-menu-icon::after {
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-card {
+    padding-right: 4.5rem;
+  }
+
+  .dashboard-card-icon {
+    top: 1rem;
+    right: 1rem;
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-nav.nav-open .nav-links {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .dashboard-card-icon,
+  :where(.empty-state, .employer-empty-state, .moderation-empty-state, .message-empty-state)::before {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    background-image: none;
+  }
+
+  .dashboard-card::after {
+    display: none;
   }
 }
 
