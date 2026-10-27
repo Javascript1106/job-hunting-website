@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261027-v126"
+ASSET_VERSION = "20261027-v129"
 
 
 class MarkupInspector(HTMLParser):
@@ -132,6 +132,13 @@ class FrontendContractTests(unittest.TestCase):
             versions.update(version_pattern.findall(page.read_text(encoding="utf-8")))
         self.assertEqual(versions, {ASSET_VERSION})
         self.assertIn(f'pathforge-shell-{ASSET_VERSION}', self.worker)
+
+    def test_shared_motion_respects_navigation_and_accessibility(self):
+        self.assertIn("@keyframes pf-page-enter", self.styles)
+        self.assertIn("prefers-reduced-motion: reduce", self.styles)
+        self.assertIn("initializePageTransitions", self.core)
+        self.assertIn('document.body.classList.add("pf-page-leaving")', self.core)
+        self.assertIn('destination.origin !== global.location.origin', self.core)
         self.assertIn(f'const ASSET_VERSION = "{ASSET_VERSION}"', self.worker)
         for page in PROJECT_ROOT.glob("*.html"):
             markup = page.read_text(encoding="utf-8")

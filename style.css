@@ -10552,3 +10552,87 @@ textarea.required-field-missing {
     border-bottom: 0;
   }
 }
+
+/* Shared motion language: brief, subtle, and disabled for reduced motion. */
+@keyframes pf-page-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pf-page-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes pf-content-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pf-card-enter {
+  from { opacity: 0; transform: translateY(10px) scale(.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pf-disclosure-enter {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body > main {
+    animation: pf-page-enter 220ms ease-out both;
+  }
+
+  body > main > :first-child {
+    animation: pf-content-enter 260ms cubic-bezier(.22, .75, .25, 1) both;
+  }
+
+  :where(.job-card, .saved-job-card, .dashboard-card, .learning-category-card, .analytics-panel) {
+    animation: pf-card-enter 260ms cubic-bezier(.22, .75, .25, 1) both;
+  }
+
+  .job-listings > .job-card:nth-of-type(2) { animation-delay: 35ms; }
+  .job-listings > .job-card:nth-of-type(3) { animation-delay: 70ms; }
+
+  :where(details[open]) > :not(summary) {
+    animation: pf-disclosure-enter 180ms ease-out both;
+  }
+
+  :where(button, .button, .button-secondary, input, select, textarea, summary, a) {
+    transition-duration: 160ms;
+    transition-timing-function: ease;
+  }
+
+  :where(input, select, textarea) {
+    transition-property: border-color, box-shadow, background-color;
+  }
+
+  :where(button, .button, .button-secondary):not(:disabled):active {
+    transform: translateY(1px) scale(.99);
+  }
+
+  .job-card-heading .save-job-button:not(:disabled):active {
+    transform: scale(.93);
+  }
+
+  body > main,
+  body > footer {
+    transition: opacity 120ms ease, transform 120ms ease;
+  }
+
+  body.pf-page-leaving > main,
+  body.pf-page-leaving > footer {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body > main,
+  body > main > :first-child,
+  :where(.job-card, .saved-job-card, .dashboard-card, .learning-category-card, .analytics-panel),
+  :where(details[open]) > :not(summary) {
+    animation: none !important;
+  }
+}

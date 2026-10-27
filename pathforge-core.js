@@ -60,6 +60,50 @@
     }
   }
 
+  function initializePageTransitions() {
+    if (global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    global.addEventListener("pageshow", () => {
+      document.body?.classList.remove("pf-page-leaving");
+    });
+
+    document.addEventListener("click", event => {
+      if (
+        event.defaultPrevented
+        || event.button !== 0
+        || event.metaKey
+        || event.ctrlKey
+        || event.shiftKey
+        || event.altKey
+      ) {
+        return;
+      }
+
+      const link = event.target.closest?.("a[href]");
+      if (!link || link.hasAttribute("download")) return;
+      if (link.target && link.target.toLowerCase() !== "_self") return;
+
+      const destination = new URL(link.href, global.location.href);
+      if (destination.origin !== global.location.origin) return;
+      if (!["http:", "https:"].includes(destination.protocol)) return;
+      if (
+        destination.pathname === global.location.pathname
+        && destination.search === global.location.search
+        && destination.hash
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      document.body.classList.add("pf-page-leaving");
+      global.setTimeout(() => global.location.assign(destination.href), 120);
+    });
+  }
+
+  initializePageTransitions();
+
   global.PathForgeCore = Object.freeze({
     apiUrl,
     fetchWithTimeout,
