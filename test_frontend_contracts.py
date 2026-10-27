@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261022-v123"
+ASSET_VERSION = "20261027-v126"
 
 
 class MarkupInspector(HTMLParser):
