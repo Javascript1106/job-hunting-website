@@ -1,6 +1,6 @@
 // Offline shell for public PathForge pages and versioned static assets.
-const CACHE_NAME = "pathforge-shell-20261029-v134";
-const ASSET_VERSION = "20261029-v134";
+const CACHE_NAME = "pathforge-shell-20261029-v135";
+const ASSET_VERSION = "20261029-v135";
 // Cache only the public application shell. Account data and API responses
 // remain network-backed so private or stale records are never served offline.
 const SHELL_FILES = [
