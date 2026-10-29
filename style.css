@@ -5773,25 +5773,25 @@ main section[id] {
 }
 
 .resource-topic-nav {
-  position: sticky;
-  top: .75rem;
-  z-index: 8;
+  position: static;
   display: flex;
-  gap: .55rem;
+  width: fit-content;
+  max-width: 100%;
+  gap: .2rem;
   margin: 0 0 1.5rem;
-  padding: .65rem;
+  padding: .35rem;
   overflow-x: auto;
   border: 1px solid #dce6ec;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, .96);
-  box-shadow: 0 8px 24px rgba(15, 40, 61, .07);
+  border-radius: .8rem;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 40, 61, .05);
   scrollbar-width: thin;
 }
 
 .resource-topic-nav a {
   flex: 0 0 auto;
-  padding: .55rem .8rem;
-  border-radius: .7rem;
+  padding: .5rem .7rem;
+  border-radius: .55rem;
   color: #173f57;
   font-weight: 750;
   text-decoration: none;
@@ -5841,8 +5841,7 @@ main section[id] {
   .listing-confidence-summary dl { grid-template-columns: 1fr; }
 
   .resource-topic-nav {
-    top: .35rem;
-    margin-inline: -.25rem;
+    width: 100%;
   }
 }
 

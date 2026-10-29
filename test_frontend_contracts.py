@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261029-v133"
+ASSET_VERSION = "20261029-v134"
 
 
 class MarkupInspector(HTMLParser):
@@ -84,6 +84,9 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("learning-topic-list", learning)
         self.assertIn('class="job-detail-highlights"', self.script)
         self.assertIn('class="resource-topic-nav"', learning)
+        self.assertIn(".resource-topic-nav {", self.styles)
+        self.assertIn("position: static;", self.styles)
+        self.assertIn("width: fit-content;", self.styles)
         self.assertIn('<details class="learning-research-basis">', learning)
         self.assertEqual(learning.count('class="assistant-prompt-extra hidden"'), 5)
         self.assertIn('id="toggleLearningAssistantPrompts"', learning)
