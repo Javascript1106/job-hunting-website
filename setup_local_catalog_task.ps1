@@ -20,8 +20,8 @@ $action = New-ScheduledTaskAction `
     -Execute $PythonExecutable `
     -Argument $quotedScript `
     -WorkingDirectory $projectDirectory
-$trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Tuesday, Thursday -At 2:00PM
-$trigger.StartBoundary = (Get-Date -Hour 14 -Minute 0 -Second 0).ToString("yyyy-MM-dd'T'HH:mm:ss")
+$trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Tuesday, Thursday -At 2:30PM
+$trigger.StartBoundary = (Get-Date -Hour 14 -Minute 30 -Second 0).ToString("yyyy-MM-dd'T'HH:mm:ss")
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
@@ -37,7 +37,7 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Settings $settings `
     -Principal $principal `
-    -Description "Back up and refresh the PathForge job catalog every Tuesday and Thursday at 2 PM." `
+    -Description "Back up and refresh the PathForge job catalog every Tuesday and Thursday at 2:30 PM." `
     -Force | Out-Null
 
 $registeredTask = Get-ScheduledTask -TaskName $TaskName

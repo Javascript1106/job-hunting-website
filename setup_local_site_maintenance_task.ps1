@@ -24,8 +24,8 @@ $trigger = New-ScheduledTaskTrigger `
     -Weekly `
     -WeeksInterval 1 `
     -DaysOfWeek Tuesday,Thursday `
-    -At 9:15AM
-$trigger.StartBoundary = (Get-Date -Hour 9 -Minute 15 -Second 0).ToString("yyyy-MM-dd'T'HH:mm:ss")
+    -At 2:30PM
+$trigger.StartBoundary = (Get-Date -Hour 14 -Minute 30 -Second 0).ToString("yyyy-MM-dd'T'HH:mm:ss")
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 30) `
@@ -41,7 +41,7 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Settings $settings `
     -Principal $principal `
-    -Description "Run PathForge recovery, integrity, security, backup, and showcase-readiness checks Tuesdays and Thursdays." `
+    -Description "Run PathForge recovery, integrity, security, backup, and showcase-readiness checks Tuesdays and Thursdays at 2:30 PM." `
     -Force | Out-Null
 
 $registeredTask = Get-ScheduledTask -TaskName $TaskName
