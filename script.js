@@ -1102,6 +1102,27 @@ function buildJobTrustDetails(job) {
   `;
 }
 
+function buildListingConfidenceSummary(job) {
+  const quality = buildJobQualityReview(job);
+  const safetySignals = Array.isArray(job.safety_signals) ? job.safety_signals.length : 0;
+  const checkedDate = job.last_verified_at || job.last_link_checked_at;
+  const confidence = job.trust_level === "official_source" && quality.confirmed >= 6 && !safetySignals
+    ? "Strong source record"
+    : job.trust_level === "official_source" && !safetySignals
+      ? "Official source · details vary"
+      : safetySignals ? "Review safety signals" : "Verify before applying";
+  return `<section class="listing-confidence-summary" aria-label="Listing confidence summary">
+    <div><span>Listing confidence</span><strong>${escapeEmployerHtml(confidence)}</strong></div>
+    <dl>
+      <div><dt>Source</dt><dd>${escapeEmployerHtml(job.trust_label || "Limited verification")}</dd></div>
+      <div><dt>Completeness</dt><dd>${quality.confirmed}/${quality.checks.length} details</dd></div>
+      <div><dt>Last checked</dt><dd>${escapeEmployerHtml(formatJobCardDate(checkedDate) || "Not listed")}</dd></div>
+      <div><dt>Safety review</dt><dd>${safetySignals ? `${safetySignals} signal${safetySignals === 1 ? "" : "s"} to review` : "No text-based warning detected"}</dd></div>
+    </dl>
+    <p>Confidence describes source and information quality—not your chance of being hired.</p>
+  </section>`;
+}
+
 function buildJobEvidenceDetails(job) {
   const sourceName = job.source || (job.application_method === "pathforge" ? "PathForge employer posting" : "Employer website");
   const sourceUrl = job.source_url || job.application_url;
@@ -1228,9 +1249,33 @@ function buildWhyThisResult(job) {
   if (category && category !== "all") reasons.push(`It is classified as ${category} from the job title.`);
   if (schedule && schedule !== "all") reasons.push(`The posting states ${schedule.replace("-", " ")}.`);
   if (remote && remote !== "all") reasons.push(`Its work setting matches ${remote === "onsite" ? "on-site" : remote}.`);
-  if (location) reasons.push(`Its listed location matches the location search.`);
+  if (location) {
+    const locationMode = document.getElementById("locationMatchFilter")?.value || "nearby";
+    reasons.push(
+      locationMode === "exact"
+        ? "Its listed city or ZIP matches your exact-location search."
+        : "Its listed location matches your search area; nearby areas may also appear."
+    );
+  }
   if (!reasons.length) reasons.push("It is an active listing that matches the filters currently selected.");
   return `<details class="why-job-result"><summary>Why this result?</summary><ul>${[...new Set(reasons)].map(reason => `<li>${escapeEmployerHtml(reason)}</li>`).join("")}</ul><p>Best Match prioritizes title and location matches, then freshness and listing completeness. It does not predict whether you will be hired.</p></details>`;
+}
+
+function updateJobSearchTransparency({ queryMode, locationMode, sort }) {
+  const summary = document.getElementById("jobSearchTransparencySummary");
+  const details = document.getElementById("jobSearchTransparencyDetails");
+  if (!summary || !details) return;
+  const personalized = Boolean(opportunityFitProfile);
+  const locationLabel = sharedJobLocation
+    ? "Current area"
+    : locationMode === "exact" ? "Exact location" : "Nearby areas allowed";
+  summary.textContent = `${queryMode === "strict" ? "Strict" : "Broad"} match · ${locationLabel} · ${personalized ? "Profile preferences on" : "Profile preferences off"}`;
+  details.innerHTML = `
+    <li><strong>Keywords:</strong> ${queryMode === "strict" ? "All important search concepts must match." : "Related wording and common title variations may match."}</li>
+    <li><strong>Location:</strong> ${sharedJobLocation ? "Approximate nearby matching uses coordinates only in this browser." : locationMode === "exact" ? "PathForge requires the listed city or ZIP to match." : "PathForge may include nearby areas and labels this choice visibly."}</li>
+    <li><strong>Ordering:</strong> ${sort === "recommended" ? "Best Match uses visible terms, location, freshness, and listing completeness." : `Results use the selected ${sort.replace("-", " ")} order.`} It does not predict hiring outcomes.</li>
+    <li><strong>Personalization:</strong> ${personalized ? "Your saved work preferences may help order otherwise matching jobs. You can turn personalized guidance off in Settings." : "No saved work-preference profile is currently affecting these results."}</li>
+  `;
 }
 
 function updateJobComparisonBar() {
@@ -1264,9 +1309,12 @@ function openJobComparison() {
     ["Work setting", getJobWorkSetting],
     ["Schedule", job => formatJobTypeDisplay(job.employment_type || job.schedule)],
     ["Pay", formatJobSalary], ["Experience", job => job.experience || "Not listed"],
+    ["Minimum age", job => getTeenEligibilityBadge(job)?.label || "Not stated"],
     ["Deadline", job => formatApplicationDeadline(job.application_deadline || job.expires_at) || "Not listed"],
     ["Posting quality", job => { const q = buildJobQualityReview(job); return `${q.confirmed}/${q.checks.length} · ${q.label}`; }],
-    ["Verification", job => job.trust_label || "Limited Verification"]
+    ["Verification", job => job.trust_label || "Limited Verification"],
+    ["Last source check", job => formatJobCardDate(job.last_verified_at || job.last_link_checked_at)],
+    ["Application destination", job => job.application_method === "pathforge" ? "PathForge application" : "Employer website"]
   ];
   table.innerHTML = `<table><thead><tr><th scope="col">Detail</th>${jobs.map(job => `<th scope="col">${escapeEmployerHtml(job.title)}</th>`).join("")}</tr></thead><tbody>${rows.map(([label, getter]) => `<tr><th scope="row">${label}</th>${jobs.map(job => `<td>${escapeEmployerHtml(getter(job) || "Not listed")}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   dialog.showModal();
@@ -1472,8 +1520,9 @@ function displayJobs(jobs, append = false, pageSize = INITIAL_JOB_PAGE_SIZE) {
         </div>
 
         <details class="job-understanding-details">
-          <summary>Why this job appeared</summary>
+          <summary>Listing confidence and match details</summary>
           <p class="job-understanding-introduction">Review how this listing compares with your preferences and what information is available.</p>
+          ${buildListingConfidenceSummary(job)}
           ${buildOpportunityFitSnapshot(job)}
           ${buildWhyThisResult(job)}
           ${buildJobQualityDetails(job)}
@@ -2086,6 +2135,21 @@ const ApplicationService = {
     });
 
     form.classList.remove("hidden");
+    delete form.dataset.reviewReady;
+    const review = document.getElementById("internalApplicationReview");
+    if (review) {
+      review.classList.add("hidden");
+      review.innerHTML = "";
+    }
+    const submitButton = document.getElementById("internalApplicationSubmitButton");
+    if (submitButton) submitButton.textContent = "Review Application";
+    form.oninput = function () {
+      if (!form.dataset.reviewReady) return;
+      delete form.dataset.reviewReady;
+      review?.classList.add("hidden");
+      if (submitButton) submitButton.textContent = "Review Application";
+      showApplicationDialogMessage("Your answers changed. Review them again before submitting.", "");
+    };
 
     const firstAnswer = form.querySelector(
       ".internal-application-answer"
@@ -2156,6 +2220,33 @@ const ApplicationService = {
             element.value.trim()
         };
       });
+
+    if (form.dataset.reviewReady !== "true") {
+      const review = document.getElementById("internalApplicationReview");
+      if (review) {
+        const answerRows = Array.from(answerElements).map(element => {
+          const label = element.closest(".internal-application-field")?.querySelector("label")?.textContent
+            ?.replace(/\s+/g, " ").trim() || "Application question";
+          const value = element.tagName === "SELECT"
+            ? element.selectedOptions[0]?.textContent?.trim()
+            : element.value.trim();
+          return `<div><dt>${escapeEmployerHtml(label)}</dt><dd>${escapeEmployerHtml(value || "No answer")}</dd></div>`;
+        }).join("");
+        review.innerHTML = `
+          <h3>Review before sending</h3>
+          <p><strong>Destination:</strong> ${escapeEmployerHtml(activeApplicationJob.company)} through PathForge.</p>
+          <p><strong>Information sent:</strong> The answers shown below. No résumé file is sent by this form unless an employer question explicitly requests one.</p>
+          <dl>${answerRows || "<div><dt>Employer questions</dt><dd>No additional answers required</dd></div>"}</dl>
+          <p>Confirm that every answer is accurate and represents your real experience.</p>
+        `;
+        review.classList.remove("hidden");
+      }
+      form.dataset.reviewReady = "true";
+      submitButton.textContent = "Confirm and Submit";
+      showApplicationDialogMessage("Review the destination and answers, then confirm submission.", "");
+      review?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      return;
+    }
 
     submitButton.disabled = true;
     submitButton.textContent = "Submitting...";
@@ -2265,7 +2356,7 @@ const ApplicationService = {
     } finally {
       submitButton.disabled = false;
       submitButton.textContent =
-        "Submit Application";
+        "Review Application";
     }
   },
 
@@ -2282,6 +2373,8 @@ const ApplicationService = {
 
         The page will open in a new tab. PathForge can still track this
         application even though you apply on the employer's website.
+        PathForge does not send your résumé, profile, or saved answers to
+        that site. Review the destination and decide what to share there.
         Return here afterward and tell us whether you completed it.
       `,
       `
@@ -3229,6 +3322,7 @@ function filterJobs(refreshFromServer = true) {
   const teenGuidance = document.getElementById("teenJobFilterGuidance");
   if (teenGuidance) teenGuidance.hidden = !["age-14", "age-15", "age-16-17"].includes(selectedAgeFit);
   updateQuickJobPresetStates();
+  updateTeenStarterModeState();
   scheduleJobSearchHistory({
     query: jobSearchInput.value.trim(),
     location: locationSearchInput.value.trim(),
@@ -3382,6 +3476,11 @@ function filterJobs(refreshFromServer = true) {
     { controlId: "excludeTermsFilter", defaultValue: "", label: `Exclude: ${excludedTerms.join(", ")}`, active: excludedTerms.length > 0 },
     ...[...exclusions].map(value => ({ checkboxName: "jobExclusion", checkboxValue: value, label: `Exclude ${value}`, active: true }))
   ]);
+  updateJobSearchTransparency({
+    queryMode: selectedQueryMode,
+    locationMode: selectedLocationMatch,
+    sort: selectedSort
+  });
   const restoreHiddenButton = document.getElementById("restoreHiddenJobsButton");
   if (restoreHiddenButton) {
     restoreHiddenButton.disabled = hiddenJobIds.size === 0;
@@ -3432,8 +3531,44 @@ function resetQuickJobPresets() {
     const control = document.getElementById(controlId);
     if (control) control.value = "all";
   });
+  ["senior", "commission"].forEach(value => {
+    const checkbox = document.querySelector(`input[name="jobExclusion"][value="${value}"]`);
+    if (checkbox) checkbox.checked = false;
+  });
   filterJobs();
   document.querySelector("[data-job-preset]")?.focus();
+}
+
+function teenStarterModeIsActive() {
+  return document.getElementById("ageFitFilter")?.value === "age-16-17"
+    && document.getElementById("experienceFilter")?.value === "first-job"
+    && document.getElementById("employmentTypeFilter")?.value === "part-time"
+    && ["senior", "commission"].every(value =>
+      document.querySelector(`input[name="jobExclusion"][value="${value}"]`)?.checked
+    );
+}
+
+function updateTeenStarterModeState() {
+  const button = document.getElementById("teenStarterModeButton");
+  if (button) button.setAttribute("aria-pressed", String(teenStarterModeIsActive()));
+}
+
+function toggleTeenStarterMode() {
+  const clearing = teenStarterModeIsActive();
+  const values = {
+    ageFitFilter: clearing ? "all" : "age-16-17",
+    experienceFilter: clearing ? "all" : "first-job",
+    employmentTypeFilter: clearing ? "all" : "part-time"
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const control = document.getElementById(id);
+    if (control) control.value = value;
+  });
+  ["senior", "commission"].forEach(value => {
+    const checkbox = document.querySelector(`input[name="jobExclusion"][value="${value}"]`);
+    if (checkbox) checkbox.checked = !clearing;
+  });
+  filterJobs();
 }
 
 function applyQuickJobPreset(preset) {
@@ -4287,6 +4422,10 @@ window.onload = function() {
     );
   });
   resetQuickPresetsButton?.addEventListener("click", resetQuickJobPresets);
+  document.getElementById("teenStarterModeButton")?.addEventListener(
+    "click",
+    toggleTeenStarterMode
+  );
 
   if (categoryFilter) {
     categoryFilter.addEventListener("change", filterJobs);

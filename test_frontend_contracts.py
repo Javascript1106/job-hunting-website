@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261029-v132"
+ASSET_VERSION = "20261029-v133"
 
 
 class MarkupInspector(HTMLParser):
@@ -91,6 +91,22 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('displayJobs(filteredJobs, true, JOB_PAGE_SIZE)', self.script)
         self.assertIn('id="loginIntroduction"', login)
         self.assertIn('function initializeContextualLogin()', self.script)
+
+    def test_transparent_search_and_application_review_are_present(self):
+        applications = (PROJECT_ROOT / "applications.html").read_text(encoding="utf-8")
+        self.assertIn('id="jobSearchTransparency"', self.jobs)
+        self.assertIn('id="jobSearchTransparencySummary"', self.jobs)
+        self.assertIn("function updateJobSearchTransparency", self.script)
+        self.assertIn("Profile preferences off", self.script)
+        self.assertIn('id="teenStarterModeButton"', self.jobs)
+        self.assertIn("function toggleTeenStarterMode", self.script)
+        self.assertIn("Listing confidence and match details", self.script)
+        self.assertIn("function buildListingConfidenceSummary", self.script)
+        self.assertIn('id="internalApplicationReview"', self.jobs)
+        self.assertIn('form.dataset.reviewReady = "true"', self.script)
+        self.assertIn("Confirm and Submit", self.script)
+        self.assertIn("PathForge cannot see activity on an employer's website", applications)
+        self.assertIn('["Application destination"', self.script)
 
     def test_filter_dropdowns_and_quick_paths_are_unique(self):
         inspector = MarkupInspector()

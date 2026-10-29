@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Jobs - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261029-v132">
+  <link rel="stylesheet" href="style.css?v=20261029-v133">
 </head>
 
 <body class="jobs-page">
@@ -132,6 +132,7 @@
         <details class="quick-path-more">
           <summary>More quick paths</summary>
           <div>
+            <button id="teenStarterModeButton" type="button" aria-pressed="false">Teen starter mode</button>
             <button type="button" data-job-preset="remote" aria-pressed="false">Remote</button>
             <button type="button" data-job-preset="recent" aria-pressed="false">Posted this week</button>
             <button type="button" data-job-preset="accommodation" aria-pressed="false">Accommodation details</button>
@@ -205,6 +206,18 @@
     ></p>
 
     <div id="activeJobFilters" class="active-job-filters" aria-label="Active job filters"></div>
+
+    <details id="jobSearchTransparency" class="job-search-transparency">
+      <summary>
+        <span>How this search works</span>
+        <strong id="jobSearchTransparencySummary">Broad match · Nearby areas</strong>
+      </summary>
+      <ul id="jobSearchTransparencyDetails">
+        <li>PathForge uses the search terms and filters shown on this page.</li>
+        <li>Best Match explains its ordering and never predicts whether you will be hired.</li>
+        <li>Location expansion and personalization are identified here instead of happening silently.</li>
+      </ul>
+    </details>
 
     <div class="job-results-toolbar">
       <p id="jobResultCount" class="job-result-count" aria-live="polite"></p>
@@ -346,6 +359,8 @@
         class="internal-application-questions"
       ></div>
 
+      <section id="internalApplicationReview" class="internal-application-review hidden" aria-live="polite"></section>
+
       <div class="internal-application-reminder">
         <strong>Before submitting</strong>
 
@@ -361,7 +376,7 @@
         id="internalApplicationSubmitButton"
         class="internal-application-submit"
       >
-        Submit Application
+        Review Application
       </button>
     </form>
     
@@ -440,8 +455,8 @@
   </div>
 </section>
 
-  <script src="pathforge-core.js?v=20261029-v132"></script>
-<script src="script.js?v=20261029-v132"></script>
+  <script src="pathforge-core.js?v=20261029-v133"></script>
+<script src="script.js?v=20261029-v133"></script>
 <footer class="home-footer">
   <div class="home-footer-brand">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">

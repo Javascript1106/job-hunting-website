@@ -5686,6 +5686,92 @@ main section[id] {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.job-search-transparency {
+  margin: .75rem 0 1rem;
+  border: 1px solid #dce6ec;
+  border-radius: 1rem;
+  background: #f8fbfc;
+}
+
+.job-search-transparency > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .85rem 1rem;
+  cursor: pointer;
+  color: #173f57;
+  font-weight: 800;
+}
+
+.job-search-transparency > summary strong {
+  color: #526979;
+  font-size: .82rem;
+  text-align: right;
+}
+
+.job-search-transparency ul {
+  margin: 0;
+  padding: 0 1.25rem 1rem 2.25rem;
+  color: #40596a;
+}
+
+.listing-confidence-summary {
+  padding: 1rem;
+  border: 1px solid #cfe4dc;
+  border-radius: .9rem;
+  background: #f2faf7;
+}
+
+.listing-confidence-summary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .8rem;
+}
+
+.listing-confidence-summary > div span {
+  color: #526979;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.listing-confidence-summary dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+  margin: 0;
+}
+
+.listing-confidence-summary dt { color: #617586; font-size: .76rem; font-weight: 750; text-transform: uppercase; }
+.listing-confidence-summary dd { margin: .2rem 0 0; color: #173f57; font-weight: 700; }
+.listing-confidence-summary p { margin: .8rem 0 0; color: #526979; font-size: .86rem; }
+
+.internal-application-review {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 2px solid #b8d8cd;
+  border-radius: .9rem;
+  background: #f2faf7;
+}
+
+.internal-application-review h3 { margin-top: 0; }
+.internal-application-review dl { display: grid; gap: .65rem; }
+.internal-application-review dl div { padding: .7rem; border-radius: .6rem; background: #fff; }
+.internal-application-review dt { font-weight: 800; }
+.internal-application-review dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
+
+.tracker-visibility-note {
+  max-width: 58rem;
+  padding: .85rem 1rem;
+  border-left: 4px solid #2a6fbb;
+  border-radius: 0 .65rem .65rem 0;
+  background: #eef5ff;
+  color: #29495f;
+}
+
 .resource-topic-nav {
   position: sticky;
   top: .75rem;
@@ -5745,6 +5831,15 @@ main section[id] {
 }
 
 @media (max-width: 720px) {
+  .job-search-transparency > summary,
+  .listing-confidence-summary > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .job-search-transparency > summary strong { text-align: left; }
+  .listing-confidence-summary dl { grid-template-columns: 1fr; }
+
   .resource-topic-nav {
     top: .35rem;
     margin-inline: -.25rem;
