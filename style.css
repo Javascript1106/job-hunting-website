@@ -5791,16 +5791,27 @@ main section[id] {
 .resource-topic-nav a {
   flex: 0 0 auto;
   padding: .5rem .7rem;
+  border: 1px solid #b9cae1;
   border-radius: .55rem;
+  background: #f5f8fc;
   color: #173f57;
   font-weight: 750;
   text-decoration: none;
+  box-shadow: 0 1px 2px rgba(15, 40, 61, .04);
 }
 
 .resource-topic-nav a:hover,
 .resource-topic-nav a:focus-visible {
-  color: #0e6b56;
-  background: #eef9f5;
+  border-color: #2b68dc;
+  color: #174ba8;
+  background: #edf4ff;
+}
+
+.resource-topic-nav a[aria-current="location"] {
+  border-color: #245ee5;
+  color: #fff;
+  background: #245ee5;
+  box-shadow: 0 3px 8px rgba(36, 94, 229, .22);
 }
 
 .learning-research-basis > summary {

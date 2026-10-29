@@ -14958,6 +14958,32 @@ function handleDelegatedActionSubmit(event) {
   }
 }
 
+function initializeResourceTopicNavigation() {
+  const navigation = document.querySelector(".resource-topic-nav");
+  if (!navigation) return;
+
+  const links = Array.from(navigation.querySelectorAll('a[href^="#"]'));
+  const updateSelectedTopic = () => {
+    links.forEach(link => {
+      const selected = Boolean(window.location.hash) && link.hash === window.location.hash;
+      if (selected) {
+        link.setAttribute("aria-current", "location");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+
+  navigation.addEventListener("click", event => {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link) return;
+    links.forEach(item => item.removeAttribute("aria-current"));
+    link.setAttribute("aria-current", "location");
+  });
+  window.addEventListener("hashchange", updateSelectedTopic);
+  updateSelectedTopic();
+}
+
 document.addEventListener("click", handleDelegatedActionClick);
 document.addEventListener("change", handleDelegatedActionChange);
 document.addEventListener("submit", handleDelegatedActionSubmit);
@@ -14978,4 +15004,8 @@ document.addEventListener(
 document.addEventListener(
   "DOMContentLoaded",
   initializeAdditionalPayPreferenceDropdown
+);
+document.addEventListener(
+  "DOMContentLoaded",
+  initializeResourceTopicNavigation
 );
