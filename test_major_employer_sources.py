@@ -21,6 +21,9 @@ class MajorEmployerSourceTests(unittest.TestCase):
         ]
         self.assertEqual(employers.count("CVS Health"), 1)
         self.assertEqual(employers.count("Primark"), 1)
+        self.assertEqual(employers.count("Five Below"), 1)
+        self.assertEqual(employers.count("KnitWell Group"), 1)
+        self.assertEqual(employers.count("Whataburger"), 1)
 
     def test_new_major_employers_use_bounded_official_feeds(self):
         configuration = json.loads(
@@ -39,6 +42,23 @@ class MajorEmployerSourceTests(unittest.TestCase):
         self.assertLessEqual(primark["max_jobs"], primark["detail_scan_limit"])
         self.assertFalse(cvs["confirmed_teen_only"])
         self.assertFalse(primark["confirmed_teen_only"])
+
+    def test_new_teen_employers_are_us_only_and_bounded(self):
+        configuration = json.loads(
+            (PROJECT_ROOT / "job_sources.json").read_text(encoding="utf-8")
+        )
+        entries = {
+            entry["employer"]: entry
+            for entry in configuration["workday"]
+        }
+        for employer in ("Five Below", "KnitWell Group", "Whataburger"):
+            with self.subTest(employer=employer):
+                source = entries[employer]
+                self.assertEqual(source["country_codes"], ["US"])
+                self.assertLessEqual(source["max_jobs"], source["detail_scan_limit"])
+                self.assertLessEqual(source["detail_workers"], 16)
+                self.assertTrue(source["title_patterns"])
+                self.assertTrue(source["search_queries"])
 
 
 if __name__ == "__main__":

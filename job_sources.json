@@ -889,6 +889,81 @@
       "max_jobs": 400
     },
     {
+      "employer": "Five Below",
+      "host": "fivebelow.wd1",
+      "tenant": "fivebelow",
+      "site": "fivebelowcareers",
+      "country_codes": ["US"],
+      "search_queries": [
+        "sales associate",
+        "customer experience",
+        "California",
+        "Utah",
+        "Idaho",
+        "Nevada",
+        "Arizona",
+        "Oregon",
+        "Washington",
+        "Colorado"
+      ],
+      "title_patterns": [
+        "sales associate",
+        "customer experience",
+        "support lead"
+      ],
+      "scan_limit": 40,
+      "detail_scan_limit": 240,
+      "detail_workers": 8,
+      "max_jobs": 200
+    },
+    {
+      "employer": "KnitWell Group",
+      "host": "knitwellgroup.wd1",
+      "tenant": "knitwellgroup",
+      "site": "US_Retail_Jobs",
+      "country_codes": ["US"],
+      "search_queries": [
+        "sales associate",
+        "California",
+        "Utah",
+        "Idaho",
+        "Nevada",
+        "Arizona",
+        "Montana"
+      ],
+      "title_patterns": [
+        "sales associate",
+        "stock associate",
+        "store associate"
+      ],
+      "scan_limit": 40,
+      "detail_scan_limit": 180,
+      "detail_workers": 8,
+      "max_jobs": 150
+    },
+    {
+      "employer": "Whataburger",
+      "host": "whataburger.wd5",
+      "tenant": "whataburger",
+      "site": "WAB_CAREERS",
+      "country_codes": ["US"],
+      "search_queries": [
+        "restaurant team member",
+        "Arizona",
+        "New Mexico",
+        "Texas",
+        "Colorado"
+      ],
+      "title_patterns": [
+        "restaurant team member",
+        "team member"
+      ],
+      "scan_limit": 40,
+      "detail_scan_limit": 120,
+      "detail_workers": 8,
+      "max_jobs": 100
+    },
+    {
       "employer": "CVS Health",
       "host": "cvshealth.wd1",
       "tenant": "cvshealth",
