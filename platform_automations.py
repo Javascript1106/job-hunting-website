@@ -8,6 +8,15 @@ from database import DB_NAME, get_connection, initialize_database
 
 
 TERMINAL_APPLICATION_STATUSES = ("Accepted", "Rejected", "Withdrawn")
+PRIORITY_MAJOR_EMPLOYERS = (
+    "CVS Health",
+    "Domino's",
+    "Gap Inc.",
+    "H&M Group",
+    "Panera Bread",
+    "Primark",
+    "Target",
+)
 SUSPICIOUS_TEXT = re.compile(
     r"\b(?:pay (?:a |the )?(?:fee|deposit)|buy (?:gift cards?|equipment)|"
     r"send (?:money|crypto)|(?:contact|message|reach) (?:us |the recruiter )?"
@@ -247,6 +256,22 @@ def create_admin_alerts(cursor, open_flags):
            WHERE action = 'login' AND succeeded = 0
              AND created_at >= datetime('now', '-24 hours')"""
     ).fetchone()[0]
+    priority_rows = cursor.execute(
+        """SELECT employer, status, imported FROM catalog_sync_status
+           WHERE employer IN ({})""".format(
+               ",".join("?" for _ in PRIORITY_MAJOR_EMPLOYERS)
+           ),
+        PRIORITY_MAJOR_EMPLOYERS,
+    ).fetchall()
+    priority_by_employer = {row["employer"]: row for row in priority_rows}
+    priority_source_issues = [
+        employer for employer in PRIORITY_MAJOR_EMPLOYERS
+        if employer in priority_by_employer
+        and (
+            str(priority_by_employer[employer]["status"] or "").lower() != "ok"
+            or int(priority_by_employer[employer]["imported"] or 0) == 0
+        )
+    ]
     quality_gaps = cursor.execute(
         """SELECT COUNT(*) FROM jobs WHERE status = 'active' AND owner_user_id IS NULL
            AND salary_min IS NULL
@@ -256,10 +281,19 @@ def create_admin_alerts(cursor, open_flags):
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     created = 0
     for admin in admins:
-        if failed_sources or open_flags or pending_reports or failed_logins >= 10:
+        if (failed_sources or priority_source_issues or open_flags
+                or pending_reports or failed_logins >= 10):
+            priority_message = (
+                " Priority employers needing review: "
+                + ", ".join(priority_source_issues)
+                + "."
+                if priority_source_issues else ""
+            )
             created += _notify(
                 cursor, admin["id"], "account", "PathForge operations need review",
-                f"Failed sources: {failed_sources}. Open listing flags: {open_flags}. Pending reports: {pending_reports}. Failed logins in 24 hours: {failed_logins}.",
+                f"Failed sources: {failed_sources}. Open listing flags: {open_flags}. "
+                f"Pending reports: {pending_reports}. Failed logins in 24 hours: "
+                f"{failed_logins}.{priority_message}",
                 "admin-moderation.html", f"admin-operations:{day}",
             )
         else:

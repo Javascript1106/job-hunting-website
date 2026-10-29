@@ -129,6 +129,30 @@ class PlatformAutomationTests(unittest.TestCase):
         self.assertIn("1 active listing", message)
         self.assertIn("pay, requirements, and a deadline", message)
 
+    def test_priority_major_employer_with_zero_imports_alerts_admin(self):
+        connection = sqlite3.connect(self.database_path)
+        connection.execute(
+            "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'admin')",
+            ("admin", "admin@example.com", "unused"),
+        )
+        connection.execute(
+            """INSERT INTO catalog_sync_status
+               (source, employer, status, fetched, imported,
+                excluded_by_country, error)
+               VALUES ('SmartRecruiters:Primark', 'Primark', 'ok',
+                       100, 0, 100, NULL)"""
+        )
+        connection.commit(); connection.close()
+
+        run_platform_automations(self.database_path)
+
+        connection = sqlite3.connect(self.database_path)
+        message = connection.execute(
+            "SELECT message FROM notifications WHERE event_key LIKE 'admin-operations:%'"
+        ).fetchone()[0]
+        connection.close()
+        self.assertIn("Priority employers needing review: Primark", message)
+
 
 if __name__ == "__main__":
     unittest.main()

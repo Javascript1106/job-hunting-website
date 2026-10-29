@@ -243,6 +243,15 @@
       "scan_limit": 5000,
       "detail_scan_limit": 300,
       "detail_workers": 16
+    },
+    {
+      "employer": "Primark",
+      "company_id": "Primark",
+      "confirmed_teen_only": false,
+      "max_jobs": 500,
+      "scan_limit": 3000,
+      "detail_scan_limit": 750,
+      "detail_workers": 16
     }
   ],
   "ashby": [
@@ -878,6 +887,28 @@
       "detail_scan_limit": 500,
       "detail_workers": 12,
       "max_jobs": 400
+    },
+    {
+      "employer": "CVS Health",
+      "host": "cvshealth.wd1",
+      "tenant": "cvshealth",
+      "site": "CVS_Health_Careers",
+      "country_codes": ["US"],
+      "confirmed_teen_only": false,
+      "search_queries": [
+        "store associate",
+        "front store",
+        "pharmacy technician"
+      ],
+      "title_patterns": [
+        "store associate",
+        "front store",
+        "pharmacy technician"
+      ],
+      "scan_limit": 1000,
+      "detail_scan_limit": 900,
+      "detail_workers": 16,
+      "max_jobs": 600
     }
   ],
   "usajobs": {
