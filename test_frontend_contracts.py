@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261029-v131"
+ASSET_VERSION = "20261029-v132"
 
 
 class MarkupInspector(HTMLParser):
@@ -74,6 +74,7 @@ class FrontendContractTests(unittest.TestCase):
     def test_dense_pages_use_progressive_disclosure(self):
         home = (PROJECT_ROOT / "index.html").read_text(encoding="utf-8")
         learning = (PROJECT_ROOT / "learning-center.html").read_text(encoding="utf-8")
+        login = (PROJECT_ROOT / "login.html").read_text(encoding="utf-8")
         self.assertNotIn("home-steps-section", home)
         self.assertNotIn("home-final-cta", home)
         self.assertEqual(home.count('class="home-section '), 2)
@@ -82,6 +83,14 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("Not sure what filters to choose?", self.jobs)
         self.assertNotIn("learning-topic-list", learning)
         self.assertIn('class="job-detail-highlights"', self.script)
+        self.assertIn('class="resource-topic-nav"', learning)
+        self.assertIn('<details class="learning-research-basis">', learning)
+        self.assertEqual(learning.count('class="assistant-prompt-extra hidden"'), 5)
+        self.assertIn('id="toggleLearningAssistantPrompts"', learning)
+        self.assertIn('const INITIAL_JOB_PAGE_SIZE = 16', self.script)
+        self.assertIn('displayJobs(filteredJobs, true, JOB_PAGE_SIZE)', self.script)
+        self.assertIn('id="loginIntroduction"', login)
+        self.assertIn('function initializeContextualLogin()', self.script)
 
     def test_filter_dropdowns_and_quick_paths_are_unique(self):
         inspector = MarkupInspector()

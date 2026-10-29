@@ -5686,6 +5686,71 @@ main section[id] {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.resource-topic-nav {
+  position: sticky;
+  top: .75rem;
+  z-index: 8;
+  display: flex;
+  gap: .55rem;
+  margin: 0 0 1.5rem;
+  padding: .65rem;
+  overflow-x: auto;
+  border: 1px solid #dce6ec;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 8px 24px rgba(15, 40, 61, .07);
+  scrollbar-width: thin;
+}
+
+.resource-topic-nav a {
+  flex: 0 0 auto;
+  padding: .55rem .8rem;
+  border-radius: .7rem;
+  color: #173f57;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.resource-topic-nav a:hover,
+.resource-topic-nav a:focus-visible {
+  color: #0e6b56;
+  background: #eef9f5;
+}
+
+.learning-research-basis > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  color: #173f57;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.learning-research-basis > summary small {
+  color: #617586;
+  font-size: .84rem;
+  font-weight: 650;
+}
+
+.learning-research-content {
+  padding-top: 1rem;
+}
+
+.assistant-prompt-toggle {
+  color: #173f57 !important;
+  background: #fff !important;
+  border-style: dashed !important;
+}
+
+@media (max-width: 720px) {
+  .resource-topic-nav {
+    top: .35rem;
+    margin-inline: -.25rem;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   :where(.dashboard-card, .job-card, .saved-job-card, .learning-category-card, .analytics-panel, .resume-review-panel) {
     transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
@@ -9683,6 +9748,20 @@ main section[id] {
 
 .job-card-company a { color: inherit; text-decoration-color: #aab7c6; text-underline-offset: 3px; }
 .job-card-company a:hover, .job-card-company a:focus-visible { color: #145fc0; }
+.job-source-indicator {
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-left: .35rem;
+  border: 1px solid #9fc8bd;
+  border-radius: 999px;
+  color: #0e6b56;
+  background: #eef9f5;
+  font-size: .72rem;
+  font-weight: 900;
+  vertical-align: .08rem;
+}
 .company-research-main { width: min(1160px, calc(100% - 2rem)); margin: 0 auto; padding: 2.5rem 0 4rem; }
 .company-research-hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.25rem; padding: clamp(1.25rem,3vw,2rem); background: linear-gradient(135deg,#f5f9ff,#fff); border: 1px solid #d8e2ee; border-radius: 18px; }
 .company-research-hero h1 { margin: .15rem 0 .5rem; color: #20334b; }

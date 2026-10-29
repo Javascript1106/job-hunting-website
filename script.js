@@ -19,6 +19,7 @@ let activeReportJobId = null;
 let activeReportTrigger = null;
 let filteredJobs = [];
 let displayedJobCount = 0;
+const INITIAL_JOB_PAGE_SIZE = 16;
 const JOB_PAGE_SIZE = 24;
 const MAX_SEARCH_BATCHES_PER_LOAD = 8;
 let jobChatAuthenticated = false;
@@ -1272,7 +1273,7 @@ function openJobComparison() {
 }
 
 
-function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
+function displayJobs(jobs, append = false, pageSize = INITIAL_JOB_PAGE_SIZE) {
   const jobListings = document.getElementById("jobListings");
   const resultCount = document.getElementById("jobResultCount");
   const loadMoreButton = document.getElementById("loadMoreJobsButton");
@@ -1347,7 +1348,10 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
       <div class="job-card-heading">
         <div class="job-card-title-group">
           <h3>${escapeEmployerHtml(job.title)}</h3>
-          <p class="job-card-company"><a href="company.html?name=${encodeURIComponent(job.company)}">${escapeEmployerHtml(job.company)}</a></p>
+          <p class="job-card-company">
+            <a href="company.html?name=${encodeURIComponent(job.company)}">${escapeEmployerHtml(job.company)}</a>
+            <span class="job-source-indicator" title="${escapeEmployerHtml(job.trust_label || "Limited verification")}" aria-label="${escapeEmployerHtml(job.trust_label || "Limited verification")}">✓</span>
+          </p>
         </div>
 
         <div class="job-card-heading-controls">
@@ -1356,12 +1360,9 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
             return eligibility ? `<span class="job-highlight-badge teen-friendly-badge ${escapeEmployerHtml(eligibility.className || "")}" title="${escapeEmployerHtml(eligibility.title)}">${escapeEmployerHtml(eligibility.label)}</span>` : "";
           })()}
           ${viewState.changed ? `<span class="job-highlight-badge changed-job-badge">Changed since viewed</span>` : viewState.viewed ? `<span class="job-highlight-badge viewed-job-badge">Viewed</span>` : ""}
-          ${jobWasRecentlyPosted(job) ? `
+          ${!viewState.changed && !viewState.viewed && jobWasRecentlyPosted(job) ? `
             <span class="job-highlight-badge new-job-badge">New</span>
           ` : ""}
-          <span class="job-trust-badge ${getJobTrustBadgeClass(job)}">
-            ${escapeEmployerHtml(job.trust_label || "Limited Verification")}
-          </span>
 
           <button
             type="button"
@@ -1416,6 +1417,7 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
 
       <div id="${detailsId}" class="job-details hidden">
         <div class="job-detail-highlights" aria-label="Additional listing highlights">
+          <span class="job-trust-badge ${getJobTrustBadgeClass(job)}">${escapeEmployerHtml(job.trust_label || "Limited Verification")}</span>
           ${job.application_method === "pathforge" ? `<span class="job-highlight-badge easy-apply-badge">Apply on PathForge</span>` : ""}
           ${job.application_method === "employer_website" ? `<span class="external-job-badge">Employer website</span>` : ""}
           ${hasJobAccommodationInformation(job) ? `<span class="job-highlight-badge accommodation-info-badge">Accommodation information</span>` : ""}
@@ -3550,7 +3552,7 @@ async function loadMoreJobResults() {
   );
 
   if (displayedJobCount < filteredJobs.length) {
-    displayJobs(filteredJobs, true);
+    displayJobs(filteredJobs, true, JOB_PAGE_SIZE);
   }
 
   let batchesFetched = 0;
@@ -4489,6 +4491,31 @@ function initializeAuthAccountChoice() {
 }
 
 document.addEventListener("DOMContentLoaded", initializeAuthAccountChoice);
+
+function initializeContextualLogin() {
+    if (!document.getElementById("loginForm")) return;
+    const requestedPage = new URLSearchParams(window.location.search).get("next");
+    const employerLogin = requestedPage === "employer-access.html"
+        || requestedPage === "employer.html";
+    if (!employerLogin) return;
+
+    const eyebrow = document.getElementById("loginEyebrow");
+    const title = document.getElementById("loginTitle");
+    const introduction = document.getElementById("loginIntroduction");
+    const benefitsTitle = document.getElementById("loginBenefitsTitle");
+    const createAccountLink = document.getElementById("loginCreateAccountLink");
+    if (eyebrow) eyebrow.textContent = "Employer access";
+    if (title) title.textContent = "Log in to your employer workspace";
+    if (introduction) introduction.textContent =
+        "Manage job postings, review applicants, and keep your hiring work organized.";
+    if (benefitsTitle) benefitsTitle.textContent = "Access your hiring workspace securely";
+    if (createAccountLink) {
+        createAccountLink.href = "register.html?account=employer";
+        createAccountLink.textContent = "Create an employer account";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", initializeContextualLogin);
 
 const registerForm = document.getElementById("registerForm");
 
@@ -12235,6 +12262,15 @@ function setupLearningAssistant() {
   if (!form || !input) {
     return;
   }
+
+  const extraPrompts = document.querySelectorAll(".assistant-prompt-extra");
+  const promptToggle = document.getElementById("toggleLearningAssistantPrompts");
+  promptToggle?.addEventListener("click", function () {
+    const expanding = promptToggle.getAttribute("aria-expanded") !== "true";
+    extraPrompts.forEach(prompt => prompt.classList.toggle("hidden", !expanding));
+    promptToggle.setAttribute("aria-expanded", String(expanding));
+    promptToggle.textContent = expanding ? "Show fewer prompts" : "More prompts";
+  });
 
   const fileInput =
     document.getElementById(

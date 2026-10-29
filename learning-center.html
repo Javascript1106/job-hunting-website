@@ -12,7 +12,7 @@
   <title>Resource Center - PathForge</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261029-v131">
+  <link rel="stylesheet" href="style.css?v=20261029-v132">
 </head>
 
 <body>
@@ -116,6 +116,14 @@
       Pick a topic now. The detailed guidance stays collapsed until you open it.
     </p>
   </section>
+
+  <nav class="resource-topic-nav" aria-label="Resource Center topics">
+    <a href="#careerGuidanceLessons">Career direction</a>
+    <a href="#resumeGuidanceLessons">Résumé</a>
+    <a href="#jobSearchLessons">Job search</a>
+    <a href="#interviewPreparationLessons">Interviews</a>
+    <a href="#careerAssistant">Ask the assistant</a>
+  </nav>
 
   <!-- The cards follow the same order a first-time job seeker is likely to use. -->
   <section class="learning-categories" aria-label="Resource path">
@@ -1671,8 +1679,9 @@
   </div>
 </section>
 
-<aside class="learning-research-basis" aria-labelledby="learningResearchTitle">
-  <p class="dashboard-eyebrow">Sources and attribution</p>
+<details class="learning-research-basis">
+  <summary><span>Sources and research</span><small>6 trusted references</small></summary>
+  <div class="learning-research-content">
   <h2 id="learningResearchTitle">Research used throughout this Resource Center</h2>
   <p>
     PathForge independently summarizes and paraphrases the sources below; it does
@@ -1689,7 +1698,8 @@
     <li><a href="https://www.career.berkeley.edu/prepare-for-success/resumes/" target="_blank" rel="noopener noreferrer">UC Berkeley Career Engagement — résumé content, accomplishments, tailoring, and ATS formatting</a></li>
     <li><a href="https://naceweb.org/career-readiness/competencies/career-readiness-defined" target="_blank" rel="noopener noreferrer">National Association of Colleges and Employers — career-readiness competency framework</a></li>
   </ul>
-</aside>
+  </div>
+</details>
 
 <section
   id="careerAssistant"
@@ -1763,7 +1773,7 @@
           How do I write a truthful accomplishment?
         </button>
 
-        <button
+        <button class="assistant-prompt-extra hidden"
           type="button"
           data-learning-question=
             "How can I prepare for my first job?"
@@ -1771,21 +1781,21 @@
           How should I prepare for my first job?
         </button>
 
-        <button
+        <button class="assistant-prompt-extra hidden"
           type="button"
           data-learning-question="How can I spot a job scam?"
         >
           How can I spot a job scam?
         </button>
 
-        <button
+        <button class="assistant-prompt-extra hidden"
           type="button"
           data-learning-question="How do work values affect career fit?"
         >
           How do work values affect career fit?
         </button>
 
-        <button
+        <button class="assistant-prompt-extra hidden"
           type="button"
           data-learning-question=
             "Can you evaluate my resume?"
@@ -1793,11 +1803,20 @@
           Evaluate my resume
         </button>
 
-        <button
+        <button class="assistant-prompt-extra hidden"
           id="openMockInterviewButton"
           type="button"
         >
           Start a mock interview
+        </button>
+
+        <button
+          id="toggleLearningAssistantPrompts"
+          class="assistant-prompt-toggle"
+          type="button"
+          aria-expanded="false"
+        >
+          More prompts
         </button>
       </div>
 
@@ -2028,8 +2047,8 @@
 
 </main>
 
-<script src="pathforge-core.js?v=20261029-v131"></script>
-<script src="script.js?v=20261029-v131"></script>
+<script src="pathforge-core.js?v=20261029-v132"></script>
+<script src="script.js?v=20261029-v132"></script>
 <footer class="home-footer">
   <div class="home-footer-brand">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">
