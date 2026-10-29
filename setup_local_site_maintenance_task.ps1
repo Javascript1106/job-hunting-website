@@ -20,7 +20,12 @@ $action = New-ScheduledTaskAction `
     -Execute $PythonExecutable `
     -Argument $quotedScript `
     -WorkingDirectory $projectDirectory
-$trigger = New-ScheduledTaskTrigger -Daily -At 9:15AM
+$trigger = New-ScheduledTaskTrigger `
+    -Weekly `
+    -WeeksInterval 1 `
+    -DaysOfWeek Tuesday,Thursday `
+    -At 9:15AM
+$trigger.StartBoundary = (Get-Date -Hour 9 -Minute 15 -Second 0).ToString("yyyy-MM-dd'T'HH:mm:ss")
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 30) `
@@ -36,7 +41,7 @@ Register-ScheduledTask `
     -Trigger $trigger `
     -Settings $settings `
     -Principal $principal `
-    -Description "Run local PathForge integrity, security, link, backup, and showcase-readiness checks daily." `
+    -Description "Run PathForge recovery, integrity, security, backup, and showcase-readiness checks Tuesdays and Thursdays." `
     -Force | Out-Null
 
 $registeredTask = Get-ScheduledTask -TaskName $TaskName

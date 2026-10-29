@@ -21,6 +21,7 @@ $action = New-ScheduledTaskAction `
     -Argument $quotedScript `
     -WorkingDirectory $projectDirectory
 $trigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Tuesday, Thursday -At 2:00PM
+$trigger.StartBoundary = (Get-Date -Hour 14 -Minute 0 -Second 0).ToString("yyyy-MM-dd'T'HH:mm:ss")
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
