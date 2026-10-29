@@ -91,6 +91,30 @@ class CatalogQualityTests(unittest.TestCase):
             with self.subTest(filters=filters):
                 self.assertEqual(result_ids(**filters), expected)
 
+    def test_state_name_location_matches_listing_state_abbreviation(self):
+        job = {
+            "id": 11,
+            "title": "Sales Associate",
+            "company": "Teen Employer",
+            "location": "American Fork, UT 84003",
+            "employment_type": "Part-Time",
+            "experience": "Entry level / confirmed teen-friendly",
+            "requirements": "Minimum age stated by employer: 16.",
+            "description": "Training provided for a retail sales associate.",
+        }
+
+        results = discover_jobs(
+            [job],
+            location="Utah",
+            location_scope="us",
+            employment_type="part-time",
+            experience="first-job",
+            age_fit="age-16-17",
+            exclusions="senior,commission",
+        )
+
+        self.assertEqual([result["id"] for result in results], [11])
+
     def test_link_verifier_extracts_visible_page_text(self):
         payload = b"<style>hidden</style><h1>Cashier &amp; Store Support</h1>"
         self.assertEqual(plain_page_text(payload), "cashier & store support")

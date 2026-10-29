@@ -287,6 +287,30 @@ def us_state_codes(value: Any) -> set[str]:
     return found
 
 
+def _matches_location(job_location: Any, selected_location: Any, exact: bool = False) -> bool:
+    """Match place text while treating U.S. state names and codes as aliases."""
+    job_text = _text(job_location)
+    selected_text = _text(selected_location)
+    if not selected_text:
+        return True
+
+    selected_state_codes = us_state_codes(selected_text)
+    if selected_text in US_STATE_NAME_TO_CODE:
+        selected_state_codes.add(US_STATE_NAME_TO_CODE[selected_text])
+    if selected_text.upper() in {code.upper() for code in US_STATE_CODES}:
+        selected_state_codes.add(selected_text.upper())
+    if selected_state_codes and selected_state_codes.intersection(us_state_codes(job_text)):
+        return True
+
+    if exact:
+        components = [part.strip() for part in re.split(r"[;/]", job_text)]
+        return any(
+            component == selected_text or component.startswith(f"{selected_text},")
+            for component in components
+        )
+    return selected_text in job_text
+
+
 def _is_canada_location(value: Any) -> bool:
     location = _text(value)
     if not location:
@@ -567,11 +591,11 @@ def discover_jobs(jobs: Iterable[dict[str, Any]], *, query: str = "", query_mode
             continue
         if normalized_location:
             job_location = _text(job.get("location"))
-            if location_mode == "exact":
-                components = [part.strip() for part in re.split(r"[;/]", job_location)]
-                if not any(component == normalized_location or component.startswith(f"{normalized_location},") for component in components):
-                    continue
-            elif normalized_location not in job_location:
+            if not _matches_location(
+                job_location,
+                normalized_location,
+                exact=location_mode == "exact",
+            ):
                 continue
         if location_scope == "us" and not _is_us_location(job.get("location")):
             continue
