@@ -5777,9 +5777,9 @@ main section[id] {
   display: flex;
   width: fit-content;
   max-width: 100%;
-  gap: .2rem;
+  gap: .55rem;
   margin: 0 0 1.5rem;
-  padding: .35rem;
+  padding: .45rem;
   overflow-x: auto;
   border: 1px solid #dce6ec;
   border-radius: .8rem;
@@ -5790,7 +5790,7 @@ main section[id] {
 
 .resource-topic-nav a {
   flex: 0 0 auto;
-  padding: .5rem .7rem;
+  padding: .55rem .8rem;
   border: 1px solid #b9cae1;
   border-radius: .55rem;
   background: #f5f8fc;
