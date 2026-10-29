@@ -33,7 +33,7 @@ class DatabaseMigrationTests(unittest.TestCase):
         ).fetchall()
         connection.close()
 
-        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        self.assertEqual(applied, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
         self.assertIn("users", tables)
         self.assertIn("jobs", tables)
         self.assertIn("auth_attempts", tables)
@@ -52,6 +52,7 @@ class DatabaseMigrationTests(unittest.TestCase):
                 (10, "saved_search_query_mode"),
                 (11, "automation_controls_and_review_queue"),
                 (12, "saved_search_notification_tracking"),
+                (13, "catalog_source_recovery"),
             ],
         )
         connection = sqlite3.connect(self.database_path)
@@ -60,6 +61,13 @@ class DatabaseMigrationTests(unittest.TestCase):
         }
         connection.close()
         self.assertIn("query_mode", saved_search_columns)
+        connection = sqlite3.connect(self.database_path)
+        sync_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(catalog_sync_status)")
+        }
+        connection.close()
+        self.assertIn("consecutive_failures", sync_columns)
+        self.assertIn("next_retry_at", sync_columns)
 
     def test_bundled_sample_jobs_are_not_public(self):
         database.initialize_database(self.database_path)

@@ -1553,6 +1553,31 @@ def add_saved_search_notification_tracking(db_name=DB_NAME):
         conn.close()
 
 
+def add_catalog_source_recovery(db_name=DB_NAME):
+    """Track bounded retry timing for configured catalog sources."""
+    conn = get_connection(db_name)
+    try:
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(catalog_sync_status)")
+        }
+        if "consecutive_failures" not in columns:
+            conn.execute(
+                "ALTER TABLE catalog_sync_status "
+                "ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0"
+            )
+        if "next_retry_at" not in columns:
+            conn.execute(
+                "ALTER TABLE catalog_sync_status ADD COLUMN next_retry_at TEXT"
+            )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_catalog_sync_retry
+               ON catalog_sync_status(status, next_retry_at)"""
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Each migration has an immutable version and descriptive name. New schema
 # changes belong in a new function and tuple entry instead of being silently
 # added to application startup forever.
@@ -1569,6 +1594,7 @@ SCHEMA_MIGRATIONS = (
     (10, "saved_search_query_mode", add_saved_search_query_mode),
     (11, "automation_controls_and_review_queue", add_automation_controls_and_review_queue),
     (12, "saved_search_notification_tracking", add_saved_search_notification_tracking),
+    (13, "catalog_source_recovery", add_catalog_source_recovery),
 )
 
 

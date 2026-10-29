@@ -5,6 +5,7 @@ import json
 import os
 import sqlite3
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from database import DB_NAME, get_connection, initialize_database
@@ -60,6 +61,7 @@ def filter_catalog_countries(records, countries, verified_countries=None):
 def record_source_health(database_path, source_results):
     """Persist source failures and counts so administrators can act on them."""
     connection = get_connection(database_path)
+    connection.row_factory = sqlite3.Row
     try:
         # A failed adapter may only know its generic provider name, while a
         # successful retry returns the board-specific source identifier. Clear
@@ -75,11 +77,36 @@ def record_source_health(database_path, source_results):
                      AND source <> ?""",
                 (result.get("employer"), result.get("source")),
             )
+        previous_failures = {
+            (row["source"], row["employer"]): int(row["consecutive_failures"] or 0)
+            for row in connection.execute(
+                """SELECT source, employer, consecutive_failures
+                   FROM catalog_sync_status"""
+            ).fetchall()
+        }
+        health_rows = []
+        for result in source_results:
+            key = (result.get("source", "Unknown"), result.get("employer", "Unknown employer"))
+            failed = result.get("status", "failed") == "failed"
+            failures = previous_failures.get(key, 0) + 1 if failed else 0
+            retry_at = None
+            if failed:
+                retry_hours = min(24, 2 ** min(max(failures - 1, 0), 4))
+                retry_at = (
+                    datetime.now(timezone.utc) + timedelta(hours=retry_hours)
+                ).isoformat(timespec="seconds")
+            health_rows.append((
+                key[0], key[1], result.get("status", "failed"),
+                result.get("fetched", 0), result.get("imported", 0),
+                result.get("excluded_by_country", 0), result.get("error"),
+                failures, retry_at,
+            ))
         connection.executemany(
             """INSERT INTO catalog_sync_status
                (source, employer, status, fetched, imported,
-                excluded_by_country, error, last_attempt_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                excluded_by_country, error, consecutive_failures,
+                next_retry_at, last_attempt_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                ON CONFLICT(source, employer) DO UPDATE SET
                  status = excluded.status,
                  fetched = excluded.fetched,
@@ -87,19 +114,10 @@ def record_source_health(database_path, source_results):
                  previous_imported = catalog_sync_status.imported,
                  excluded_by_country = excluded.excluded_by_country,
                  error = excluded.error,
+                 consecutive_failures = excluded.consecutive_failures,
+                 next_retry_at = excluded.next_retry_at,
                  last_attempt_at = CURRENT_TIMESTAMP""",
-            [
-                (
-                    result.get("source", "Unknown"),
-                    result.get("employer", "Unknown employer"),
-                    result.get("status", "failed"),
-                    result.get("fetched", 0),
-                    result.get("imported", 0),
-                    result.get("excluded_by_country", 0),
-                    result.get("error"),
-                )
-                for result in source_results
-            ],
+            health_rows,
         )
         connection.commit()
     finally:
@@ -175,7 +193,7 @@ def catalog_health(database_path, source_results):
 
 
 # Each enabled adapter returns normalized records; the shared synchronizer owns writes.
-def sync_all(mark_stale=False, progress=None):
+def sync_all(mark_stale=False, progress=None, employer_filter=None, database_path=None):
     """Synchronize enabled sources and optionally report human-readable progress."""
     def report(message):
         if progress is not None:
@@ -183,7 +201,9 @@ def sync_all(mark_stale=False, progress=None):
 
     os.chdir(BASE_DIR)
     load_local_environment(BASE_DIR / ".env")
-    initialize_database()
+    target_database = Path(database_path) if database_path else BASE_DIR / DB_NAME
+    initialize_database(target_database)
+    selected_employers = set(employer_filter or [])
 
     with CONFIG_PATH.open(encoding="utf-8") as config_file:
         configuration = json.load(config_file)
@@ -209,15 +229,23 @@ def sync_all(mark_stale=False, progress=None):
         for source_type, _adapter in adapters
         for source_config in configuration.get(source_type, [])
         if enabled(source_config)
+        and (
+            not selected_employers
+            or source_config.get("employer") in selected_employers
+        )
     )
     usajobs_config = configuration.get("usajobs", {})
-    if enabled(usajobs_config):
+    if enabled(usajobs_config) and (
+        not selected_employers or "Federal agencies" in selected_employers
+    ):
         enabled_sources += 1
     current_source = 0
 
     for source_type, adapter in adapters:
         for source_config in configuration.get(source_type, []):
             if not enabled(source_config):
+                continue
+            if selected_employers and source_config.get("employer") not in selected_employers:
                 continue
             current_source += 1
             employer = source_config.get("employer", "Unknown employer")
@@ -256,7 +284,9 @@ def sync_all(mark_stale=False, progress=None):
                 })
                 report(f"  Source failed: {error}")
 
-    if enabled(usajobs_config):
+    if enabled(usajobs_config) and (
+        not selected_employers or "Federal agencies" in selected_employers
+    ):
         current_source += 1
         report(
             f"[{current_source}/{enabled_sources}] Checking federal agencies "
@@ -293,15 +323,15 @@ def sync_all(mark_stale=False, progress=None):
 
     report("Updating the PathForge catalog...")
     summary = synchronize_records(
-        BASE_DIR / DB_NAME,
+        target_database,
         records,
         completed_sources,
         mark_stale=mark_stale
     )
-    record_source_health(BASE_DIR / DB_NAME, source_results)
+    record_source_health(target_database, source_results)
     summary["sources"] = source_results
     summary["catalog_health"] = catalog_health(
-        BASE_DIR / DB_NAME, source_results
+        target_database, source_results
     )
     health = summary["catalog_health"]
     report(
@@ -321,6 +351,52 @@ def sync_all(mark_stale=False, progress=None):
         f"{len(health['large_source_drops'])} large drops."
     )
     return summary
+
+
+def retry_due_sources(database_path=DB_NAME, progress=None, max_sources=3):
+    """Retry a small due batch of configured failed employers without expiring jobs."""
+    initialize_database(database_path)
+    connection = get_connection(database_path)
+    connection.row_factory = sqlite3.Row
+    try:
+        due = connection.execute(
+            """SELECT DISTINCT employer FROM catalog_sync_status
+               WHERE status = 'failed'
+                 AND (next_retry_at IS NULL OR next_retry_at <= CURRENT_TIMESTAMP)
+               ORDER BY COALESCE(next_retry_at, last_attempt_at), employer
+               LIMIT ?""",
+            (max(1, min(int(max_sources), 10)),),
+        ).fetchall()
+    finally:
+        connection.close()
+    employers = [row["employer"] for row in due]
+    if not employers:
+        return {
+            "status": "nothing_due",
+            "employers": [],
+            "retried": 0,
+            "recovered": 0,
+            "still_failed": 0,
+        }
+    summary = sync_all(
+        mark_stale=False,
+        progress=progress,
+        employer_filter=employers,
+        database_path=database_path,
+    )
+    failed = {
+        result.get("employer")
+        for result in summary.get("sources", [])
+        if result.get("status") == "failed"
+    }
+    return {
+        "status": "attention_required" if failed else "success",
+        "employers": employers,
+        "retried": len(employers),
+        "recovered": len(set(employers) - failed),
+        "still_failed": len(failed),
+        "summary": summary,
+    }
 
 
 if __name__ == "__main__":

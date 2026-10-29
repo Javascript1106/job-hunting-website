@@ -15,6 +15,8 @@ from catalog_insights import build_catalog_insights
 from database import DB_NAME, get_connection, initialize_database, resolve_database_path
 from verify_job_links import verify_stale_links
 from showcase_smoke_test import run_showcase_smoke_test
+from sync_jobs import retry_due_sources
+from platform_automations import PRIORITY_MAJOR_EMPLOYERS
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -175,7 +177,9 @@ def inspect_and_clean_database(database_path=DB_NAME):
                FROM jobs"""
         ).fetchone()
         source_rows = connection.execute(
-            """SELECT source, employer, status, fetched, imported, error, last_attempt_at
+            """SELECT source, employer, status, fetched, imported,
+                      previous_imported, error, last_attempt_at,
+                      consecutive_failures, next_retry_at
                FROM catalog_sync_status ORDER BY employer, source"""
         ).fetchall()
         connection.commit()
@@ -187,6 +191,38 @@ def inspect_and_clean_database(database_path=DB_NAME):
         for row in source_rows if row["status"] == "failed"
     ]
     latest_sync = max((row["last_attempt_at"] for row in source_rows), default=None)
+    priority_source_health = []
+    source_monitoring_initialized = bool(source_rows)
+    for employer in PRIORITY_MAJOR_EMPLOYERS:
+        rows = [row for row in source_rows if row["employer"] == employer]
+        latest = max(rows, key=lambda row: row["last_attempt_at"] or "") if rows else None
+        if latest is None:
+            priority_source_health.append({
+                "employer": employer, "status": "not_seen", "imported": 0,
+                "previous_imported": None,
+                "needs_review": source_monitoring_initialized,
+            })
+            continue
+        imported = int(latest["imported"] or 0)
+        previous = latest["previous_imported"]
+        large_drop = previous is not None and previous >= 10 and imported <= previous * 0.5
+        priority_source_health.append({
+            "employer": employer,
+            "status": latest["status"],
+            "imported": imported,
+            "previous_imported": previous,
+            "last_attempt_at": latest["last_attempt_at"],
+            "needs_review": latest["status"] != "ok" or imported == 0 or large_drop,
+            "large_drop": large_drop,
+        })
+    retry_queue = [
+        {
+            "employer": row["employer"],
+            "consecutive_failures": int(row["consecutive_failures"] or 0),
+            "next_retry_at": row["next_retry_at"],
+        }
+        for row in source_rows if row["status"] == "failed"
+    ]
     return {
         "integrity": integrity,
         "foreign_key_issues": foreign_key_issues,
@@ -198,6 +234,8 @@ def inspect_and_clean_database(database_path=DB_NAME):
         "closed_public_jobs": int(job_counts["closed"] or 0),
         "configured_sources": len(source_rows),
         "failed_sources": failed_sources,
+        "source_recovery_queue": retry_queue,
+        "priority_employer_health": priority_source_health,
         "latest_source_attempt_at": latest_sync,
     }
 
@@ -219,12 +257,23 @@ def _markdown(report):
         f"- Configured sources: {database['configured_sources']}",
         f"- Failed sources: {len(database['failed_sources'])}",
         f"- Last source attempt: {database['latest_source_attempt_at'] or 'Not recorded'}",
+        f"- Recovery retries attempted: {report['source_recovery']['retried']}",
+        f"- Sources recovered: {report['source_recovery']['recovered']}",
+        "- Priority employers needing review: "
+        + (", ".join(
+            row["employer"] for row in database["priority_employer_health"]
+            if row["needs_review"]
+        ) or "None"),
         "",
         "## Teen and state coverage",
         "",
         f"- Confirmed ages 14–15: {teen['confirmed_age_14_15']}",
         f"- Confirmed ages 16–17: {teen['confirmed_age_16_17']}",
         f"- States without confirmed teen jobs: {', '.join(teen['states_without_confirmed_teen_jobs']) or 'None'}",
+        "- Western states below coverage targets: "
+        + (", ".join(
+            row["state"] for row in report["catalog"]["western_coverage_priorities"]
+        ) or "None"),
         "",
         "## Maintenance and security",
         "",
@@ -246,12 +295,19 @@ def run_site_maintenance(
     backup_func=backup_database,
     link_check_func=None,
     smoke_test_func=run_showcase_smoke_test,
+    source_recovery_func=None,
 ):
     initialize_database(database_path)
     lock = _acquire_lock(lock_path)
     started = _utc_now()
     try:
         backup = ensure_fresh_backup(database_path, backup_func=backup_func)
+        recover_sources = source_recovery_func or (lambda: retry_due_sources(
+            database_path=database_path,
+            progress=lambda _message: None,
+            max_sources=3,
+        ))
+        source_recovery = recover_sources()
         database_report = inspect_and_clean_database(database_path)
         insights = build_catalog_insights(database_path)
         check_links = link_check_func or (lambda: verify_stale_links(
@@ -266,6 +322,10 @@ def run_site_maintenance(
             or database_report["foreign_key_issues"]
             or database_report["active_public_jobs"] == 0
             or database_report["failed_sources"]
+            or any(
+                row["needs_review"]
+                for row in database_report["priority_employer_health"]
+            )
             or links.get("closed", 0)
             or not restore_check["passed"]
             or smoke_test.get("status") != "success"
@@ -275,6 +335,7 @@ def run_site_maintenance(
             "generated_at": _utc_now().isoformat(timespec="seconds"),
             "started_at": started.isoformat(timespec="seconds"),
             "backup": backup,
+            "source_recovery": source_recovery,
             "database": database_report,
             "catalog": insights,
             "link_check": links,

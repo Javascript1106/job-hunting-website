@@ -41,6 +41,12 @@ class CatalogInsightsTests(unittest.TestCase):
             )
             self.assertEqual(utah["active_jobs"], 1)
             self.assertEqual(utah["confirmed_teen_jobs"], 1)
+            western_priority = next(
+                row for row in insights["western_coverage_priorities"]
+                if row["state"] == "UT"
+            )
+            self.assertTrue(western_priority["needs_general_coverage"])
+            self.assertTrue(western_priority["needs_confirmed_teen_coverage"])
 
     def test_writes_json_and_readable_markdown_reports(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -53,3 +59,4 @@ class CatalogInsightsTests(unittest.TestCase):
             markdown = Path(result["markdown_report"]).read_text(encoding="utf-8")
             self.assertIn("# PathForge catalog insights", markdown)
             self.assertIn("## Teen-job coverage", markdown)
+            self.assertIn("## Western-state priorities", markdown)

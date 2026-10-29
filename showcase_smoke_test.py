@@ -7,21 +7,29 @@ from pathlib import Path
 import main
 
 
-STATIC_TARGETS = (("home", "index.html"), ("jobs_page", "jobs.html"), ("login_page", "login.html"))
+STATIC_TARGETS = (
+    ("home", "index.html", ("homeHeroTitle", "Explore Jobs")),
+    ("jobs_page", "jobs.html", ("jobSearchForm", "loadMoreJobsButton")),
+    ("resource_center", "learning-center.html", ("resource-topic-nav", "careerAssistant")),
+    ("login_page", "login.html", ("loginForm", "loginSubmitButton")),
+    ("registration_page", "register.html", ("registerForm", "registerSubmitButton")),
+)
 
 
 def run_showcase_smoke_test():
     """Exercise files, routes, and catalog reads without needing a running server."""
     results = []
     root = Path(__file__).resolve().parent
-    for name, relative_path in STATIC_TARGETS:
+    for name, relative_path, required_markers in STATIC_TARGETS:
         started = time.perf_counter()
         path = root / relative_path
         try:
             content = path.read_text(encoding="utf-8")
+            missing = [marker for marker in required_markers if marker not in content]
             results.append({"name": name, "path": relative_path,
                             "elapsed_ms": round((time.perf_counter() - started) * 1000, 1),
-                            "passed": "<html" in content.lower() and "PathForge" in content})
+                            "passed": "<html" in content.lower() and "PathForge" in content and not missing,
+                            "missing_markers": missing})
         except Exception as error:
             results.append({"name": name, "path": relative_path, "passed": False,
                             "error": f"{type(error).__name__}: {str(error)[:160]}"})

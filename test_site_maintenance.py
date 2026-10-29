@@ -60,12 +60,18 @@ class SiteMaintenanceTests(unittest.TestCase):
             backup_func=create_backup,
             link_check_func=lambda: {"checked": 0, "closed": 0, "results": []},
             smoke_test_func=lambda: {"status": "success", "checks": [], "slowest_ms": 0},
+            source_recovery_func=lambda: {
+                "status": "nothing_due", "employers": [], "retried": 0,
+                "recovered": 0, "still_failed": 0,
+            },
         )
         self.assertEqual(report["status"], "success")
         self.assertEqual(report["database"]["old_auth_attempts_removed"], 1)
         self.assertTrue(Path(report["json_report"]).is_file())
         self.assertTrue(Path(report["markdown_report"]).is_file())
         self.assertFalse((self.root / "maintenance.lock").exists())
+        self.assertIn("priority_employer_health", report["database"])
+        self.assertIn("western_coverage_priorities", report["catalog"])
 
     def test_invalid_recent_backup_is_replaced(self):
         backups = self.root / "backups"

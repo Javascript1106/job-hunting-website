@@ -9,6 +9,11 @@ from pathlib import Path
 from database import DB_NAME, get_connection
 from job_discovery import US_STATE_CODES, age_eligibility, us_state_codes
 
+WESTERN_STATE_CODES = (
+    "AK", "AZ", "CA", "CO", "HI", "ID", "MT",
+    "NV", "NM", "OR", "UT", "WA", "WY",
+)
+
 
 def build_catalog_insights(database_path=DB_NAME):
     connection = get_connection(database_path)
@@ -89,6 +94,23 @@ def build_catalog_insights(database_path=DB_NAME):
     no_confirmed_teen = [
         row["state"] for row in state_rows if row["confirmed_teen_jobs"] == 0
     ]
+    western_coverage = [
+        row for row in state_rows if row["state"] in WESTERN_STATE_CODES
+    ]
+    western_priorities = sorted(
+        [
+            {
+                **row,
+                "needs_general_coverage": row["active_jobs"] < 25,
+                "needs_confirmed_teen_coverage": row["confirmed_teen_jobs"] < 3,
+            }
+            for row in western_coverage
+            if row["active_jobs"] < 25 or row["confirmed_teen_jobs"] < 3
+        ],
+        key=lambda row: (
+            row["confirmed_teen_jobs"], row["active_jobs"], row["state"]
+        ),
+    )
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "active_jobs": len(jobs),
@@ -109,6 +131,8 @@ def build_catalog_insights(database_path=DB_NAME):
             for name, count in categories.most_common(15)
         ],
         "lowest_state_coverage": lowest_coverage,
+        "western_state_coverage": western_coverage,
+        "western_coverage_priorities": western_priorities,
         "state_coverage": state_rows,
     }
 
@@ -140,6 +164,15 @@ def _markdown_report(insights):
         f"{row['confirmed_teen_jobs']} | {row['possible_teen_jobs']} |"
         for row in insights["lowest_state_coverage"]
     )
+    lines.extend(["", "## Western-state priorities", ""])
+    if insights["western_coverage_priorities"]:
+        lines.extend(
+            f"- {row['state']}: {row['active_jobs']} active, "
+            f"{row['confirmed_teen_jobs']} confirmed teen jobs"
+            for row in insights["western_coverage_priorities"]
+        )
+    else:
+        lines.append("- No Western state is below the current coverage thresholds.")
     lines.extend(["", "## Listing-quality gaps", ""])
     lines.extend(
         f"- {name.replace('_', ' ').title()}: {count}"
@@ -169,5 +202,6 @@ def write_catalog_insights(database_path=DB_NAME, log_directory="automation-logs
             "states_without_confirmed_teen_jobs"
         ],
         "lowest_state_coverage": insights["lowest_state_coverage"],
+        "western_coverage_priorities": insights["western_coverage_priorities"],
         "listing_quality_gaps": insights["listing_quality_gaps"],
     }
