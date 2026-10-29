@@ -1348,7 +1348,6 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
         <div class="job-card-title-group">
           <h3>${escapeEmployerHtml(job.title)}</h3>
           <p class="job-card-company"><a href="company.html?name=${encodeURIComponent(job.company)}">${escapeEmployerHtml(job.company)}</a></p>
-          ${Number(job.employer_result_count) > 1 ? `<a class="more-employer-results" href="jobs.html?q=${encodeURIComponent(job.company)}">See ${Number(job.employer_result_count - 1).toLocaleString()} more from this employer</a>` : ""}
         </div>
 
         <div class="job-card-heading-controls">
@@ -1360,38 +1359,9 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
           ${jobWasRecentlyPosted(job) ? `
             <span class="job-highlight-badge new-job-badge">New</span>
           ` : ""}
-          ${job.application_method === "pathforge" ? `
-            <span class="job-highlight-badge easy-apply-badge">
-              Easily Apply
-            </span>
-          ` : ""}
-          ${hasJobAccommodationInformation(job) ? `
-            <span class="job-highlight-badge accommodation-info-badge" title="The employer posting mentions application or hiring accommodations.">
-              Accommodation Info
-            </span>
-          ` : ""}
-          ${getJobApplicationFeatures(job).no_cover_letter ? `
-            <span class="job-highlight-badge no-cover-letter-badge">No Cover Letter Required</span>
-          ` : ""}
-          ${getJobApplicationFeatures(job).accommodation_contact ? `
-            <span class="job-highlight-badge accommodation-contact-badge">Accommodation Contact Mentioned</span>
-          ` : ""}
-          ${getJobApplicationFeatures(job).additional_steps ? `
-            <span class="job-highlight-badge application-steps-badge" title="The posting mentions an assessment, work sample, background check, or similar step.">Additional Steps Mentioned</span>
-          ` : ""}
-          ${responseDays ? `
-            <span class="job-highlight-badge response-time-badge">
-              Often replies in ${responseDays}
-              ${responseDays === 1 ? "day" : "days"}
-            </span>
-          ` : ""}
-          ${job.application_method === "employer_website" ? `
-            <span class="external-job-badge">Employer Website</span>
-          ` : ""}
           <span class="job-trust-badge ${getJobTrustBadgeClass(job)}">
             ${escapeEmployerHtml(job.trust_label || "Limited Verification")}
           </span>
-          ${job.duplicate_count > 1 ? `<span class="job-highlight-badge duplicate-job-badge">${job.duplicate_count} matching listings grouped</span>` : ""}
 
           <button
             type="button"
@@ -1426,15 +1396,6 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
         </div>
       </dl>
 
-      ${(() => {
-        const qualificationPreview = buildQualificationPreview(job);
-        return `<div class="job-qualification-preview">
-          <strong>Key qualifications</strong>
-          <ul>${qualificationPreview.items.map(item => `<li>${escapeEmployerHtml(item)}</li>`).join("")}</ul>
-          ${qualificationPreview.hasMore ? `<p>Additional requirements are in the full details.</p>` : ""}
-        </div>`;
-      })()}
-
       ${linkUnavailable ? `
         <div class="job-link-warning" role="status">
           The official application link was marked unavailable during its
@@ -1443,16 +1404,6 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
       ` : ""}
 
       ${buildJobSafetySignals(job)}
-
-      <details class="job-understanding-details">
-        <summary>Understand this job</summary>
-        <p class="job-understanding-introduction">Review why this job appeared, what information is available, and how it compares with your preferences.</p>
-        ${buildOpportunityFitSnapshot(job)}
-        ${buildWhyThisResult(job)}
-        ${buildJobQualityDetails(job)}
-        ${buildJobTrustDetails(job)}
-        ${buildJobEvidenceDetails(job)}
-      </details>
 
       ${applicationDeadline ? `
         <p class="job-application-deadline">
@@ -1464,6 +1415,26 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
       ` : ""}
 
       <div id="${detailsId}" class="job-details hidden">
+        <div class="job-detail-highlights" aria-label="Additional listing highlights">
+          ${job.application_method === "pathforge" ? `<span class="job-highlight-badge easy-apply-badge">Apply on PathForge</span>` : ""}
+          ${job.application_method === "employer_website" ? `<span class="external-job-badge">Employer website</span>` : ""}
+          ${hasJobAccommodationInformation(job) ? `<span class="job-highlight-badge accommodation-info-badge">Accommodation information</span>` : ""}
+          ${getJobApplicationFeatures(job).no_cover_letter ? `<span class="job-highlight-badge no-cover-letter-badge">No cover letter required</span>` : ""}
+          ${getJobApplicationFeatures(job).accommodation_contact ? `<span class="job-highlight-badge accommodation-contact-badge">Accommodation contact</span>` : ""}
+          ${getJobApplicationFeatures(job).additional_steps ? `<span class="job-highlight-badge application-steps-badge">Additional steps mentioned</span>` : ""}
+          ${responseDays ? `<span class="job-highlight-badge response-time-badge">Often replies in ${responseDays} ${responseDays === 1 ? "day" : "days"}</span>` : ""}
+          ${job.duplicate_count > 1 ? `<span class="job-highlight-badge duplicate-job-badge">${job.duplicate_count} matching listings grouped</span>` : ""}
+        </div>
+
+        ${(() => {
+          const qualificationPreview = buildQualificationPreview(job);
+          return `<div class="job-qualification-preview">
+            <strong>Key qualifications</strong>
+            <ul>${qualificationPreview.items.map(item => `<li>${escapeEmployerHtml(item)}</li>`).join("")}</ul>
+            ${qualificationPreview.hasMore ? `<p>Additional requirements are included below.</p>` : ""}
+          </div>`;
+        })()}
+
         <section>
           <h4>Description</h4>
           <p>${escapeEmployerHtml(cleanJobPostingText(job.description))}</p>
@@ -1495,7 +1466,18 @@ function displayJobs(jobs, append = false, pageSize = JOB_PAGE_SIZE) {
           <p><strong>Application:</strong> ${getJobApplicationMethod(job)}</p>
           <p><strong>Posted:</strong> ${formatJobCardDate(job.posted_at || job.created_at)}</p>
           ${job.last_verified_at ? `<p class="job-verification-date"><strong>Source checked:</strong> ${formatJobCardDate(job.last_verified_at)}. Confirm availability before applying.</p>` : ""}
+          ${Number(job.employer_result_count) > 1 ? `<p><a class="more-employer-results" href="jobs.html?q=${encodeURIComponent(job.company)}">See ${Number(job.employer_result_count - 1).toLocaleString()} more from this employer</a></p>` : ""}
         </div>
+
+        <details class="job-understanding-details">
+          <summary>Why this job appeared</summary>
+          <p class="job-understanding-introduction">Review how this listing compares with your preferences and what information is available.</p>
+          ${buildOpportunityFitSnapshot(job)}
+          ${buildWhyThisResult(job)}
+          ${buildJobQualityDetails(job)}
+          ${buildJobTrustDetails(job)}
+          ${buildJobEvidenceDetails(job)}
+        </details>
 
         ${job.application_method === "employer_website" && officialListingUrl ? `
           <a
@@ -4668,9 +4650,6 @@ async function checkLoginStatus() {
     const homeAccountAction =
         document.getElementById("homeAccountAction");
 
-    const homeFinalAccountAction =
-        document.getElementById("homeFinalAccountAction");
-
     const homeJobSeekerAction =
         document.getElementById("homeJobSeekerAction");
 
@@ -4787,21 +4766,6 @@ async function checkLoginStatus() {
             } else {
                 homeAccountAction.href = "dashboard.html";
                 homeAccountAction.textContent =
-                    "Open Your Dashboard";
-            }
-        }
-
-        if (homeFinalAccountAction) {
-            if (user.role === "employer") {
-                homeFinalAccountAction.href = "employer.html";
-                homeFinalAccountAction.textContent =
-                    "Open Employer Dashboard";
-            } else if (user.role === "admin") {
-                homeFinalAccountAction.href = "admin-moderation.html";
-                homeFinalAccountAction.textContent = "Open Report Moderation";
-            } else {
-                homeFinalAccountAction.href = "dashboard.html";
-                homeFinalAccountAction.textContent =
                     "Open Your Dashboard";
             }
         }

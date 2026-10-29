@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Jobs - PathForge</title>
   <link rel="icon" type="image/svg+xml" href="assets/branding/pathforge-favicon.svg">
-  <link rel="stylesheet" href="style.css?v=20261027-v130">
+  <link rel="stylesheet" href="style.css?v=20261029-v131">
 </head>
 
 <body class="jobs-page">
@@ -42,11 +42,11 @@
           id="learningCenterLink"
           href="learning-center.html"
     >
-          Resources + AI Assistant
+          Resources
     </a>
 
         <a id="employerAccessLink" href="employer-access.html">
-            Employer Access
+            For Employers
         </a>
 
         <a id="loginLink" href="login.html">
@@ -108,7 +108,7 @@
         class="use-current-location-button"
         type="button"
       >
-        Use My Location
+        My Location
       </button>
 
       <button id="jobSearchButton" class="job-search-submit" type="submit">
@@ -120,7 +120,7 @@
     <section class="job-quick-paths" aria-labelledby="jobQuickPathsTitle">
       <div>
         <strong id="jobQuickPathsTitle">Quick paths</strong>
-        <span>Choose an employer-stated minimum age or another useful filter. Older applicants can apply too.</span>
+        <span>Start with a useful filter. Minimum ages mean that age or older.</span>
       </div>
       <div class="job-quick-path-buttons">
         <button type="button" data-job-preset="age-14" aria-pressed="false">Minimum age 14+</button>
@@ -129,10 +129,15 @@
         <button type="button" data-job-preset="first-job" aria-pressed="false">First job</button>
         <button type="button" data-job-preset="part-time" aria-pressed="false">Part-time</button>
         <button type="button" data-job-preset="pay-listed" aria-pressed="false">Pay listed</button>
-        <button type="button" data-job-preset="remote" aria-pressed="false">Remote</button>
-        <button type="button" data-job-preset="recent" aria-pressed="false">Posted this week</button>
-        <button type="button" data-job-preset="accommodation" aria-pressed="false">Accommodation details</button>
-        <button type="button" data-job-preset="direct-apply" aria-pressed="false">Apply on PathForge</button>
+        <details class="quick-path-more">
+          <summary>More quick paths</summary>
+          <div>
+            <button type="button" data-job-preset="remote" aria-pressed="false">Remote</button>
+            <button type="button" data-job-preset="recent" aria-pressed="false">Posted this week</button>
+            <button type="button" data-job-preset="accommodation" aria-pressed="false">Accommodation details</button>
+            <button type="button" data-job-preset="direct-apply" aria-pressed="false">Apply on PathForge</button>
+          </div>
+        </details>
         <button id="resetQuickJobPresetsButton" class="quick-path-reset" type="button" disabled>Clear quick paths</button>
       </div>
     </section>
@@ -144,6 +149,18 @@
       </summary>
       <div class="advanced-job-filter-grid">
         <p class="advanced-filter-intro">Choose only what matters to you. Every filter is optional, and active choices appear above the results.</p>
+        <section class="natural-job-search-compact" aria-labelledby="naturalJobSearchTitle">
+          <div>
+            <strong id="naturalJobSearchTitle">Describe the job you want</strong>
+            <p>Use a short sentence and PathForge will choose filters you can review.</p>
+          </div>
+          <div class="natural-job-search-controls">
+            <label for="naturalJobSearchInput" class="visually-hidden">Describe the job you want</label>
+            <input id="naturalJobSearchInput" type="text" maxlength="240" placeholder="Example: part-time retail work near Provo">
+            <button id="naturalJobSearchButton" type="button">Choose Filters</button>
+          </div>
+          <p id="naturalJobSearchStatus" class="form-message" role="status" aria-live="polite"></p>
+        </section>
         <fieldset class="job-filter-group">
           <legend>Location and schedule</legend>
           <p>Choose where and when you can work.</p>
@@ -179,20 +196,6 @@
         <div class="advanced-filter-actions"><button id="restoreHiddenJobsButton" class="restore-hidden-jobs-button" type="button">Restore Hidden Jobs</button></div>
       </div>
       <p id="teenJobFilterGuidance" class="teen-job-filter-guidance" hidden><strong>How minimum ages work:</strong> A minimum age is the youngest age the employer says it hires—not the only eligible age. Older applicants can apply too. Always confirm current requirements and local work-permit rules.</p>
-    </details>
-
-    <details class="natural-job-search" aria-labelledby="naturalJobSearchTitle">
-      <summary>Not sure what filters to choose?</summary>
-      <div>
-        <strong id="naturalJobSearchTitle">Describe the job you want</strong>
-        <p>Use a simple sentence and PathForge will choose filters you can review.</p>
-      </div>
-      <div class="natural-job-search-controls">
-        <label for="naturalJobSearchInput" class="visually-hidden">Describe the job you want</label>
-        <input id="naturalJobSearchInput" type="text" maxlength="240" placeholder="Describe the work, schedule, or location you want">
-        <button id="naturalJobSearchButton" type="button">Use This Description</button>
-      </div>
-      <p id="naturalJobSearchStatus" class="form-message" role="status" aria-live="polite"></p>
     </details>
 
     <p
@@ -437,8 +440,8 @@
   </div>
 </section>
 
-  <script src="pathforge-core.js?v=20261027-v130"></script>
-<script src="script.js?v=20261027-v130"></script>
+  <script src="pathforge-core.js?v=20261029-v131"></script>
+<script src="script.js?v=20261029-v131"></script>
 <footer class="home-footer">
   <div class="home-footer-brand">
     <a class="nav-brand" href="index.html" aria-label="PathForge home">

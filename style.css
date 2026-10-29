@@ -1450,6 +1450,94 @@ main section[id] {
   }
 }
 
+/* Progressive disclosure keeps high-capability pages approachable at first glance. */
+.quick-path-more {
+  position: relative;
+}
+
+.quick-path-more > summary {
+  display: inline-flex;
+  min-height: 2.35rem;
+  box-sizing: border-box;
+  align-items: center;
+  padding: .5rem .8rem;
+  border: 1px solid #bfd1e8;
+  border-radius: 999px;
+  background: #fff;
+  color: #244b87;
+  cursor: pointer;
+  font-size: .84rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.quick-path-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.quick-path-more > summary::after {
+  margin-left: .4rem;
+  content: "+";
+}
+
+.quick-path-more[open] > summary::after {
+  content: "\2212";
+}
+
+.quick-path-more > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-top: .45rem;
+}
+
+.natural-job-search-compact {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(12rem, .7fr) minmax(18rem, 1.3fr);
+  gap: .75rem 1rem;
+  padding: 1rem;
+  border: 1px solid #c9d8eb;
+  border-radius: 12px;
+  background: #f7faff;
+}
+
+.natural-job-search-compact p {
+  margin: .2rem 0 0;
+  color: var(--pf-color-muted);
+}
+
+.natural-job-search-compact .form-message {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.job-detail-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 760px) {
+  .natural-job-search-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .natural-job-search-compact .form-message {
+    grid-column: auto;
+  }
+
+  .quick-path-more {
+    width: 100%;
+  }
+
+  .quick-path-more > summary {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
 
 /* =========================
    JOBS PAGE
