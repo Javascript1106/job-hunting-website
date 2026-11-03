@@ -275,9 +275,10 @@ def record_application_history(
         )
     )
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def home():
-    return {"message": "Job hunting website backend is running"}
+    """Open PathForge when a visitor enters only the site origin."""
+    return RedirectResponse(url="/index.html", status_code=307)
 
 
 def build_job_trust_information(job):
@@ -9401,12 +9402,6 @@ FRONTEND_ROOT = Path(__file__).resolve().parent
 
 @app.get("/app", include_in_schema=False)
 def open_browser_app():
-    return RedirectResponse(url="/index.html", status_code=307)
-
-
-@app.get("/", include_in_schema=False)
-def open_browser_home():
-    """Open PathForge when a visitor enters only the site origin."""
     return RedirectResponse(url="/index.html", status_code=307)
 
 
