@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261103-v138"
+ASSET_VERSION = "20261103-v139"
 
 
 class MarkupInspector(HTMLParser):
@@ -151,6 +151,14 @@ class FrontendContractTests(unittest.TestCase):
         )
         self.assertIn("function updateCareerOneStopAttribution", self.script)
         self.assertIn('job.source || ""', self.script)
+
+    def test_location_request_recovers_from_permissions_and_timeouts(self):
+        self.assertIn("function getGeolocationPermissionState", self.script)
+        self.assertIn('permission.state || "unknown"', self.script)
+        self.assertIn('error.name = "LocationRequestTimeout"', self.script)
+        self.assertIn("window.setTimeout", self.script)
+        self.assertIn("button.removeAttribute(\"aria-busy\")", self.script)
+        self.assertIn("if (!window.isSecureContext)", self.script)
 
     def test_every_visible_job_filter_is_sent_to_server_search(self):
         mappings = {

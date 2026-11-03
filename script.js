@@ -2871,9 +2871,36 @@ function updateJobLocationStatus(message, isError = false) {
   status.classList.toggle("location-error", isError);
 }
 
-function requestCurrentPosition(timeout = 30000, maximumAge = 300000) {
+function locationRequestTimeoutError() {
+  const error = new Error("Location permission did not finish in time.");
+  error.name = "LocationRequestTimeout";
+  return error;
+}
+
+async function getGeolocationPermissionState() {
+  if (!navigator.permissions?.query) return "unknown";
+  try {
+    const permission = await navigator.permissions.query({ name: "geolocation" });
+    return permission.state || "unknown";
+  } catch (_error) {
+    return "unknown";
+  }
+}
+
+function requestCurrentPosition(timeout = 15000, maximumAge = 300000) {
   return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
+    let settled = false;
+    const finish = callback => value => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(watchdog);
+      callback(value);
+    };
+    const watchdog = window.setTimeout(
+      () => finish(reject)(locationRequestTimeoutError()),
+      timeout + 1000
+    );
+    navigator.geolocation.getCurrentPosition(finish(resolve), finish(reject), {
       enableHighAccuracy: false,
       timeout,
       maximumAge
@@ -2885,14 +2912,14 @@ async function requestCurrentPositionWithRetry() {
   try {
     return await requestCurrentPosition();
   } catch (error) {
-    if (error?.code === 1) {
+    if (error?.code === 1 || error?.name === "LocationRequestTimeout") {
       throw error;
     }
 
     updateJobLocationStatus(
       "Location received. Updating job results..."
     );
-    return requestCurrentPosition(20000, 0);
+    return requestCurrentPosition(12000, 0);
   }
 }
 
@@ -2910,15 +2937,35 @@ async function useCurrentJobLocation() {
     return;
   }
 
+  if (!window.isSecureContext) {
+    updateJobLocationStatus(
+      "Location sharing requires a secure page. Open PathForge from its local http://127.0.0.1 address or an HTTPS website.",
+      true
+    );
+    return;
+  }
+
+  const permissionState = await getGeolocationPermissionState();
+  if (permissionState === "denied") {
+    updateJobLocationStatus(
+      "Location access is blocked for PathForge in your browser. Allow location for this site, then try again—or enter a city, state, or ZIP code.",
+      true
+    );
+    return;
+  }
+
   button.disabled = true;
+  button.setAttribute("aria-busy", "true");
   button.textContent = "Finding location...";
   updateJobLocationStatus(
     "Waiting for location permission. Your coordinates stay on this device."
   );
 
   try {
-    await loadUnitedStatesPlaceIndex();
-    const position = await requestCurrentPositionWithRetry();
+    const [position] = await Promise.all([
+      requestCurrentPositionWithRetry(),
+      loadUnitedStatesPlaceIndex()
+    ]);
     const latitude = position.coords.latitude;
     const longitude = position.coords.longitude;
     const nearestPlace = findNearestUnitedStatesPlace(latitude, longitude);
@@ -2936,15 +2983,19 @@ async function useCurrentJobLocation() {
   } catch (error) {
     sharedJobLocation = null;
     const permissionDenied = error?.code === 1;
+    const permissionTimedOut = error?.name === "LocationRequestTimeout";
     updateJobLocationStatus(
       permissionDenied
-        ? "Location access was not allowed. Enter a city, state, or ZIP code instead."
-        : "Your location could not be detected. Enter a city, state, or ZIP code instead.",
+        ? "Location access was not allowed. Allow location for PathForge in your browser, then try again—or enter a city, state, or ZIP code."
+        : permissionTimedOut
+          ? "The browser did not finish the location request. Check this site's location permission, then try again—or enter a city, state, or ZIP code."
+          : "Your location could not be detected. Enter a city, state, or ZIP code instead.",
       true
     );
   } finally {
     button.disabled = false;
-    button.textContent = "Use My Location";
+    button.removeAttribute("aria-busy");
+    button.textContent = "My Location";
   }
 }
 
