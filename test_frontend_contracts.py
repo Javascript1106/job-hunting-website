@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261103-v143"
+ASSET_VERSION = "20261103-v144"
 
 
 class MarkupInspector(HTMLParser):
@@ -159,6 +159,8 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("window.setTimeout", self.script)
         self.assertIn("button.removeAttribute(\"aria-busy\")", self.script)
         self.assertIn("if (!window.isSecureContext)", self.script)
+        self.assertIn('permissionDenied && permissionState === "granted"', self.script)
+        self.assertIn("Turn on Windows Location services", self.script)
 
     def test_hourly_pay_uses_consistent_currency_precision(self):
         self.assertIn("function formatSalaryAmount(amount, period)", self.script)

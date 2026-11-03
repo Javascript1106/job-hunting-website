@@ -2995,9 +2995,13 @@ async function useCurrentJobLocation() {
     sharedJobLocation = null;
     const permissionDenied = error?.code === 1;
     const permissionTimedOut = error?.name === "LocationRequestTimeout";
+    const operatingSystemBlockedLocation =
+      permissionDenied && permissionState === "granted";
     updateJobLocationStatus(
-      permissionDenied
-        ? "Location access was not allowed. Allow location for PathForge in your browser, then try again—or enter a city, state, or ZIP code."
+      operatingSystemBlockedLocation
+        ? "PathForge is allowed to use location in your browser, but Windows did not provide it. Turn on Windows Location services and desktop-app location access, then try again—or enter a city, state, or ZIP code."
+        : permissionDenied
+          ? "Location access was not allowed. Allow location for PathForge in your browser, then try again—or enter a city, state, or ZIP code."
         : permissionTimedOut
           ? "The browser did not finish the location request. Check this site's location permission, then try again—or enter a city, state, or ZIP code."
           : "Your location could not be detected. Enter a city, state, or ZIP code instead.",
