@@ -443,6 +443,15 @@ async function loadJobs() {
   }
 }
 
+function formatSalaryAmount(amount, period) {
+  const isHourly = String(period || "").toLowerCase() === "hour";
+
+  return Number(amount).toLocaleString(undefined, {
+    minimumFractionDigits: isHourly ? 2 : 0,
+    maximumFractionDigits: isHourly ? 2 : 0
+  });
+}
+
 function formatJobSalary(job) {
   if (
     job.salary_min == null
@@ -459,14 +468,16 @@ function formatJobSalary(job) {
   const minimumSalary = Number(job.salary_min);
   const maximumSalary = Number(job.salary_max);
   const salarySuffix = `/${job.salary_period}`;
+  const formattedMinimum = formatSalaryAmount(minimumSalary, job.salary_period);
+  const formattedMaximum = formatSalaryAmount(maximumSalary, job.salary_period);
 
   if (minimumSalary === maximumSalary) {
-    return `$${minimumSalary.toLocaleString()}${salarySuffix}`;
+    return `$${formattedMinimum}${salarySuffix}`;
   }
 
   return (
-    `$${minimumSalary.toLocaleString()}`
-    + `–$${maximumSalary.toLocaleString()}`
+    `$${formattedMinimum}`
+    + `–$${formattedMaximum}`
     + salarySuffix
   );
 }

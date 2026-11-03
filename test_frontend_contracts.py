@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261103-v142"
+ASSET_VERSION = "20261103-v143"
 
 
 class MarkupInspector(HTMLParser):
@@ -159,6 +159,11 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("window.setTimeout", self.script)
         self.assertIn("button.removeAttribute(\"aria-busy\")", self.script)
         self.assertIn("if (!window.isSecureContext)", self.script)
+
+    def test_hourly_pay_uses_consistent_currency_precision(self):
+        self.assertIn("function formatSalaryAmount(amount, period)", self.script)
+        self.assertIn("minimumFractionDigits: isHourly ? 2 : 0", self.script)
+        self.assertIn("maximumFractionDigits: isHourly ? 2 : 0", self.script)
 
     def test_every_visible_job_filter_is_sent_to_server_search(self):
         mappings = {
@@ -400,7 +405,7 @@ class FrontendContractTests(unittest.TestCase):
 
     def test_equal_salary_bounds_render_as_one_amount(self):
         self.assertIn("if (minimumSalary === maximumSalary)", self.script)
-        self.assertIn("`$${minimumSalary.toLocaleString()}${salarySuffix}`", self.script)
+        self.assertIn("`$${formattedMinimum}${salarySuffix}`", self.script)
 
     def test_jobs_page_identifies_itself_before_and_after_scripts_load(self):
         self.assertIn('<body class="jobs-page">', self.jobs)
