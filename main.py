@@ -9404,6 +9404,12 @@ def open_browser_app():
     return RedirectResponse(url="/index.html", status_code=307)
 
 
+@app.get("/", include_in_schema=False)
+def open_browser_home():
+    """Open PathForge when a visitor enters only the site origin."""
+    return RedirectResponse(url="/index.html", status_code=307)
+
+
 @app.get("/{frontend_path:path}", include_in_schema=False)
 def get_frontend_file(frontend_path: str):
     normalized = Path(frontend_path).as_posix().lstrip("/")

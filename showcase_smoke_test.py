@@ -36,6 +36,7 @@ def run_showcase_smoke_test():
     routes = set(main.app.openapi().get("paths", {}))
     for name, path in (("job_search_route", "/jobs/search"), ("email_health_route", "/health/email")):
         results.append({"name": name, "path": path, "elapsed_ms": 0, "passed": path in routes})
+    results.append({"name": "site_root_route", "path": "/", "elapsed_ms": 0, "passed": "/" in routes})
     started = time.perf_counter()
     try:
         connection = sqlite3.connect(main.DB_NAME, timeout=5)
