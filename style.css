@@ -10516,7 +10516,7 @@ main section[id] {
         display: inline-flex;
         align-items: center;
         justify-self: end;
-        gap: .55rem;
+        gap: .4rem;
         min-height: 44px;
         padding: .55rem .8rem;
         border: 1px solid rgba(255, 255, 255, .48);
@@ -10536,7 +10536,7 @@ main section[id] {
     .nav-menu-icon::before,
     .nav-menu-icon::after {
         display: block;
-        width: 18px;
+        width: 16px;
         height: 2px;
         border-radius: 2px;
         background: currentColor;

@@ -13194,6 +13194,9 @@ function initializeMobileNavigation() {
   const setOpen = open => {
     navigation.classList.toggle("nav-open", open);
     toggle.setAttribute("aria-expanded", String(open));
+    const label = toggle.querySelector("span:last-child");
+    if (label) label.textContent = open ? "Close" : "Menu";
+    toggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
   };
 
   toggle.addEventListener("click", () => {
