@@ -1,6 +1,6 @@
 // Offline shell for public PathForge pages and versioned static assets.
-const CACHE_NAME = "pathforge-shell-20261103-v144";
-const ASSET_VERSION = "20261103-v144";
+const CACHE_NAME = "pathforge-shell-20261103-v145";
+const ASSET_VERSION = "20261103-v145";
 // Cache only the public application shell. Account data and API responses
 // remain network-backed so private or stale records are never served offline.
 const SHELL_FILES = [
@@ -42,8 +42,14 @@ self.addEventListener("fetch", event => {
   if (["style", "script", "image", "font", "manifest"].includes(request.destination)) {
     // Prefer current assets while retaining an offline fallback.
     event.respondWith(
-      fetch(request).then(response => {
-        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+      fetch(request).then(async response => {
+        // Clone immediately, before the browser begins consuming the response
+        // returned to the page. Cloning later can throw "body is already used".
+        const responseForCache = response.ok ? response.clone() : null;
+        if (responseForCache) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, responseForCache);
+        }
         return response;
       }).catch(() => caches.match(request))
     );

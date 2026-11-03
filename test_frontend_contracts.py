@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261103-v144"
+ASSET_VERSION = "20261103-v145"
 
 
 class MarkupInspector(HTMLParser):
@@ -212,6 +212,11 @@ class FrontendContractTests(unittest.TestCase):
             versions.update(version_pattern.findall(page.read_text(encoding="utf-8")))
         self.assertEqual(versions, {ASSET_VERSION})
         self.assertIn(f'pathforge-shell-{ASSET_VERSION}', self.worker)
+
+    def test_service_worker_clones_assets_before_async_cache_work(self):
+        clone_position = self.worker.index("const responseForCache = response.ok ? response.clone() : null")
+        cache_open_position = self.worker.index("const cache = await caches.open(CACHE_NAME)")
+        self.assertLess(clone_position, cache_open_position)
 
     def test_shared_motion_respects_navigation_and_accessibility(self):
         self.assertIn("@keyframes pf-page-enter", self.styles)
