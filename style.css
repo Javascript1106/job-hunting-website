@@ -1399,15 +1399,7 @@ main section[id] {
   }
 
   .main-nav.nav-open .nav-menu-icon {
-    background: transparent;
-  }
-
-  .main-nav.nav-open .nav-menu-icon::before {
-    transform: translateY(7px) rotate(45deg);
-  }
-
-  .main-nav.nav-open .nav-menu-icon::after {
-    transform: translateY(-7px) rotate(-45deg);
+    display: none;
   }
 
   .nav-menu-icon,
