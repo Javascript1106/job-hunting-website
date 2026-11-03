@@ -16,7 +16,7 @@ class MajorEmployerSourceTests(unittest.TestCase):
         employers = [
             entry["employer"]
             for source_type, entries in configuration.items()
-            if source_type not in {"catalog", "usajobs"}
+            if source_type not in {"catalog", "usajobs", "careeronestop"}
             for entry in entries
         ]
         self.assertEqual(employers.count("CVS Health"), 1)
@@ -39,6 +39,7 @@ class MajorEmployerSourceTests(unittest.TestCase):
         )
         self.assertEqual(cvs["country_codes"], ["US"])
         self.assertLessEqual(cvs["max_jobs"], cvs["detail_scan_limit"])
+        self.assertLessEqual(cvs["detail_workers"], 6)
         self.assertLessEqual(primark["max_jobs"], primark["detail_scan_limit"])
         self.assertFalse(cvs["confirmed_teen_only"])
         self.assertFalse(primark["confirmed_teen_only"])
@@ -59,6 +60,16 @@ class MajorEmployerSourceTests(unittest.TestCase):
                 self.assertLessEqual(source["detail_workers"], 16)
                 self.assertTrue(source["title_patterns"])
                 self.assertTrue(source["search_queries"])
+
+    def test_careeronestop_is_us_only_and_bounded(self):
+        configuration = json.loads(
+            (PROJECT_ROOT / "job_sources.json").read_text(encoding="utf-8")
+        )["careeronestop"]
+        self.assertEqual(configuration["country_codes"], ["US"])
+        self.assertEqual(len(configuration["locations"]), 51)
+        self.assertLessEqual(configuration["page_size"], 100)
+        self.assertLessEqual(configuration["pages_per_location"], 5)
+        self.assertLessEqual(configuration["max_jobs"], 5000)
 
 
 if __name__ == "__main__":

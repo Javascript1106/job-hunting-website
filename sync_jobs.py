@@ -5,12 +5,14 @@ import json
 import os
 import sqlite3
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from database import DB_NAME, get_connection, initialize_database
 from job_sources import (
     ashby,
+    careeronestop,
     greenhouse,
     lever,
     recruitee,
@@ -239,6 +241,15 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
         not selected_employers or "Federal agencies" in selected_employers
     ):
         enabled_sources += 1
+    careeronestop_config = configuration.get("careeronestop", {})
+    careeronestop_configured = bool(
+        os.getenv("CAREERONESTOP_USER_ID")
+        and os.getenv("CAREERONESTOP_API_TOKEN")
+    )
+    if enabled(careeronestop_config) and careeronestop_configured and (
+        not selected_employers or "CareerOneStop network" in selected_employers
+    ):
+        enabled_sources += 1
     current_source = 0
 
     for source_type, adapter in adapters:
@@ -253,6 +264,7 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
                 f"[{current_source}/{enabled_sources}] Checking {employer} "
                 f"({source_type})..."
             )
+            source_started = time.perf_counter()
             try:
                 source, fetched = adapter(source_config)
                 imported = filter_catalog_countries(
@@ -268,7 +280,8 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
                     "fetched": len(fetched),
                     "imported": len(imported),
                     "excluded_by_country": len(fetched) - len(imported),
-                    "status": "ok"
+                    "status": "ok",
+                    "duration_seconds": round(time.perf_counter() - source_started, 3),
                 })
                 report(
                     f"  Imported {len(imported)} U.S. jobs "
@@ -280,7 +293,8 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
                     "employer": employer,
                     "fetched": 0,
                     "status": "failed",
-                    "error": str(error)
+                    "error": str(error),
+                    "duration_seconds": round(time.perf_counter() - source_started, 3),
                 })
                 report(f"  Source failed: {error}")
 
@@ -292,6 +306,7 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
             f"[{current_source}/{enabled_sources}] Checking federal agencies "
             "(USAJOBS)..."
         )
+        source_started = time.perf_counter()
         try:
             source, fetched = usajobs.fetch_jobs(usajobs_config)
             imported = filter_catalog_countries(
@@ -305,7 +320,8 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
                 "fetched": len(fetched),
                 "imported": len(imported),
                 "excluded_by_country": len(fetched) - len(imported),
-                "status": "ok"
+                "status": "ok",
+                "duration_seconds": round(time.perf_counter() - source_started, 3),
             })
             report(
                 f"  Imported {len(imported)} U.S. jobs "
@@ -317,9 +333,49 @@ def sync_all(mark_stale=False, progress=None, employer_filter=None, database_pat
                 "employer": "Federal agencies",
                 "fetched": 0,
                 "status": "failed",
-                "error": str(error)
+                "error": str(error),
+                "duration_seconds": round(time.perf_counter() - source_started, 3),
             })
             report(f"  Source failed: {error}")
+
+    if enabled(careeronestop_config) and careeronestop_configured and (
+        not selected_employers or "CareerOneStop network" in selected_employers
+    ):
+        current_source += 1
+        report(
+            f"[{current_source}/{enabled_sources}] Checking CareerOneStop network..."
+        )
+        source_started = time.perf_counter()
+        try:
+            source, fetched = careeronestop.fetch_jobs(careeronestop_config)
+            imported = filter_catalog_countries(fetched, catalog_countries, ["US"])
+            records.extend(imported)
+            completed_sources.add(source)
+            source_results.append({
+                "source": source,
+                "employer": "CareerOneStop network",
+                "fetched": len(fetched),
+                "imported": len(imported),
+                "excluded_by_country": len(fetched) - len(imported),
+                "status": "ok",
+                "duration_seconds": round(time.perf_counter() - source_started, 3),
+            })
+            report(f"  Imported {len(imported)} U.S. jobs from CareerOneStop.")
+        except (KeyError, OSError, RuntimeError, ValueError) as error:
+            source_results.append({
+                "source": "CareerOneStop",
+                "employer": "CareerOneStop network",
+                "fetched": 0,
+                "status": "failed",
+                "error": str(error),
+                "duration_seconds": round(time.perf_counter() - source_started, 3),
+            })
+            report(f"  Source failed: {error}")
+    elif enabled(careeronestop_config) and not careeronestop_configured:
+        report(
+            "CareerOneStop skipped: add CAREERONESTOP_USER_ID and "
+            "CAREERONESTOP_API_TOKEN to .env to enable it."
+        )
 
     report("Updating the PathForge catalog...")
     summary = synchronize_records(
@@ -404,7 +460,7 @@ if __name__ == "__main__":
         description=(
             "Synchronize authorized Greenhouse, Lever, "
             "SmartRecruiters, Ashby, Recruitee, Workable, "
-            "Workday, and USAJOBS listings "
+            "Workday, USAJOBS, and CareerOneStop listings "
             "into PathForge."
         )
     )
@@ -421,12 +477,22 @@ if __name__ == "__main__":
         action="store_true",
         help="Suppress live progress and print only the final JSON report."
     )
+    parser.add_argument(
+        "--employer",
+        action="append",
+        default=[],
+        help=(
+            "Synchronize only the named configured employer or network. "
+            "Repeat this option to select more than one."
+        ),
+    )
     arguments = parser.parse_args()
     progress_callback = None if arguments.quiet else print_progress
     print(json.dumps(
         sync_all(
             mark_stale=arguments.mark_stale,
             progress=progress_callback,
+            employer_filter=arguments.employer,
         ),
         indent=2
     ))

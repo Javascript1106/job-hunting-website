@@ -224,7 +224,17 @@ python sync_jobs.py --mark-stale
 
 The command prints live source-by-source progress, followed by JSON containing
 the active, closed, stale, empty-source, failed-source, and large-drop health
-summary. Use `--quiet` when another program needs JSON-only standard output.
+summary. Each source result includes `duration_seconds` so slow providers can
+be identified without guessing. Use `--quiet` when another program needs
+JSON-only standard output.
+
+CareerOneStop Jobs V2 is enabled automatically when
+`CAREERONESTOP_USER_ID` and `CAREERONESTOP_API_TOKEN` are present in the local
+`.env` file or deployment secret settings. Credentials are sent only to
+`api.careeronestop.org`; they are never stored in listings, logs, or source
+configuration. CareerOneStop listings retain their original source link and
+the jobs page displays the required DOLETA and DEED attribution whenever those
+results are present.
 
 For the scheduler-safe workflow, run `python catalog_maintenance.py`. It creates
 a database backup, refreshes every configured source, produces JSON and Markdown

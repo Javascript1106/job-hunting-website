@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-ASSET_VERSION = "20261029-v137"
+ASSET_VERSION = "20261103-v138"
 
 
 class MarkupInspector(HTMLParser):
@@ -138,6 +138,19 @@ class FrontendContractTests(unittest.TestCase):
         self.assertEqual(len(targets), len(set(targets)))
         self.assertEqual(len(preset_names), len(targets))
         self.assertEqual(self.jobs.count('class="reset-job-filters"'), 1)
+
+    def test_careeronestop_attribution_is_dynamic_and_complete(self):
+        self.assertIn('id="careerOneStopAttribution"', self.jobs)
+        self.assertIn(
+            "U.S. Department of Labor, Employment and Training Administration",
+            self.jobs,
+        )
+        self.assertIn(
+            "Minnesota Department of Employment and Economic Development",
+            self.jobs,
+        )
+        self.assertIn("function updateCareerOneStopAttribution", self.script)
+        self.assertIn('job.source || ""', self.script)
 
     def test_every_visible_job_filter_is_sent_to_server_search(self):
         mappings = {

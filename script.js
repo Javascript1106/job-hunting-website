@@ -1321,6 +1321,14 @@ function openJobComparison() {
 }
 
 
+function updateCareerOneStopAttribution() {
+  const attribution = document.getElementById("careerOneStopAttribution");
+  if (!attribution) return;
+  attribution.hidden = !allJobs.some(
+    job => String(job.source || "").toLowerCase() === "careeronestop"
+  );
+}
+
 function displayJobs(jobs, append = false, pageSize = INITIAL_JOB_PAGE_SIZE) {
   const jobListings = document.getElementById("jobListings");
   const resultCount = document.getElementById("jobResultCount");
@@ -1330,6 +1338,8 @@ function displayJobs(jobs, append = false, pageSize = INITIAL_JOB_PAGE_SIZE) {
   if (!jobListings) {
     return;
   }
+
+  updateCareerOneStopAttribution();
 
   if (!append) {
     jobListings.innerHTML = "";

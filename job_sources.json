@@ -982,7 +982,7 @@
       ],
       "scan_limit": 1000,
       "detail_scan_limit": 900,
-      "detail_workers": 16,
+      "detail_workers": 6,
       "max_jobs": 600
     }
   ],
@@ -993,5 +993,23 @@
     "remote_only": false,
     "results_per_page": 100,
     "pages": 25
+  },
+  "careeronestop": {
+    "enabled": true,
+    "keyword": "0",
+    "locations": [
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+      "WY"
+    ],
+    "radius": 0,
+    "days": 60,
+    "page_size": 100,
+    "pages_per_location": 1,
+    "max_jobs": 4000,
+    "country_codes": ["US"]
   }
 }
